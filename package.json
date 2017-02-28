@@ -1,0 +1,11 @@
+{
+  "name": "bitmovin-player-analytics-conviva",
+  "version": "1.0.0",
+  "description": "Conviva analytics integration for the Bitmovin Player",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bitmovin",
+  "license": "ISC"
+}
