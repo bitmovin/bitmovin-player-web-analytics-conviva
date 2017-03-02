@@ -46,7 +46,7 @@ declare namespace Conviva {
     cleanupSession(sessionKey: number): void;
     contentPreload(sessionKey: number): void;
     contentStart(sessionKey: number): void;
-    createSession(contentMetadata: ContentMetadata | null): void;
+    createSession(contentMetadata: ContentMetadata | null): number;
     detachPlayer(sessionKey: number): void;
     getPlayerStateManager(): PlayerStateManager;
     release(): void;
