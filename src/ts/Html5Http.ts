@@ -22,7 +22,7 @@ export class Html5Http implements Conviva.HttpInterface {
     xmlHttpReq.open(httpMethod, url, true);
 
     if (contentType && xmlHttpReq.overrideMimeType) {
-      xmlHttpReq.overrideMimeType = contentType;
+      xmlHttpReq.overrideMimeType(contentType);
     }
     if (contentType && xmlHttpReq.setRequestHeader) {
       xmlHttpReq.setRequestHeader('Content-Type', contentType);
