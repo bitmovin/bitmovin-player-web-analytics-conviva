@@ -38,7 +38,7 @@ declare namespace Conviva {
   }
 
   class Client {
-    contructor(settings: ClientSettings, systemFactory: SystemFactory);
+    constructor(settings: ClientSettings, systemFactory: SystemFactory);
     adEnd(sessionKey: number): void;
     adStart(sessionKey: number, adStream: Client.AdStream, adPlayer: Client.AdPlayer,
             adPosition: Client.AdPosition): void;
