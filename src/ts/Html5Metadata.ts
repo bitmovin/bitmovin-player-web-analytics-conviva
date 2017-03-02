@@ -13,64 +13,64 @@
 
 export class Html5Metadata implements Conviva.MetadataInterface {
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getBrowserName() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getBrowserName() {
+    return null;
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getBrowserVersion() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getBrowserVersion() {
+    return null;
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getDeviceBrand() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getDeviceBrand() {
+    return null;
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getDeviceManufacturer() {
-        return null;
-    }
-    
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getDeviceModel() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getDeviceManufacturer() {
+    return null;
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getDeviceType() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getDeviceModel() {
+    return null;
+  }
 
-    // There is no value we can access that qualifies as the device version.
-    getDeviceVersion() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getDeviceType() {
+    return null;
+  }
 
-    // HTML5 can qualify as an application framework of sorts.
-    getFrameworkName() {
-        return "HTML5";
-    }
+  // There is no value we can access that qualifies as the device version.
+  getDeviceVersion() {
+    return null;
+  }
 
-    // No convenient way to detect HTML5 version.
-    getFrameworkVersion() {
-        return null;
-    }
+  // HTML5 can qualify as an application framework of sorts.
+  getFrameworkName() {
+    return 'HTML5';
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getOperatingSystemName() {
-        return null;
-    }
+  // No convenient way to detect HTML5 version.
+  getFrameworkVersion() {
+    return null;
+  }
 
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    getOperatingSystemVersion() {
-        return null;
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getOperatingSystemName() {
+    return null;
+  }
 
-    release() {
-        // nothing to release
-    }
+  // Relying on HTTP user agent string parsing on the Conviva Platform.
+  getOperatingSystemVersion() {
+    return null;
+  }
+
+  release() {
+    // nothing to release
+  }
 
 }
 

@@ -10,29 +10,29 @@
 
 export class Html5Storage implements Conviva.StorageInterface {
 
-    saveData(storageSpace, storageKey, data, callback) {
-        let localStorageKey = storageSpace + "." + storageKey;
-        try {
-            localStorage.setItem(localStorageKey, data);
-            callback(true, null);
-        } catch (e) {
-            callback(false, e.toString());
-        }
+  saveData(storageSpace, storageKey, data, callback) {
+    let localStorageKey = storageSpace + '.' + storageKey;
+    try {
+      localStorage.setItem(localStorageKey, data);
+      callback(true, null);
+    } catch (e) {
+      callback(false, e.toString());
     }
+  }
 
-    loadData(storageSpace, storageKey, callback) {
-        let localStorageKey = storageSpace + "." + storageKey;
-        try {
-            let data = localStorage.getItem(localStorageKey);
-            callback(true, data);
-        } catch (e) { 
-            callback(false, e.toString());
-        }
+  loadData(storageSpace, storageKey, callback) {
+    let localStorageKey = storageSpace + '.' + storageKey;
+    try {
+      let data = localStorage.getItem(localStorageKey);
+      callback(true, data);
+    } catch (e) {
+      callback(false, e.toString());
     }
+  }
 
-    release = function() {
-        // nothing to release
-    }
+  release = function() {
+    // nothing to release
+  }
 
 }
 

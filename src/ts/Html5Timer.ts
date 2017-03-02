@@ -5,27 +5,26 @@
 
 // Implements Conviva.TimerInterface for Chrome.
 
-// setInterval does exactly what we need. We just need to return a function 
+// setInterval does exactly what we need. We just need to return a function
 // which cancels the timer when called.
 // Some JavaScript implementations do not have setInterval, in which case
 // you may have to write it yourself using setTimeout.
 
 export class Html5Timer implements Conviva.TimerInterface {
 
-    createTimer(timerAction, intervalMs, actionName) {
-        let timerId = setInterval(timerAction, intervalMs);
-        let cancelTimerFunc = (function () {
-            if (timerId !== -1) {
-                clearInterval(timerId);
-                timerId = -1;
-            }
-        });
-        return cancelTimerFunc;
-    }
+  createTimer(timerAction, intervalMs, actionName) {
+    let timerId = setInterval(timerAction, intervalMs);
+    let cancelTimerFunc = (function() {
+      if (timerId !== -1) {
+        clearInterval(timerId);
+        timerId = -1;
+      }
+    });
+    return cancelTimerFunc;
+  }
 
-    release() {
-        // nothing to release
-    }
+  release() {
+    // nothing to release
+  }
 
 }
-
