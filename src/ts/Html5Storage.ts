@@ -8,9 +8,12 @@
 // HTML5 localStorage relies on a single key to index items,
 // so we find a consistent way to combine storageSpace and storageKey.
 
+import StorageLoadDataCallback = Conviva.StorageLoadDataCallback;
+import StorageSaveDataCallback = Conviva.StorageSaveDataCallback;
+
 export class Html5Storage implements Conviva.StorageInterface {
 
-  saveData(storageSpace, storageKey, data, callback) {
+  saveData(storageSpace: string, storageKey: string, data: string, callback: StorageSaveDataCallback): void {
     let localStorageKey = storageSpace + '.' + storageKey;
     try {
       localStorage.setItem(localStorageKey, data);
@@ -20,7 +23,7 @@ export class Html5Storage implements Conviva.StorageInterface {
     }
   }
 
-  loadData(storageSpace, storageKey, callback) {
+  loadData(storageSpace: string, storageKey: string, callback: StorageLoadDataCallback): void {
     let localStorageKey = storageSpace + '.' + storageKey;
     try {
       let data = localStorage.getItem(localStorageKey);
@@ -30,7 +33,7 @@ export class Html5Storage implements Conviva.StorageInterface {
     }
   }
 
-  release = function() {
+  release() {
     // nothing to release
   }
 

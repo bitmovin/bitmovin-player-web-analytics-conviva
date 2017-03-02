@@ -7,12 +7,12 @@
 
 export class Html5Time implements Conviva.TimeInterface {
 
-  getEpochTimeMs() {
+  getEpochTimeMs(): number {
     let d = new Date();
     return d.getTime();
   }
 
-  release() {
+  release(): void {
     // nothing to release
   }
 }

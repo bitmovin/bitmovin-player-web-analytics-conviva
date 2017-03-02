@@ -10,9 +10,12 @@
 // Some JavaScript implementations do not have setInterval, in which case
 // you may have to write it yourself using setTimeout.
 
+import TimerCancelFunction = Conviva.TimerCancelFunction;
+import TimerAction = Conviva.TimerAction;
+
 export class Html5Timer implements Conviva.TimerInterface {
 
-  createTimer(timerAction, intervalMs, actionName) {
+  createTimer(timerAction: TimerAction, intervalMs: number, actionName?: string | null): TimerCancelFunction {
     let timerId = setInterval(timerAction, intervalMs);
     let cancelTimerFunc = (function() {
       if (timerId !== -1) {
@@ -23,7 +26,7 @@ export class Html5Timer implements Conviva.TimerInterface {
     return cancelTimerFunc;
   }
 
-  release() {
+  release(): void {
     // nothing to release
   }
 

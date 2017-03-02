@@ -5,9 +5,11 @@
 
 // Implements Conviva.LoggingInterface for Chrome.
 
+import SystemSettings = Conviva.SystemSettings;
+
 export class Html5Logging implements Conviva.LoggingInterface {
 
-  consoleLog(message, logLevel) {
+  consoleLog(message: string, logLevel: SystemSettings.LogLevel): void {
       if (typeof console === 'undefined') {
           return;
       }
@@ -21,7 +23,7 @@ export class Html5Logging implements Conviva.LoggingInterface {
     }
   }
 
-  release() {
+  release(): void {
     // nothing to release
   }
 

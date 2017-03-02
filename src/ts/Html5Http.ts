@@ -5,9 +5,13 @@
 
 // Implements Conviva.HttpInterface for Chrome.
 
+import HttpRequestCancelFunction = Conviva.HttpRequestCancelFunction;
+import HttpRequestCallback = Conviva.HttpRequestCallback;
+
 export class Html5Http implements Conviva.HttpInterface {
 
-  makeRequest(httpMethod, url, data, contentType, timeoutMs, callback) {
+  makeRequest(httpMethod: 'GET' | 'POST', url: string, data: string | null, contentType: string | null,
+              timeoutMs: number, callback: HttpRequestCallback | null): HttpRequestCancelFunction {
     // XDomainRequest only exists in IE, and is IE8-IE9's way of making CORS requests.
     // It is present in IE10 but won't work right.
     // if (typeof XDomainRequest !== 'undefined' && navigator.userAgent.indexOf('MSIE 10') === -1) {
@@ -16,7 +20,8 @@ export class Html5Http implements Conviva.HttpInterface {
     return this.makeRequestStandard.apply(this, arguments);
   }
 
-  private makeRequestStandard(httpMethod, url, data, contentType, timeoutMs, callback) {
+  private makeRequestStandard(httpMethod: 'GET' | 'POST', url: string, data: string | null, contentType: string | null,
+                              timeoutMs: number, callback: HttpRequestCallback | null): HttpRequestCancelFunction {
     let xmlHttpReq = new XMLHttpRequest();
 
     xmlHttpReq.open(httpMethod, url, true);
@@ -91,7 +96,7 @@ export class Html5Http implements Conviva.HttpInterface {
   //    return null; // no way to cancel the request
   //   };
 
-  release() {
+  release(): void {
     // nothing to release
   }
 
