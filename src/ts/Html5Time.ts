@@ -1,24 +1,19 @@
+///<reference path="../ts/Conviva.d.ts"/>
 /*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
 /*! This is sample code meant to illustrate proper Conviva integration in video applications. */
 /*! This file should not be included in video applications as part of integrating Conviva. */
 
 // Implements Conviva.TimeInterface for Chrome.
 
-function Html5Time () {
+export class Html5Time implements Conviva.TimeInterface {
 
-    function _constr() {
-        // nothing to initialize
+    getEpochTimeMs() {
+        let d = new Date();
+        return d.getTime();
     }
 
-    _constr.apply(this, arguments);
-
-    this.getEpochTimeMs = function () {
-        var d = new Date();
-        return d.getTime();
-    };
-
-    this.release = function() {
+    release() {
         // nothing to release
-    };
+    }
 }
 

@@ -1,3 +1,4 @@
+///<reference path="../ts/Conviva.d.ts"/>
 /*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
 /*! This is sample code meant to illustrate proper Conviva integration in video applications. */
 /*! This file should not be included in video applications as part of integrating Conviva. */
@@ -10,72 +11,66 @@
 // If you wish you can maintain your own user agent string parsing on the client side
 // instead, and use it to supply the requested Conviva data.
 
-function Html5Metadata () {
+export class Html5Metadata implements Conviva.MetadataInterface {
 
-    function _constr() {
-        // nothing to initialize
+    // Relying on HTTP user agent string parsing on the Conviva Platform.
+    getBrowserName() {
+        return null;
     }
 
-    _constr.apply(this, arguments);
+    // Relying on HTTP user agent string parsing on the Conviva Platform.
+    getBrowserVersion() {
+        return null;
+    }
 
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getBrowserName = function () {
+    getDeviceBrand() {
         return null;
-    };
+    }
 
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getBrowserVersion = function () {
+    getDeviceManufacturer() {
         return null;
-    };
-
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getDeviceBrand = function () {
-        return null;
-    };
-
-    // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getDeviceManufacturer = function () {
-        return null;
-    };
+    }
     
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getDeviceModel = function () {
+    getDeviceModel() {
         return null;
-    };
+    }
 
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getDeviceType = function () {
+    getDeviceType() {
         return null;
-    };
+    }
 
     // There is no value we can access that qualifies as the device version.
-    this.getDeviceVersion = function () {
+    getDeviceVersion() {
         return null;
-    };
+    }
 
     // HTML5 can qualify as an application framework of sorts.
-    this.getFrameworkName = function () {
+    getFrameworkName() {
         return "HTML5";
-    };
+    }
 
     // No convenient way to detect HTML5 version.
-    this.getFrameworkVersion = function () {
+    getFrameworkVersion() {
         return null;
-    };
+    }
 
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getOperatingSystemName = function () {
+    getOperatingSystemName() {
         return null;
-    };
+    }
 
     // Relying on HTTP user agent string parsing on the Conviva Platform.
-    this.getOperatingSystemVersion = function () {
+    getOperatingSystemVersion() {
         return null;
-    };
+    }
 
-    this.release = function() {
+    release() {
         // nothing to release
-    };
+    }
 
 }
 
