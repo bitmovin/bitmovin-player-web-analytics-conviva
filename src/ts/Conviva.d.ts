@@ -37,8 +37,8 @@ declare namespace Conviva {
     const version: string;
   }
 
-  interface Client {
-    new(settings: ClientSettings, systemFactory: SystemFactory);
+  class Client {
+    contructor(settings: ClientSettings, systemFactory: SystemFactory);
     adEnd(sessionKey: number): void;
     adStart(sessionKey: number, adStream: Client.AdStream, adPlayer: Client.AdPlayer,
             adPosition: Client.AdPosition): void;
@@ -56,8 +56,8 @@ declare namespace Conviva {
     updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
   }
 
-  interface ClientSettings {
-    new (customerKey: string);
+  class ClientSettings {
+    constructor(customerKey: string);
     customerKey: string;
     gatewayUrl: string;
     heartbeatInterval: number;
@@ -71,7 +71,7 @@ declare namespace Conviva {
     }
   }
 
-  interface ContentMetadata {
+  class ContentMetadata {
     applicationName: string;
     assetName: string;
     custom: {};
@@ -100,7 +100,7 @@ declare namespace Conviva {
 
   interface LoggingInterface {
     consoleLog(message: string, logLevel: SystemSettings.LogLevel): void;
-    release();
+    release(): void;
   }
 
   interface MetadataInterface {
@@ -129,7 +129,7 @@ declare namespace Conviva {
     }
   }
 
-  interface PlayerStateManager {
+  class PlayerStateManager {
     getBitrateKbps(): number;
     getDuration(): number;
     getEncodedFrameRate(): number;
@@ -168,13 +168,13 @@ declare namespace Conviva {
     release(): void;
   }
 
-  interface SystemFactory {
-    new(systemInterface: SystemInterface, systemSettings: SystemSettings);
+  class SystemFactory {
+    constructor(systemInterface: SystemInterface, systemSettings: SystemSettings);
     release(): void;
   }
 
-  interface SystemInterface {
-    new(timeInterface: TimeInterface, timerInterface: TimerInterface, httpInterface: HttpInterface,
+  class SystemInterface {
+    constructor(timeInterface: TimeInterface, timerInterface: TimerInterface, httpInterface: HttpInterface,
         storageInterface: StorageInterface, metadataInterface: MetadataInterface, loggingInterface: LoggingInterface);
   }
 
@@ -188,7 +188,7 @@ declare namespace Conviva {
     }
   }
 
-  interface SystemSettings {
+  class SystemSettings {
     allowUncaughtExceptions: boolean;
     httpTimeout: number;
     logLevel: SystemSettings.LogLevel;
