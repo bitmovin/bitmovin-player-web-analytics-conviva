@@ -206,7 +206,8 @@ export class ConvivaAnalytics {
 
   private registerPlayerEvents(): void {
     let player = this.player;
-    player.addEventHandler(player.EVENT.ON_READY, this.startSession);
+    player.addEventHandler(player.EVENT.ON_SOURCE_LOADED, this.startSession);
+    player.addEventHandler(player.EVENT.ON_READY, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_PLAY, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_PAUSED, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
