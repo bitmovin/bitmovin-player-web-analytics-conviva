@@ -135,6 +135,10 @@ export class ConvivaAnalytics {
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
   };
 
+  private reportVideoQualityChange = (event: any) => {
+    this.playerStateManager.setBitrateKbps(event.targetQuality.bitrate);
+  };
+
   private endSession = () => {
     // sessionKey was obtained as shown above
     this.client.detachPlayer(this.sessionKey);
@@ -146,6 +150,7 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     player.addEventHandler(player.EVENT.ON_READY, this.startSession);
+    player.addEventHandler(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
     player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
   }
 
