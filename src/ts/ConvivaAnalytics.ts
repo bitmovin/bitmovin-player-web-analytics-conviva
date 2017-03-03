@@ -139,6 +139,28 @@ export class ConvivaAnalytics {
     this.playerStateManager.setBitrateKbps(event.targetQuality.bitrate);
   };
 
+  private reportCustomEventType = (event: any) => {
+    let eventAttributes: EventAttributes = {};
+
+    // Flatten the event object into a string-to-string dictionary
+    let objectWalker = (object: any, prefix: string = '') => {
+      for (let key in object) {
+        if (object.hasOwnProperty(key)) {
+          let value = object[key];
+          if(typeof value === 'object') {
+            objectWalker(value, prefix + key + '.');
+          } else {
+            eventAttributes[prefix + key] = String(value);
+          }
+          console.log(key + " -> " + object[key]);
+        }
+      }
+    };
+    objectWalker(event);
+
+    this.sendCustomPlaybackEvent(event.type, eventAttributes);
+  };
+
   private endSession = () => {
     // sessionKey was obtained as shown above
     this.client.detachPlayer(this.sessionKey);
@@ -151,6 +173,13 @@ export class ConvivaAnalytics {
     let player = this.player;
     player.addEventHandler(player.EVENT.ON_READY, this.startSession);
     player.addEventHandler(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
+    player.addEventHandler(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_MUTED, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_UNMUTED, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_FULLSCREEN_ENTER, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_FULLSCREEN_EXIT, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
+    player.addEventHandler(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
     player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
   }
 
