@@ -158,6 +158,14 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerState(playerState);
   };
 
+  private reportSeekStart = (event: any) => {
+    this.playerStateManager.setPlayerSeekStart(event.seekTarget * 1000);
+  };
+
+  private reportSeekEnd = () => {
+    this.playerStateManager.setPlayerSeekEnd();
+  };
+
   private reportVideoQualityChange = (event: any) => {
     this.playerStateManager.setBitrateKbps(event.targetQuality.bitrate);
   };
@@ -199,6 +207,8 @@ export class ConvivaAnalytics {
     player.addEventHandler(player.EVENT.ON_PAUSED, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
+    player.addEventHandler(player.EVENT.ON_SEEK, this.reportSeekStart);
+    player.addEventHandler(player.EVENT.ON_SEEKED, this.reportSeekEnd);
     player.addEventHandler(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
     player.addEventHandler(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
     player.addEventHandler(player.EVENT.ON_MUTED, this.reportCustomEventType);
