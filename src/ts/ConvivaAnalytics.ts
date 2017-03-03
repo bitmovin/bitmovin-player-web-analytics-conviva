@@ -15,6 +15,10 @@ export interface ConvivaAnalyticsConfiguration {
    */
   gatewayUrl?: string;
   /**
+   * A string value used to distinguish individual apps, players, locations, platforms, and/or deployments.
+   */
+  applicationName?: string;
+  /**
    * A unique identifier to distinguish individual viewers/subscribers and their watching experience through
    * Conviva's Viewers Module in Pulse.
    * Can also be set in the source config of the player, which will take precedence over this value.
@@ -112,6 +116,7 @@ export class ConvivaAnalytics {
     let contentMetadata = new Conviva.ContentMetadata();
     contentMetadata.assetName = source.title || 'Untitled';
     contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+    contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
