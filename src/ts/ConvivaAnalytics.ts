@@ -121,6 +121,10 @@ export class ConvivaAnalytics {
     contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
         : Conviva.ContentMetadata.StreamType.VOD;
     // TODO set streamUrl
+    contentMetadata.custom = {
+      'playerType': this.player.getPlayerType(),
+      'streamType': this.player.getStreamType(),
+    };
 
     this.reportPlaybackState();
 
