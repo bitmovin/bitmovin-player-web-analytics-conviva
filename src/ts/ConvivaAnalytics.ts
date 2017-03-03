@@ -116,12 +116,11 @@ export class ConvivaAnalytics {
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
 
-    if (this.sessionKey !== Conviva.Client.NO_SESSION_KEY) {
-      // Success.
-    } else {
+    if (this.sessionKey === Conviva.Client.NO_SESSION_KEY) {
       // Something went wrong. With stable system interfaces, this should never happen.
+      this.logger.consoleLog('Something went wrong, could not obtain session key',
+        Conviva.SystemSettings.LogLevel.ERROR);
     }
-
 
     // sessionKey was obtained as shown above
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
