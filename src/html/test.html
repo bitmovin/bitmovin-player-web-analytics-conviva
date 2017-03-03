@@ -16,6 +16,7 @@
 
     <!-- Bitmovin Player -->
     <script type="text/javascript" src="https://bitmovin-a.akamaihd.net/bitmovin-player/stable/7/bitmovinplayer.js"></script>
+    <script type="text/javascript" src="http://link.to/conviva-core-sdk.min.js"></script>
     <script type="text/javascript" src="js/bitmovinplayer-analytics-conviva.js"></script>
 
     <style>
@@ -56,14 +57,15 @@
 </div>
 <script type="text/javascript">
   var conf = {
-    key: '89f6ed6c-ab0e-46c2-ac47-5665e60c3c41',
+    key: 'YOUR-PLAYER-KEY',
     source: {
       title: 'Art of Motion',
       description: 'What is this event... Parcour?',
       dash: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
       hls: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
       progressive: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4',
-      poster: '//bitmovin-a.akamaihd.net/content/art-of-motion_drm/art-of-motion_poster.jpg'
+      poster: '//bitmovin-a.akamaihd.net/content/art-of-motion_drm/art-of-motion_poster.jpg',
+      viewerId: 'uniqueViewerIdThatOverridesTheConvivaAnalyticsConfig', // Conviva viewerId
     },
     playback: {},
     style: {},
@@ -77,8 +79,13 @@
   };
 
   var player = bitmovin.player('player');
-  player.setup(conf).then(function(response) {
+  player.setup(conf).then(function() {
     console.log('player loaded');
+    var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+      gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+      applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
+      viewerId: 'uniqueViewerId',
+    });
   }, function(reason) {
     console.error('player setup failed');
     console.error(reason);
