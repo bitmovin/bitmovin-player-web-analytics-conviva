@@ -192,6 +192,11 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
+  private reportError = (event: any) => {
+    this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message, Conviva.Client.ErrorSeverity.FATAL);
+    this.endSession();
+  };
+
   private endSession = () => {
     // sessionKey was obtained as shown above
     this.client.detachPlayer(this.sessionKey);
@@ -218,6 +223,7 @@ export class ConvivaAnalytics {
     player.addEventHandler(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
     player.addEventHandler(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
     player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
+    player.addEventHandler(player.EVENT.ON_ERROR, this.reportError);
   }
 
   /**
