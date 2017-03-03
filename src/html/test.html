@@ -79,13 +79,15 @@
   };
 
   var player = bitmovin.player('player');
+
+  var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+    gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+    applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
+    viewerId: 'uniqueViewerId',
+  });
+
   player.setup(conf).then(function() {
     console.log('player loaded');
-    var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
-      gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
-      applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
-      viewerId: 'uniqueViewerId',
-    });
   }, function(reason) {
     console.error('player setup failed');
     console.error(reason);
