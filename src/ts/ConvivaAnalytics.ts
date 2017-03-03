@@ -122,6 +122,8 @@ export class ConvivaAnalytics {
         : Conviva.ContentMetadata.StreamType.VOD;
     // TODO set streamUrl
 
+    this.reportPlaybackState();
+
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
 
@@ -133,6 +135,23 @@ export class ConvivaAnalytics {
 
     // sessionKey was obtained as shown above
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+  };
+
+  private reportPlaybackState = () => {
+    let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
+
+    if ((!this.player.isPlaying() && !this.player.isPaused()) || this.player.hasEnded()) {
+      // Before playback has started, and after it is finished, we report the stopped state
+      playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
+    } else if (this.player.isStalled()) {
+      playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
+    } else if(this.player.isPlaying()) {
+      playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+    } else if(this.player.isPaused()) {
+      playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+    }
+
+    this.playerStateManager.setPlayerState(playerState);
   };
 
   private reportVideoQualityChange = (event: any) => {
@@ -172,6 +191,10 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     player.addEventHandler(player.EVENT.ON_READY, this.startSession);
+    player.addEventHandler(player.EVENT.ON_PLAY, this.reportPlaybackState);
+    player.addEventHandler(player.EVENT.ON_PAUSED, this.reportPlaybackState);
+    player.addEventHandler(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
+    player.addEventHandler(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
     player.addEventHandler(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
     player.addEventHandler(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
     player.addEventHandler(player.EVENT.ON_MUTED, this.reportCustomEventType);
