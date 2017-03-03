@@ -231,6 +231,7 @@ export class ConvivaAnalytics {
   }
 
   release(): void {
+    this.endSession();
     this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
