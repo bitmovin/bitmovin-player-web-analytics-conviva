@@ -49,6 +49,13 @@ export class ConvivaAnalytics {
       return; // Cancel initialization
     }
 
+    // Assert that this class is instantiated before player.setup() is called.
+    // When instantiated later, we cannot detect startup error events because they are fired during setup.
+    if (player.isReady()) {
+      console.error('ConvivaAnalytics must be instantiated before calling player.setup()');
+      return; // Cancel initialization
+    }
+
     this.player = player;
     this.config = config;
 
