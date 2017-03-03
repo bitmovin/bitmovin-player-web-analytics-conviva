@@ -114,9 +114,13 @@ export class ConvivaAnalytics {
 
     // Create a ContentMetadata object and supply relevant metadata for the requested content.
     let contentMetadata = new Conviva.ContentMetadata();
-    contentMetadata.assetName = source.title || 'Untitled';
+    contentMetadata.assetName = source.title || 'Untitled (no source.title set)';
     contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
     contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
+    contentMetadata.duration = this.player.getDuration(); // TODO how to handle HLS Chrome deferred duration detection?
+    contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
+        : Conviva.ContentMetadata.StreamType.VOD;
+    // TODO set streamUrl
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
