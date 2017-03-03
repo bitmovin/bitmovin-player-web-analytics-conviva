@@ -106,6 +106,7 @@ export class ConvivaAnalytics {
     contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
+      'vrContentType': this.player.getVRStatus().contentType,
     };
 
     this.reportPlaybackState();
