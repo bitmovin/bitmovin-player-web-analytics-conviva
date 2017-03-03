@@ -87,11 +87,6 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerVersion(player.version);
 
     this.registerPlayerEvents();
-
-    if(player.isReady()) {
-      // We already have a source loaded and can directly start a session
-      this.startSession();
-    }
   }
 
   private startSession = () => {
