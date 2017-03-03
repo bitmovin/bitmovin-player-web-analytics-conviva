@@ -83,29 +83,7 @@ export class ConvivaAnalytics {
     this.client = new Conviva.Client(clientSettings, this.systemFactory);
 
     this.playerStateManager = this.client.getPlayerStateManager();
-
-    // The video stream is stalled and waiting for more video data.
-    //this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
-
-    // We are now streaming at a bitrate of 2.2Mbps.
-    //this.playerStateManager.setBitrateKbps(2200); // in Kbps
-
-    // There was an error with video playback, and the video player reported an error code of 'INVALID_MANIFEST'.
-    // Due to the severity of the error, this will most likely prevent playback and should be considered as fatal.
-    //this.playerStateManager.sendError('INVALID_MANIFEST', Conviva.Client.ErrorSeverity.FATAL);
-
-    // Duration of the video stream was detected. It is 30000 milliseconds.
-    //this.playerStateManager.setDuration(30); // in seconds
-
-    // Encoded frame rate of the video stream was detected. It is 29 frames per second.
-    //this.playerStateManager.setEncodedFrameRate(29);
-
-    // The name of the video player was not available until an instance of it was created.
-    // We now know it is 'AdvancedVideoPlayer'.
     this.playerStateManager.setPlayerType('Bitmovin Player');
-
-    // The version of the video player was not available until an instance of it was created.
-    // We now know it is '1.2.3.4'.
     this.playerStateManager.setPlayerVersion(player.version);
 
     this.registerPlayerEvents();
@@ -204,10 +182,7 @@ export class ConvivaAnalytics {
   };
 
   private endSession = () => {
-    // sessionKey was obtained as shown above
     this.client.detachPlayer(this.sessionKey);
-
-    // Terminate the existing Conviva monitoring session represented by sessionKey
     this.client.cleanupSession(this.sessionKey);
   };
 
