@@ -180,7 +180,7 @@ export class ConvivaAnalytics {
   private reportCustomEventType = (event: any) => {
     let eventAttributes: EventAttributes = {};
 
-    // Flatten the event object into a string-to-string dictionary
+    // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
     let objectWalker = (object: any, prefix: string = '') => {
       for (let key in object) {
         if (object.hasOwnProperty(key)) {
