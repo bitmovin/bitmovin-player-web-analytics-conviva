@@ -23,6 +23,8 @@ export interface EventAttributes {
 export class ConvivaAnalytics {
 
   private player: Player;
+  private config: ConvivaAnalyticsConfiguration;
+
   private systemFactory: Conviva.SystemFactory;
   private client: Conviva.Client;
   private playerStateManager: Conviva.PlayerStateManager;
@@ -38,6 +40,7 @@ export class ConvivaAnalytics {
     }
 
     this.player = player;
+    this.config = config;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
@@ -86,13 +89,22 @@ export class ConvivaAnalytics {
 
     // The version of the video player was not available until an instance of it was created.
     // We now know it is '1.2.3.4'.
-    this.playerStateManager.setPlayerVersion('1.2.3.4.5');
+    this.playerStateManager.setPlayerVersion(player.version);
 
+    this.registerPlayerEvents();
+
+    if(player.isReady()) {
+      // We already have a source loaded and can directly start a session
+      this.startSession();
+    }
+  }
+
+  private startSession = () => {
+    let source = this.player.getConfig().source;
 
     // Create a ContentMetadata object and supply relevant metadata for the requested content.
     let contentMetadata = new Conviva.ContentMetadata();
-    contentMetadata.assetName = 'Sample Video';
-    // more...
+    contentMetadata.assetName = source.title || 'Untitled';
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
@@ -106,15 +118,20 @@ export class ConvivaAnalytics {
 
     // sessionKey was obtained as shown above
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+  };
 
+  private endSession = () => {
     // sessionKey was obtained as shown above
     this.client.detachPlayer(this.sessionKey);
 
-    // If you no longer need that PlayerStateManager, release it
-    this.client.releasePlayerStateManager(this.playerStateManager);
-
     // Terminate the existing Conviva monitoring session represented by sessionKey
     this.client.cleanupSession(this.sessionKey);
+  };
+
+  private registerPlayerEvents(): void {
+    let player = this.player;
+    //player.addEventHandler(player.EVENT.ON_READY, this.startSession);
+    //player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
   }
 
   /**
@@ -145,6 +162,7 @@ export class ConvivaAnalytics {
   }
 
   release(): void {
+    this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
   }
