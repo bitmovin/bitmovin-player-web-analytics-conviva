@@ -33,6 +33,7 @@ export interface EventAttributes {
 export class ConvivaAnalytics {
 
   private player: Player;
+  private playerEvents: PlayerEventWrapper;
   private config: ConvivaAnalyticsConfiguration;
 
   private systemFactory: Conviva.SystemFactory;
@@ -57,6 +58,7 @@ export class ConvivaAnalytics {
     }
 
     this.player = player;
+    this.playerEvents = new PlayerEventWrapper(player);
     this.config = config;
 
     this.logger = new Html5Logging();
@@ -183,24 +185,29 @@ export class ConvivaAnalytics {
 
   private registerPlayerEvents(): void {
     let player = this.player;
-    player.addEventHandler(player.EVENT.ON_SOURCE_LOADED, this.startSession);
-    player.addEventHandler(player.EVENT.ON_READY, this.reportPlaybackState);
-    player.addEventHandler(player.EVENT.ON_PLAY, this.reportPlaybackState);
-    player.addEventHandler(player.EVENT.ON_PAUSED, this.reportPlaybackState);
-    player.addEventHandler(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
-    player.addEventHandler(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
-    player.addEventHandler(player.EVENT.ON_SEEK, this.reportSeekStart);
-    player.addEventHandler(player.EVENT.ON_SEEKED, this.reportSeekEnd);
-    player.addEventHandler(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
-    player.addEventHandler(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_MUTED, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_UNMUTED, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_FULLSCREEN_ENTER, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_FULLSCREEN_EXIT, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
-    player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
-    player.addEventHandler(player.EVENT.ON_ERROR, this.reportError);
+    let playerEvents = this.playerEvents;
+    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.startSession);
+    playerEvents.add(player.EVENT.ON_READY, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_PLAY, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_PAUSED, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_SEEK, this.reportSeekStart);
+    playerEvents.add(player.EVENT.ON_SEEKED, this.reportSeekEnd);
+    playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
+    playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_MUTED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_UNMUTED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_FULLSCREEN_ENTER, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_FULLSCREEN_EXIT, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
+    playerEvents.add(player.EVENT.ON_ERROR, this.reportError);
+  }
+
+  private unregisterPlayerEvents(): void {
+    this.playerEvents.clear();
   }
 
   /**
@@ -231,9 +238,68 @@ export class ConvivaAnalytics {
   }
 
   release(): void {
+    this.unregisterPlayerEvents();
     this.endSession();
     this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
+  }
+}
+
+class PlayerEventWrapper {
+
+  private player: Player;
+  private eventHandlers: { [eventType: string]: ((event?: any) => void)[]; };
+
+  constructor(player: Player) {
+    this.player = player;
+    this.eventHandlers = {};
+  }
+
+  add(eventType: string, callback: (event?: any) => void): void {
+    this.player.addEventHandler(eventType, callback);
+
+    if (!this.eventHandlers[eventType]) {
+      this.eventHandlers[eventType] = [];
+    }
+
+    this.eventHandlers[eventType].push(callback);
+  }
+
+  remove(eventType: string, callback: (event?: any) => void): void {
+    this.player.removeEventHandler(eventType, callback);
+
+    if (this.eventHandlers[eventType]) {
+      ArrayUtils.remove(this.eventHandlers[eventType], callback);
+    }
+  }
+
+  clear(): void {
+    for (let eventType in this.eventHandlers) {
+      for (let callback of this.eventHandlers[eventType]) {
+        this.player.removeEventHandler(eventType, callback);
+      }
+    }
+  }
+}
+
+/**
+ * Extracted from bitmovin-player-ui
+ */
+namespace ArrayUtils {
+  /**
+   * Removes an item from an array.
+   * @param array the array that may contain the item to remove
+   * @param item the item to remove from the array
+   * @returns {any} the removed item or null if it wasn't part of the array
+   */
+  export function remove<T>(array: T[], item: T): T | null {
+    let index = array.indexOf(item);
+
+    if (index > -1) {
+      return array.splice(index, 1)[0];
+    } else {
+      return null;
+    }
   }
 }
