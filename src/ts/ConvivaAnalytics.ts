@@ -91,6 +91,23 @@ export class ConvivaAnalytics {
     this.registerPlayerEvents();
   }
 
+  private getUrlFromSource(source: any): string {
+    switch (this.player.getStreamType()) {
+      case 'dash':
+        return source.dash;
+      case 'hls':
+        return source.hls;
+      case 'progressive':
+        if (Array.isArray(source.progressive)) {
+          // TODO check if the first stream can be another index (e.g. ordered by bitrate), and select the current
+          // startup url
+          return source.progressive[0].url;
+        } else {
+          return source.progressive;
+        }
+    }
+  }
+
   private startSession = () => {
     let source = this.player.getConfig().source;
 
@@ -102,7 +119,7 @@ export class ConvivaAnalytics {
     contentMetadata.duration = this.player.getDuration(); // TODO how to handle HLS Chrome deferred duration detection?
     contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
         : Conviva.ContentMetadata.StreamType.VOD;
-    // TODO set streamUrl
+    contentMetadata.streamUrl = this.getUrlFromSource(source);
     contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
