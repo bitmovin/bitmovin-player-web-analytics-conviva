@@ -183,7 +183,6 @@ export class ConvivaAnalytics {
           } else {
             eventAttributes[prefix + key] = String(value);
           }
-          console.log(key + " -> " + object[key]);
         }
       }
     };
