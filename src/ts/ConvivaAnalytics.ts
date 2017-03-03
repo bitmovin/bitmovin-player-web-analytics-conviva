@@ -14,6 +14,12 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
+  /**
+   * A unique identifier to distinguish individual viewers/subscribers and their watching experience through
+   * Conviva's Viewers Module in Pulse.
+   * Can also be set in the source config of the player, which will take precedence over this value.
+   */
+  viewerId?: string;
 }
 
 export interface EventAttributes {
@@ -105,6 +111,7 @@ export class ConvivaAnalytics {
     // Create a ContentMetadata object and supply relevant metadata for the requested content.
     let contentMetadata = new Conviva.ContentMetadata();
     contentMetadata.assetName = source.title || 'Untitled';
+    contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
