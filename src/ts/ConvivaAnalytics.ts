@@ -28,12 +28,19 @@ export class ConvivaAnalytics {
   private playerStateManager: Conviva.PlayerStateManager;
 
   private logger: Conviva.LoggingInterface;
-  private sessionKey: number = Conviva.Client.NO_SESSION_KEY;
+  private sessionKey: number;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
+    if (typeof Conviva === 'undefined') {
+      console.error('Conviva script missing, cannot init ConvivaAnalytics. '
+        + 'Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin\'s ConvivaAnalytics integration.');
+      return; // Cancel initialization
+    }
+
     this.player = player;
 
     this.logger = new Html5Logging();
+    this.sessionKey = Conviva.Client.NO_SESSION_KEY;
 
     let systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
