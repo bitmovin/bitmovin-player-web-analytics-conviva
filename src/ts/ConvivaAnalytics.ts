@@ -10,6 +10,10 @@ export declare type Player = any; // TODO use player API type definitions once a
 
 export interface ConvivaAnalyticsConfiguration {
   /**
+   * Enables debug logging when set to true (default: false).
+   */
+  debugLoggingEnabled?: boolean;
+  /**
    * The TOUCHSTONE_SERVICE_URL for testing with Touchstone. Only to be used for development, must not be set in
    * production or automated testing.
    */
@@ -61,6 +65,9 @@ export class ConvivaAnalytics {
     this.playerEvents = new PlayerEventWrapper(player);
     this.config = config;
 
+    // Set default config values
+    this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
+
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
 
@@ -91,6 +98,12 @@ export class ConvivaAnalytics {
     this.registerPlayerEvents();
   }
 
+  private debugLog(message?: any, ...optionalParams: any[]): void {
+    if(this.config.debugLoggingEnabled) {
+      console.log.apply(console, arguments);
+    }
+  }
+
   private getUrlFromSource(source: any): string {
     switch (this.player.getStreamType()) {
       case 'dash':
@@ -108,7 +121,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private startSession = () => {
+  private startSession = (event?: any) => {
     let source = this.player.getConfig().source;
 
     let assetId = source.contentId ? `[${source.contentId}]` : undefined;
@@ -152,9 +165,11 @@ export class ConvivaAnalytics {
     }
 
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+    this.debugLog('startsession', this.sessionKey, event);
   };
 
-  private reportPlaybackState = () => {
+  private reportPlaybackState = (event?: any) => {
+    this.debugLog('reportplaybackstate', event);
     let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
 
     if ((!this.player.isPlaying() && !this.player.isPaused()) || this.player.hasEnded()) {
@@ -205,6 +220,7 @@ export class ConvivaAnalytics {
   };
 
   private reportAdStart = (event: any) => {
+    this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
     switch(event.timeOffset) {
@@ -241,7 +257,8 @@ export class ConvivaAnalytics {
     this.endSession();
   };
 
-  private endSession = () => {
+  private endSession = (event?: any) => {
+    this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
   };
