@@ -136,8 +136,7 @@ export class ConvivaAnalytics {
       this.logger.consoleLog('Something went wrong, could not obtain session key',
         Conviva.SystemSettings.LogLevel.ERROR);
     }
-
-    // sessionKey was obtained as shown above
+    
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
   };
 
