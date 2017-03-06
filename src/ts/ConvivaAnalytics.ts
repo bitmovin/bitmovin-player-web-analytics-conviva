@@ -238,15 +238,16 @@ export class ConvivaAnalytics {
 
   private reportAdSkip = (event: any) => {
     this.reportCustomEventType(event);
-    this.reportAdEnd();
+    this.reportAdEnd(event);
   };
 
   private reportAdError = (event: any) => {
     this.reportCustomEventType(event);
-    this.reportAdEnd();
+    this.reportAdEnd(event);
   };
 
-  private reportAdEnd = () => {
+  private reportAdEnd = (event?: any) => {
+    this.debugLog('adend', event);
     this.client.adEnd(this.sessionKey);
     this.reportPlaybackState();
   };
