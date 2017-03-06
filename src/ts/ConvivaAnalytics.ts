@@ -46,6 +46,11 @@ export class ConvivaAnalytics {
 
   private logger: Conviva.LoggingInterface;
   private sessionKey: number;
+
+  /**
+   * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
+   * This flag is required because player.isAd() is unreliable and not always true between the events.
+   */
   private isAd: boolean;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
@@ -71,10 +76,6 @@ export class ConvivaAnalytics {
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-
-    /**
-     * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
-     */
     this.isAd = false;
 
     let systemInterface = new Conviva.SystemInterface(
