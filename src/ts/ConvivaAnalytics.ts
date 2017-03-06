@@ -46,6 +46,7 @@ export class ConvivaAnalytics {
 
   private logger: Conviva.LoggingInterface;
   private sessionKey: number;
+  private isAd: boolean;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
@@ -70,6 +71,11 @@ export class ConvivaAnalytics {
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+
+    /**
+     * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
+     */
+    this.isAd = false;
 
     let systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
@@ -99,7 +105,7 @@ export class ConvivaAnalytics {
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
-    if(this.config.debugLoggingEnabled) {
+    if (this.config.debugLoggingEnabled) {
       console.log.apply(console, arguments);
     }
   }
@@ -168,6 +174,25 @@ export class ConvivaAnalytics {
     this.debugLog('startsession', this.sessionKey, event);
   };
 
+  private sourceLoaded = (event: any) => {
+    if (this.isAd) {
+      // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
+      // instead of the actual source.
+      return;
+    }
+
+    if (this.sessionKey !== Conviva.Client.NO_SESSION_KEY) {
+      // Do not start a new session when a session is already existing
+      // Happens after ad playback, when the actual source is restored and an ON_SOURCE_LOADED event issued. Because
+      // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
+      // event. By ignoring these ad-induced events, we end up with a clean ON_SOURCE_LOADED/ON_SOURCE_UNLOADED
+      // sequence which only concerns the actual source.
+      return;
+    }
+
+    this.startSession(event);
+  };
+
   private reportPlaybackState = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
     let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
@@ -220,10 +245,11 @@ export class ConvivaAnalytics {
   };
 
   private reportAdStart = (event: any) => {
+    this.isAd = true;
     this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
-    switch(event.timeOffset) {
+    switch (event.timeOffset) {
       case 'pre':
         adPosition = Conviva.Client.AdPosition.PREROLL;
         break;
@@ -247,6 +273,7 @@ export class ConvivaAnalytics {
   };
 
   private reportAdEnd = (event?: any) => {
+    this.isAd = false;
     this.debugLog('adend', event);
     this.client.adEnd(this.sessionKey);
     this.reportPlaybackState();
@@ -264,10 +291,19 @@ export class ConvivaAnalytics {
     this.client.cleanupSession(this.sessionKey);
   };
 
+  private sourceUnloaded = (event: any) => {
+    if (this.isAd) {
+      // Ignore ON_SOURCE_UNLOADED events while
+      return;
+    }
+
+    this.endSession(event);
+  };
+
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.startSession);
+    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.sourceLoaded);
     playerEvents.add(player.EVENT.ON_READY, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_PLAY, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_PAUSED, this.reportPlaybackState);
@@ -288,7 +324,7 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_AD_FINISHED, this.reportAdEnd);
     playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.reportAdSkip);
     playerEvents.add(player.EVENT.ON_AD_ERROR, this.reportAdError);
-    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
+    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.sourceUnloaded);
     playerEvents.add(player.EVENT.ON_ERROR, this.reportError);
   }
 
