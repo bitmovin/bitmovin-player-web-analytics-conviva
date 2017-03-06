@@ -300,6 +300,11 @@ export class ConvivaAnalytics {
         break;
     }
 
+    if (!this.isValidSession()) {
+      // Don't report without a valid session (e.g. in case of a post-roll ad)
+      return;
+    }
+
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
     this.onPlaybackStateChanged();
   };
@@ -317,6 +322,12 @@ export class ConvivaAnalytics {
   private onAdFinished = (event?: any) => {
     this.isAd = false;
     this.debugLog('adend', event);
+
+    if (!this.isValidSession()) {
+      // Don't report without a valid session (e.g. in case of a post-roll ad)
+      return;
+    }
+
     this.client.adEnd(this.sessionKey);
     this.onPlaybackStateChanged();
   };
