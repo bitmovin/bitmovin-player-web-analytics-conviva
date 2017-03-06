@@ -204,6 +204,37 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
+  private reportAdStart = (event: any) => {
+    let adPosition = Conviva.Client.AdPosition.MIDROLL;
+
+    switch(event.timeOffset) {
+      case 'pre':
+        adPosition = Conviva.Client.AdPosition.PREROLL;
+        break;
+      case 'post':
+        adPosition = Conviva.Client.AdPosition.POSTROLL;
+        break;
+    }
+
+    this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
+    this.reportPlaybackState();
+  };
+
+  private reportAdSkip = (event: any) => {
+    this.reportCustomEventType(event);
+    this.reportAdEnd();
+  };
+
+  private reportAdError = (event: any) => {
+    this.reportCustomEventType(event);
+    this.reportAdEnd();
+  };
+
+  private reportAdEnd = () => {
+    this.client.adEnd(this.sessionKey);
+    this.reportPlaybackState();
+  };
+
   private reportError = (event: any) => {
     this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
       Conviva.Client.ErrorSeverity.FATAL);
@@ -235,6 +266,10 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_FULLSCREEN_EXIT, this.reportCustomEventType);
     playerEvents.add(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
     playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
+    playerEvents.add(player.EVENT.ON_AD_STARTED, this.reportAdStart);
+    playerEvents.add(player.EVENT.ON_AD_FINISHED, this.reportAdEnd);
+    playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.reportAdSkip);
+    playerEvents.add(player.EVENT.ON_AD_ERROR, this.reportAdError);
     playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.endSession);
     playerEvents.add(player.EVENT.ON_ERROR, this.reportError);
   }
