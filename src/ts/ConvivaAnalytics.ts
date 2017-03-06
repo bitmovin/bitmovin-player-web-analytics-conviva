@@ -53,6 +53,13 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
+  /**
+   * Tracks the playback finished status and is true between ON_PLAYBACK_FINISHED and ON_PLAY.
+   * This flag is required because player.hasEnded() is unreliable and not always true after playback has finished
+   * (e.g. after a post-roll ad).
+   */
+  private isPlaybackFinished: boolean;
+
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error('Conviva script missing, cannot init ConvivaAnalytics. '
@@ -77,6 +84,7 @@ export class ConvivaAnalytics {
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.isAd = false;
+    this.isPlaybackFinished = false;
 
     let systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
@@ -212,6 +220,28 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerState(playerState);
   };
 
+  private reportPlay = (event: any) => {
+    if (this.isPlaybackFinished) {
+      // A play after playback has finished indicates a restart, for which we need a new session (Conviva specification)
+      this.isPlaybackFinished = false;
+      // Start a new session (also updates the playback state)
+      this.startSession(event);
+    } else {
+      // A normal play event happened, just update the playback state
+      this.reportPlaybackState(event);
+    }
+  };
+
+  private reportPlaybackFinished = (event: any) => {
+    this.debugLog('playbackfinished', event);
+    this.reportPlaybackState(event);
+    this.endSession(event);
+
+    // Set the flag so we can check from now on if playback of the actual source has finished,
+    // independent of ad playback
+    this.isPlaybackFinished = true;
+  };
+
   private reportSeekStart = (event: any) => {
     this.playerStateManager.setPlayerSeekStart(event.seekTarget * 1000);
   };
@@ -306,11 +336,11 @@ export class ConvivaAnalytics {
     let playerEvents = this.playerEvents;
     playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.sourceLoaded);
     playerEvents.add(player.EVENT.ON_READY, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_PLAY, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_PLAY, this.reportPlay);
     playerEvents.add(player.EVENT.ON_PAUSED, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.reportPlaybackFinished);
     playerEvents.add(player.EVENT.ON_SEEK, this.reportSeekStart);
     playerEvents.add(player.EVENT.ON_SEEKED, this.reportSeekEnd);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
