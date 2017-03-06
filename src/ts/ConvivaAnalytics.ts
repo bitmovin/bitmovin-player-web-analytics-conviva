@@ -224,6 +224,7 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_PAUSED, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
+    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.reportPlaybackState);
     playerEvents.add(player.EVENT.ON_SEEK, this.reportSeekStart);
     playerEvents.add(player.EVENT.ON_SEEKED, this.reportSeekEnd);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
