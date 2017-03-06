@@ -111,9 +111,23 @@ export class ConvivaAnalytics {
   private startSession = () => {
     let source = this.player.getConfig().source;
 
+    let assetId = source.contentId ? `[${source.contentId}]` : undefined;
+    let assetTitle = source.title;
+    let assetName;
+
+    if (assetId && assetTitle) {
+      assetName = `${assetId} ${assetTitle}`;
+    } else if (assetId && !assetTitle) {
+      assetName = assetId;
+    } else if (assetTitle && !assetId) {
+      assetName = assetTitle;
+    } else {
+      assetName = 'Untitled (no source.title/source.contentId set)';
+    }
+
     // Create a ContentMetadata object and supply relevant metadata for the requested content.
     let contentMetadata = new Conviva.ContentMetadata();
-    contentMetadata.assetName = source.title || 'Untitled (no source.title set)';
+    contentMetadata.assetName = assetName;
     contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
     contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
     contentMetadata.duration = this.player.getDuration(); // TODO how to handle HLS Chrome deferred duration detection?
