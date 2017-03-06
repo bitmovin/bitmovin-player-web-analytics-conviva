@@ -173,7 +173,7 @@ export class ConvivaAnalytics {
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
 
-    if (this.sessionKey === Conviva.Client.NO_SESSION_KEY) {
+    if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
       this.logger.consoleLog('Something went wrong, could not obtain session key',
         Conviva.SystemSettings.LogLevel.ERROR);
@@ -187,7 +187,12 @@ export class ConvivaAnalytics {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
+    this.sessionKey = Conviva.Client.NO_SESSION_KEY;
   };
+
+  private isValidSession(): boolean {
+    return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
+  }
 
   private onSourceLoaded = (event: any) => {
     if (this.isAd) {
@@ -196,7 +201,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    if (this.sessionKey !== Conviva.Client.NO_SESSION_KEY) {
+    if (this.isValidSession()) {
       // Do not start a new session when a session is already existing
       // Happens after ad playback, when the actual source is restored and an ON_SOURCE_LOADED event issued. Because
       // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
@@ -381,7 +386,7 @@ export class ConvivaAnalytics {
    */
   sendCustomPlaybackEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     // Check for active session
-    if (this.sessionKey === Conviva.Client.NO_SESSION_KEY) {
+    if (!this.isValidSession()) {
       this.logger.consoleLog('cannot send playback event, no active monitoring session',
         Conviva.SystemSettings.LogLevel.WARNING);
       return;
