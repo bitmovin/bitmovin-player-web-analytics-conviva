@@ -168,7 +168,7 @@ export class ConvivaAnalytics {
       'vrContentType': this.player.getVRStatus().contentType,
     };
 
-    this.reportPlaybackState();
+    this.onPlaybackStateChanged();
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
@@ -183,7 +183,13 @@ export class ConvivaAnalytics {
     this.debugLog('startsession', this.sessionKey, event);
   };
 
-  private sourceLoaded = (event: any) => {
+  private endSession = (event?: any) => {
+    this.debugLog('endsession', this.sessionKey, event);
+    this.client.detachPlayer(this.sessionKey);
+    this.client.cleanupSession(this.sessionKey);
+  };
+
+  private onSourceLoaded = (event: any) => {
     if (this.isAd) {
       // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
       // instead of the actual source.
@@ -202,7 +208,7 @@ export class ConvivaAnalytics {
     this.startSession(event);
   };
 
-  private reportPlaybackState = (event?: any) => {
+  private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
     let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
 
@@ -220,7 +226,7 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerState(playerState);
   };
 
-  private reportPlay = (event: any) => {
+  private onPlay = (event: any) => {
     if (this.isPlaybackFinished) {
       // A play after playback has finished indicates a restart, for which we need a new session (Conviva specification)
       this.isPlaybackFinished = false;
@@ -228,13 +234,13 @@ export class ConvivaAnalytics {
       this.startSession(event);
     } else {
       // A normal play event happened, just update the playback state
-      this.reportPlaybackState(event);
+      this.onPlaybackStateChanged(event);
     }
   };
 
-  private reportPlaybackFinished = (event: any) => {
+  private onPlaybackFinished = (event: any) => {
     this.debugLog('playbackfinished', event);
-    this.reportPlaybackState(event);
+    this.onPlaybackStateChanged(event);
     this.endSession(event);
 
     // Set the flag so we can check from now on if playback of the actual source has finished,
@@ -242,19 +248,19 @@ export class ConvivaAnalytics {
     this.isPlaybackFinished = true;
   };
 
-  private reportSeekStart = (event: any) => {
+  private onSeek = (event: any) => {
     this.playerStateManager.setPlayerSeekStart(event.seekTarget * 1000);
   };
 
-  private reportSeekEnd = () => {
+  private onSeeked = () => {
     this.playerStateManager.setPlayerSeekEnd();
   };
 
-  private reportVideoQualityChange = (event: any) => {
+  private onVideoQualityChanged = (event: any) => {
     this.playerStateManager.setBitrateKbps(event.targetQuality.bitrate);
   };
 
-  private reportCustomEventType = (event: any) => {
+  private onCustomEvent = (event: any) => {
     let eventAttributes: EventAttributes = {};
 
     // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
@@ -275,7 +281,7 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
-  private reportAdStart = (event: any) => {
+  private onAdStarted = (event: any) => {
     this.isAd = true;
     this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
@@ -290,39 +296,33 @@ export class ConvivaAnalytics {
     }
 
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
-    this.reportPlaybackState();
+    this.onPlaybackStateChanged();
   };
 
-  private reportAdSkip = (event: any) => {
-    this.reportCustomEventType(event);
-    this.reportAdEnd(event);
+  private onAdSkipped = (event: any) => {
+    this.onCustomEvent(event);
+    this.onAdFinished(event);
   };
 
-  private reportAdError = (event: any) => {
-    this.reportCustomEventType(event);
-    this.reportAdEnd(event);
+  private onAdError = (event: any) => {
+    this.onCustomEvent(event);
+    this.onAdFinished(event);
   };
 
-  private reportAdEnd = (event?: any) => {
+  private onAdFinished = (event?: any) => {
     this.isAd = false;
     this.debugLog('adend', event);
     this.client.adEnd(this.sessionKey);
-    this.reportPlaybackState();
+    this.onPlaybackStateChanged();
   };
 
-  private reportError = (event: any) => {
+  private onError = (event: any) => {
     this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
       Conviva.Client.ErrorSeverity.FATAL);
     this.endSession();
   };
 
-  private endSession = (event?: any) => {
-    this.debugLog('endsession', this.sessionKey, event);
-    this.client.detachPlayer(this.sessionKey);
-    this.client.cleanupSession(this.sessionKey);
-  };
-
-  private sourceUnloaded = (event: any) => {
+  private onSourceUnloaded = (event: any) => {
     if (this.isAd) {
       // Ignore ON_SOURCE_UNLOADED events while
       return;
@@ -334,29 +334,29 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.sourceLoaded);
-    playerEvents.add(player.EVENT.ON_READY, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_PLAY, this.reportPlay);
-    playerEvents.add(player.EVENT.ON_PAUSED, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_STALL_STARTED, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_STALL_ENDED, this.reportPlaybackState);
-    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.reportPlaybackFinished);
-    playerEvents.add(player.EVENT.ON_SEEK, this.reportSeekStart);
-    playerEvents.add(player.EVENT.ON_SEEKED, this.reportSeekEnd);
-    playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.reportVideoQualityChange);
-    playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_MUTED, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_UNMUTED, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_FULLSCREEN_ENTER, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_FULLSCREEN_EXIT, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_CAST_STARTED, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.reportCustomEventType);
-    playerEvents.add(player.EVENT.ON_AD_STARTED, this.reportAdStart);
-    playerEvents.add(player.EVENT.ON_AD_FINISHED, this.reportAdEnd);
-    playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.reportAdSkip);
-    playerEvents.add(player.EVENT.ON_AD_ERROR, this.reportAdError);
-    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.sourceUnloaded);
-    playerEvents.add(player.EVENT.ON_ERROR, this.reportError);
+    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
+    playerEvents.add(player.EVENT.ON_READY, this.onPlaybackStateChanged);
+    playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
+    playerEvents.add(player.EVENT.ON_PAUSED, this.onPlaybackStateChanged);
+    playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
+    playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
+    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
+    playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
+    playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
+    playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
+    playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_UNMUTED, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_FULLSCREEN_ENTER, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_FULLSCREEN_EXIT, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_CAST_STARTED, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.onCustomEvent);
+    playerEvents.add(player.EVENT.ON_AD_STARTED, this.onAdStarted);
+    playerEvents.add(player.EVENT.ON_AD_FINISHED, this.onAdFinished);
+    playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.onAdSkipped);
+    playerEvents.add(player.EVENT.ON_AD_ERROR, this.onAdError);
+    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.onSourceUnloaded);
+    playerEvents.add(player.EVENT.ON_ERROR, this.onError);
   }
 
   private unregisterPlayerEvents(): void {
