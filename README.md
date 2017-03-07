@@ -14,3 +14,51 @@
   * `gulp build-prod` to build project with minified files into `dist` directory
   
 To just take a look at the project, also run `gulp serve`.
+
+## Usage
+
+ 1. Build the script by running `gulp build-prod`
+ 2. Include `bitmovinplayer-analytics-conviva.min.js` **after** `conviva-core-sdk.min.js` in your HTML document
+ 3. Create an instance of `ConvivaAnalytics` **before** calling `player.setup(...)` and pass in your Conviva 'CUSTOMER_KEY' and optional configuration properties
+    
+    ```js
+    var playerConfig = {
+        key: 'YOUR-PLAYER-KEY',
+        source: {
+          ...
+        },
+        ...
+    };
+
+    var player = bitmovin.player('player');
+    
+    // A ConvivaAnalytics instance is always tied to one player instance
+    var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+        debugLoggingEnabled: true, // optional
+        gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
+        applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page', // optional
+        viewerId: 'uniqueViewerId', // optional
+    });
+    
+    player.setup(playerConfig).then(function() {
+      console.log('player loaded');
+    }, function(reason) {
+        console.error('player setup failed', reason);
+    });
+    ```
+    
+ 4. Add optional properties to the player's source configuration object to improve analytics data:
+ 
+     ```js
+     {
+        title: 'Art of Motion',
+        dash: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+
+        // Conviva Analytics properties
+        viewerId: 'uniqueViewerIdThatOverridesTheConvivaAnalyticsConfig',
+        contentId: 'uniqueContentId',
+    }
+     ```
+     
+ 5. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
+ 
