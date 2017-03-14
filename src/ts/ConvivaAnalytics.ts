@@ -262,7 +262,11 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: any) => {
-    this.playerStateManager.setBitrateKbps(event.targetQuality.bitrate);
+    // We calculate the bitrate with a divisor of 1000 so the values look nicer
+    // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
+    let bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
+
+    this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
 
   private onCustomEvent = (event: any) => {
