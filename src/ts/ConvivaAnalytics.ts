@@ -53,13 +53,6 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
-  /**
-   * Tracks the playback finished status and is true between ON_PLAYBACK_FINISHED and ON_PLAY.
-   * This flag is required because player.hasEnded() is unreliable and not always true after playback has finished
-   * (e.g. after a post-roll ad).
-   */
-  private isPlaybackFinished: boolean;
-
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error('Conviva script missing, cannot init ConvivaAnalytics. '
@@ -84,7 +77,6 @@ export class ConvivaAnalytics {
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.isAd = false;
-    this.isPlaybackFinished = false;
 
     let systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
@@ -232,9 +224,7 @@ export class ConvivaAnalytics {
   };
 
   private onPlay = (event: any) => {
-    if (this.isPlaybackFinished) {
-      // A play after playback has finished indicates a restart, for which we need a new session (Conviva specification)
-      this.isPlaybackFinished = false;
+    if (!this.isValidSession()) {
       // Start a new session (also updates the playback state)
       this.startSession(event);
     } else {
@@ -247,10 +237,6 @@ export class ConvivaAnalytics {
     this.debugLog('playbackfinished', event);
     this.onPlaybackStateChanged(event);
     this.endSession(event);
-
-    // Set the flag so we can check from now on if playback of the actual source has finished,
-    // independent of ad playback
-    this.isPlaybackFinished = true;
   };
 
   private onSeek = (event: any) => {
