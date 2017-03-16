@@ -53,6 +53,8 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
+  private playbackStarted: boolean;
+
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error('Conviva script missing, cannot init ConvivaAnalytics. '
@@ -160,8 +162,6 @@ export class ConvivaAnalytics {
       'vrContentType': this.player.getVRStatus().contentType,
     };
 
-    this.onPlaybackStateChanged();
-
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(contentMetadata);
 
@@ -202,7 +202,14 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.startSession(event);
+    let config = this.player.getConfig();
+    let autoplayEnabled = config && config.playback && config.playback.autoplay;
+
+    // Start session immediately when autoplay is enabled
+    if(autoplayEnabled) {
+      // Trigger onPlay to create a session similarly to when a user starts playback
+      this.onPlay(event);
+    }
   };
 
   private onPlaybackStateChanged = (event?: any) => {
@@ -224,11 +231,23 @@ export class ConvivaAnalytics {
   };
 
   private onPlay = (event: any) => {
+    this.debugLog('play', event);
     if (!this.isValidSession()) {
       // Start a new session (also updates the playback state)
       this.startSession(event);
+      // On calling play, playback is not immediately started, but the loading phase begins
+      this.playbackStarted = false;
     } else {
       // A normal play event happened, just update the playback state
+      this.onPlaybackStateChanged(event);
+    }
+  };
+
+  private onTimeChanged = (event: any) => {
+    if(!this.playbackStarted) {
+      // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
+      this.playbackStarted = true;
+      this.debugLog('playbackStarted', event);
       this.onPlaybackStateChanged(event);
     }
   };
@@ -256,6 +275,11 @@ export class ConvivaAnalytics {
   };
 
   private onCustomEvent = (event: any) => {
+    if (!this.isValidSession()) {
+      this.debugLog('skip custom event, no session existing', event);
+      return;
+    }
+
     let eventAttributes: EventAttributes = {};
 
     // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
@@ -341,8 +365,9 @@ export class ConvivaAnalytics {
     let player = this.player;
     let playerEvents = this.playerEvents;
     playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
-    playerEvents.add(player.EVENT.ON_READY, this.onPlaybackStateChanged);
+    //playerEvents.add(player.EVENT.ON_READY, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
+    playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
     playerEvents.add(player.EVENT.ON_PAUSED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
