@@ -201,6 +201,10 @@ export class ConvivaAnalytics {
       // sequence which only concerns the actual source.
       return;
     }
+  };
+
+  private onReady = (event: any) => {
+    this.debugLog('ready', event);
 
     let config = this.player.getConfig();
     let autoplayEnabled = config && config.playback && config.playback.autoplay;
@@ -365,7 +369,7 @@ export class ConvivaAnalytics {
     let player = this.player;
     let playerEvents = this.playerEvents;
     playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
-    //playerEvents.add(player.EVENT.ON_READY, this.onPlaybackStateChanged);
+    playerEvents.add(player.EVENT.ON_READY, this.onReady);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
     playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
     playerEvents.add(player.EVENT.ON_PAUSED, this.onPlaybackStateChanged);
