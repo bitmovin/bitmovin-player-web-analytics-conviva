@@ -210,7 +210,7 @@ export class ConvivaAnalytics {
     let autoplayEnabled = config && config.playback && config.playback.autoplay;
 
     // Start session immediately when autoplay is enabled
-    if(autoplayEnabled) {
+    if (autoplayEnabled) {
       // Trigger onPlay to create a session similarly to when a user starts playback
       this.onPlay(event);
     }
@@ -248,7 +248,7 @@ export class ConvivaAnalytics {
   };
 
   private onTimeChanged = (event: any) => {
-    if(!this.playbackStarted) {
+    if (!this.playbackStarted) {
       // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
       this.playbackStarted = true;
       this.debugLog('playbackStarted', event);
