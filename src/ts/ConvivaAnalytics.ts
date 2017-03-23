@@ -237,6 +237,11 @@ export class ConvivaAnalytics {
   private onPlay = (event: any) => {
     this.debugLog('play', event);
     if (!this.isValidSession()) {
+      if (this.isAd) {
+        this.debugLog('cannot create session during ad playback... video metadata not available');
+        return;
+      }
+
       // Start a new session (also updates the playback state)
       this.startSession(event);
       // On calling play, playback is not immediately started, but the loading phase begins
@@ -248,7 +253,7 @@ export class ConvivaAnalytics {
   };
 
   private onTimeChanged = (event: any) => {
-    if (!this.playbackStarted) {
+    if (this.isValidSession() && !this.playbackStarted) {
       // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
       this.playbackStarted = true;
       this.debugLog('playbackStarted', event);
