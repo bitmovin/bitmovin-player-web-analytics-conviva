@@ -171,7 +171,10 @@ gulp.task('serve', function() {
       port: 9000,
       server: {
         baseDir: [paths.target.html],
-        index: 'test.html'
+        index: 'test.html',
+        routes: {
+          '/conviva': './conviva'
+        }
       }
     });
 

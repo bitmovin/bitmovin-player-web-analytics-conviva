@@ -10,6 +10,7 @@
   * `gulp` to build project into `dist` directory
   * `gulp watch` to develop and rebuild changed files automatically
   * `gulp serve` to open test page in browser, build and reload changed files automatically
+    * see `conviva\README.md`
   * `gulp lint` to lint TypeScript and SASS files
   * `gulp build-prod` to build project with minified files into `dist` directory
   
