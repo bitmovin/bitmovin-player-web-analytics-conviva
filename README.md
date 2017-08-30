@@ -1,5 +1,8 @@
 # Bitmovin Player Conviva Analytics Integration
 
+## Limitations
+This Conviva integration currently does not track pre-roll ads. The analytics session is created after pre-roll ads, before the main content is started. This is implemented according to Conviva's guidelines but is still considered a limitation as the `Exit Before Video Start` metrics cannot be measured. All other metrics are working as expected.
+
 ## Getting Started
 
  0. Clone Git repository
