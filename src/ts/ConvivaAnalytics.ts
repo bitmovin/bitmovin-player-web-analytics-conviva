@@ -1,10 +1,10 @@
 ///<reference path="Conviva.d.ts"/>
-import {Html5Time} from './Html5Time';
-import {Html5Timer} from './Html5Timer';
-import {Html5Http} from './Html5Http';
-import {Html5Storage} from './Html5Storage';
-import {Html5Metadata} from './Html5Metadata';
-import {Html5Logging} from './Html5Logging';
+import { Html5Time } from './Html5Time';
+import { Html5Timer } from './Html5Timer';
+import { Html5Http } from './Html5Http';
+import { Html5Storage } from './Html5Storage';
+import { Html5Metadata } from './Html5Metadata';
+import { Html5Logging } from './Html5Logging';
 
 export declare type Player = any; // TODO use player API type definitions once available
 
@@ -268,7 +268,7 @@ export class ConvivaAnalytics {
   };
 
   private onSeek = (event: any) => {
-    this.playerStateManager.setPlayerSeekStart(event.seekTarget * 1000);
+    this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
   };
 
   private onSeeked = () => {
