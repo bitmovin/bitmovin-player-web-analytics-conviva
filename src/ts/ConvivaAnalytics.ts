@@ -5,6 +5,7 @@ import { Html5Http } from './Html5Http';
 import { Html5Storage } from './Html5Storage';
 import { Html5Metadata } from './Html5Metadata';
 import { Html5Logging } from './Html5Logging';
+import ContentMetadata = Conviva.ContentMetadata;
 
 export declare type Player = any; // TODO use player API type definitions once available
 
@@ -39,6 +40,8 @@ export class ConvivaAnalytics {
   private player: Player;
   private playerEvents: PlayerEventWrapper;
   private config: ConvivaAnalyticsConfiguration;
+  private contentMetadata: ContentMetadata;
+  private hasPlayingEvent: boolean;
 
   private systemFactory: Conviva.SystemFactory;
   private client: Conviva.Client;
@@ -61,6 +64,7 @@ export class ConvivaAnalytics {
         + 'Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin\'s ConvivaAnalytics integration.');
       return; // Cancel initialization
     }
+    this.hasPlayingEvent = Boolean(player.EVENT.ON_PLAYING);
 
     // Assert that this class is instantiated before player.setup() is called.
     // When instantiated later, we cannot detect startup error events because they are fired during setup.
@@ -130,6 +134,14 @@ export class ConvivaAnalytics {
     }
   }
 
+  private updateContentMetadata() {
+    this.contentMetadata.duration = this.player.getDuration();
+    this.contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
+      : Conviva.ContentMetadata.StreamType.VOD;
+
+    this.playerStateManager.updateContentMetadata(this.contentMetadata);
+  }
+
   private startSession = (event?: any) => {
     let source = this.player.getConfig().source;
 
@@ -148,22 +160,22 @@ export class ConvivaAnalytics {
     }
 
     // Create a ContentMetadata object and supply relevant metadata for the requested content.
-    let contentMetadata = new Conviva.ContentMetadata();
-    contentMetadata.assetName = assetName;
-    contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
-    contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-    contentMetadata.duration = this.player.getDuration(); // TODO how to handle HLS Chrome deferred duration detection?
-    contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
-      : Conviva.ContentMetadata.StreamType.VOD;
-    contentMetadata.streamUrl = this.getUrlFromSource(source);
-    contentMetadata.custom = {
+    this.contentMetadata = new Conviva.ContentMetadata();
+    this.contentMetadata.assetName = assetName;
+    this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
+    this.contentMetadata.duration = 0; // TODO how to handle HLS Chrome deferred duration detection?
+    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN; // TODO how to handle HLS deferred
+                                                                                  // live detection?
+    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    this.contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
     };
 
     // Create a Conviva monitoring session.
-    this.sessionKey = this.client.createSession(contentMetadata);
+    this.sessionKey = this.client.createSession(this.contentMetadata);
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -193,42 +205,32 @@ export class ConvivaAnalytics {
       return;
     }
 
-    if (this.isValidSession()) {
-      // Do not start a new session when a session is already existing
-      // Happens after ad playback, when the actual source is restored and an ON_SOURCE_LOADED event issued. Because
-      // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
-      // event. By ignoring these ad-induced events, we end up with a clean ON_SOURCE_LOADED/ON_SOURCE_UNLOADED
-      // sequence which only concerns the actual source.
-      return;
+    // Do not start a new session when a session is already existing
+    // Happens after ad playback, when the actual source is restored and an ON_SOURCE_LOADED event issued. Because
+    // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
+    // event. By ignoring these ad-induced events, we end up with a clean ON_SOURCE_LOADED/ON_SOURCE_UNLOADED
+    // sequence which only concerns the actual source.
+    if (!this.isValidSession()) {
+      this.startSession(event);
+      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     }
   };
 
   private onReady = (event: any) => {
     this.debugLog('ready', event);
-
-    let config = this.player.getConfig();
-    let autoplayEnabled = config && config.playback && config.playback.autoplay;
-
-    // Start session immediately when autoplay is enabled
-    if (autoplayEnabled) {
-      // Trigger onPlay to create a session similarly to when a user starts playback
-      this.onPlay(event);
-    }
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
   };
 
   private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
     let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
 
-    if ((!this.player.isPlaying() && !this.player.isPaused()) || this.player.hasEnded()) {
-      // Before playback has started, and after it is finished, we report the stopped state
-      playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
-    } else if (this.player.isStalled()) {
+    if (this.player.isStalled()) {
       playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
-    } else if (this.player.isPlaying()) {
-      playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
     } else if (this.player.isPaused()) {
       playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+    } else if (this.player.isPlaying()) {
+      playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
     }
 
     this.playerStateManager.setPlayerState(playerState);
@@ -236,20 +238,14 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
-    if (!this.isValidSession()) {
-      if (this.isAd) {
-        this.debugLog('cannot create session during ad playback... video metadata not available');
-        return;
-      }
 
-      // Start a new session (also updates the playback state)
-      this.startSession(event);
-      // On calling play, playback is not immediately started, but the loading phase begins
-      this.playbackStarted = false;
-    } else {
-      // A normal play event happened, just update the playback state
-      this.onPlaybackStateChanged(event);
-    }
+    this.updateContentMetadata();
+  };
+
+  private onPlaying = (event: any) => {
+    this.debugLog('playing', event);
+    this.updateContentMetadata();
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
   };
 
   private onTimeChanged = (event: any) => {
@@ -257,13 +253,13 @@ export class ConvivaAnalytics {
       // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
       this.playbackStarted = true;
       this.debugLog('playbackStarted', event);
-      this.onPlaybackStateChanged(event);
+      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
     }
   };
 
   private onPlaybackFinished = (event: any) => {
     this.debugLog('playbackfinished', event);
-    this.onPlaybackStateChanged(event);
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.endSession(event);
   };
 
@@ -376,6 +372,7 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
     playerEvents.add(player.EVENT.ON_READY, this.onReady);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
+    playerEvents.add(player.EVENT.ON_PLAYING, this.onPlaying);
     playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
     playerEvents.add(player.EVENT.ON_PAUSED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
