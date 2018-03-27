@@ -152,6 +152,7 @@ declare namespace Conviva {
     setStreamUrl(streamUrl: string): void;
     setUserSeekButtonDown(): void;
     setUserSeekButtonUp(): void;
+    updateContentMetadata(contentMetadata: ContentMetadata): void;
   }
 
   interface StorageLoadDataCallback {
