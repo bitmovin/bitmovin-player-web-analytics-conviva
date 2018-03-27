@@ -64,6 +64,9 @@ export class ConvivaAnalytics {
         + 'Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin\'s ConvivaAnalytics integration.');
       return; // Cancel initialization
     }
+
+    // player versions <=7.2 did not have a ON_PLAYING event
+    // we track this change to correctly transition to the playing state
     this.hasPlayingEvent = Boolean(player.EVENT.ON_PLAYING);
 
     // Assert that this class is instantiated before player.setup() is called.
@@ -165,18 +168,18 @@ export class ConvivaAnalytics {
   }
 
   private updateSession = () => {
+    this.updateContentMetadata();
+    this.playerStateManager.updateContentMetadata(this.contentMetadata);
+  };
+
+  private updateContentMetadata() {
     let source = this.player.getConfig().source;
-    // Create a ContentMetadata object and supply relevant metadata for the requested content.
 
     if (this.contentMetadata.assetName !== this.getAssetName(source)) {
       this.contentMetadata.assetName = this.getAssetName(source);
     }
 
     this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
-
-    this.contentMetadata.duration = 0; // TODO how to handle HLS Chrome deferred duration detection?
-    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN; // TODO how to handle HLS deferred
-                                                                                  // live detection?
     this.contentMetadata.streamUrl = this.getUrlFromSource(source);
     this.contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
@@ -184,10 +187,9 @@ export class ConvivaAnalytics {
       'vrContentType': this.player.getVRStatus().contentType,
     };
     this.contentMetadata.duration = this.player.getDuration();
-    this.contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
-      : Conviva.ContentMetadata.StreamType.VOD;
-    this.playerStateManager.updateContentMetadata(this.contentMetadata);
-  };
+    this.contentMetadata.streamType
+      = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+  }
 
   private getAssetName(source: any): string {
     let assetName;
@@ -225,12 +227,10 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // Do not start a new session when a session is already existing
-    // Happens after ad playback, when the actual source is restored and an ON_SOURCE_LOADED event issued. Because
-    // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
-    // event. By ignoring these ad-induced events, we end up with a clean ON_SOURCE_LOADED/ON_SOURCE_UNLOADED
-    // sequence which only concerns the actual source.
-    this.updateSession();
+    // in case a source has been loaded after an source_unloaded initialize a new session
+    if (!this.isValidSession()) {
+      this.initializeSession();
+    }
   };
 
   private onReady = (event: any) => {
@@ -256,9 +256,14 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
-    this.updateSession();
+
+    // in case the playback has finished and the user replays the stream create a new session
+    if (!this.isValidSession()) {
+      this.initializeSession();
+    }
+
     if (!this.hasPlayingEvent) {
-      this.onPlaybackStateChanged();
+      this.updateSession();
     }
   };
 
