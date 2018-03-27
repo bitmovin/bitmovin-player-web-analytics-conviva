@@ -42,6 +42,7 @@ export class ConvivaAnalytics {
   private config: ConvivaAnalyticsConfiguration;
   private contentMetadata: ContentMetadata;
   private hasPlayingEvent: boolean;
+  private sessionDataPopulated: boolean;
 
   private systemFactory: Conviva.SystemFactory;
   private client: Conviva.Client;
@@ -68,6 +69,7 @@ export class ConvivaAnalytics {
     // player versions <=7.2 did not have a ON_PLAYING event
     // we track this change to correctly transition to the playing state
     this.hasPlayingEvent = Boolean(player.EVENT.ON_PLAYING);
+    this.sessionDataPopulated = false;
 
     // Assert that this class is instantiated before player.setup() is called.
     // When instantiated later, we cannot detect startup error events because they are fired during setup.
@@ -168,8 +170,11 @@ export class ConvivaAnalytics {
   }
 
   private updateSession = () => {
-    this.updateContentMetadata();
-    this.playerStateManager.updateContentMetadata(this.contentMetadata);
+    if (!this.sessionDataPopulated) {
+      this.sessionDataPopulated = true;
+      this.updateContentMetadata();
+      this.playerStateManager.updateContentMetadata(this.contentMetadata);
+    }
   };
 
   private updateContentMetadata() {
@@ -214,6 +219,7 @@ export class ConvivaAnalytics {
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+    this.sessionDataPopulated = false;
   };
 
   private isValidSession(): boolean {
@@ -247,6 +253,8 @@ export class ConvivaAnalytics {
       playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
     } else if (this.player.isPlaying()) {
       playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+    } else if (this.player.hasEnded()) {
+      playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
     }
 
     if (playerState) {
@@ -268,23 +276,23 @@ export class ConvivaAnalytics {
   };
 
   private onPlaying = (event: any) => {
+    this.playbackStarted = true;
     this.debugLog('playing', event);
     this.updateSession();
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+    this.onPlaybackStateChanged(event);
   };
 
+  // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
   private onTimeChanged = (event: any) => {
     if (this.isValidSession() && !this.playbackStarted) {
-      // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
-      this.playbackStarted = true;
-      this.debugLog('playbackStarted', event);
-      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+      // fallback for player versions <= 7.2 which do not support ON_PLAYING Event
+      this.onPlaying(event);
     }
   };
 
   private onPlaybackFinished = (event: any) => {
     this.debugLog('playbackfinished', event);
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
+    this.onPlaybackStateChanged(event);
     this.endSession(event);
   };
 
@@ -300,6 +308,7 @@ export class ConvivaAnalytics {
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
     let bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
+    console.warn('go video quality changed ', this.sessionKey, bitrateKbps);
 
     this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
