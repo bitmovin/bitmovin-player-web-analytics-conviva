@@ -108,6 +108,7 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerType('Bitmovin Player');
     this.playerStateManager.setPlayerVersion(player.version);
 
+    this.initializeSession();
     this.registerPlayerEvents();
   }
 
@@ -134,45 +135,20 @@ export class ConvivaAnalytics {
     }
   }
 
-  private updateContentMetadata() {
-    this.contentMetadata.duration = this.player.getDuration();
-    this.contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
-      : Conviva.ContentMetadata.StreamType.VOD;
-
-    this.playerStateManager.updateContentMetadata(this.contentMetadata);
-  }
-
-  private startSession = (event?: any) => {
-    let source = this.player.getConfig().source;
-
-    let assetId = source.contentId ? `[${source.contentId}]` : undefined;
-    let assetTitle = source.title;
-    let assetName;
-
-    if (assetId && assetTitle) {
-      assetName = `${assetId} ${assetTitle}`;
-    } else if (assetId && !assetTitle) {
-      assetName = assetId;
-    } else if (assetTitle && !assetId) {
-      assetName = assetTitle;
-    } else {
-      assetName = 'Untitled (no source.title/source.contentId set)';
-    }
-
-    // Create a ContentMetadata object and supply relevant metadata for the requested content.
+  private initializeSession() {
     this.contentMetadata = new Conviva.ContentMetadata();
-    this.contentMetadata.assetName = assetName;
-    this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN;
     this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-    this.contentMetadata.duration = 0; // TODO how to handle HLS Chrome deferred duration detection?
-    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN; // TODO how to handle HLS deferred
-                                                                                  // live detection?
-    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
-    this.contentMetadata.custom = {
-      'playerType': this.player.getPlayerType(),
-      'streamType': this.player.getStreamType(),
-      'vrContentType': this.player.getVRStatus().contentType,
-    };
+
+    let source = this.player.getConfig().source;
+    if (source) {
+      this.contentMetadata.assetName = this.getAssetName(source);
+      this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+
+    } else {
+      this.contentMetadata.assetName = 'unknown';
+      this.contentMetadata.streamUrl = 'unknown';
+    }
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadata);
@@ -183,9 +159,53 @@ export class ConvivaAnalytics {
         Conviva.SystemSettings.LogLevel.ERROR);
     }
 
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
     this.debugLog('startsession', this.sessionKey, event);
+  }
+
+  private updateSession = () => {
+    let source = this.player.getConfig().source;
+    // Create a ContentMetadata object and supply relevant metadata for the requested content.
+
+    if (this.contentMetadata.assetName !== this.getAssetName(source)) {
+      this.contentMetadata.assetName = this.getAssetName(source);
+    }
+
+    this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+
+    this.contentMetadata.duration = 0; // TODO how to handle HLS Chrome deferred duration detection?
+    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN; // TODO how to handle HLS deferred
+                                                                                  // live detection?
+    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    this.contentMetadata.custom = {
+      'playerType': this.player.getPlayerType(),
+      'streamType': this.player.getStreamType(),
+      'vrContentType': this.player.getVRStatus().contentType,
+    };
+    this.contentMetadata.duration = this.player.getDuration();
+    this.contentMetadata.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE // TODO how to handle HLS deferred live detection?
+      : Conviva.ContentMetadata.StreamType.VOD;
+    this.playerStateManager.updateContentMetadata(this.contentMetadata);
   };
+
+  private getAssetName(source: any): string {
+    let assetName;
+
+    let assetId = source.contentId ? `[${source.contentId}]` : undefined;
+    let assetTitle = source.title;
+
+    if (assetId && assetTitle) {
+      assetName = `${assetId} ${assetTitle}`;
+    } else if (assetId && !assetTitle) {
+      assetName = assetId;
+    } else if (assetTitle && !assetId) {
+      assetName = assetTitle;
+    } else {
+      assetName = 'Untitled (no source.title/source.contentId set)';
+    }
+    return assetName;
+  }
 
   private endSession = (event?: any) => {
     this.debugLog('endsession', this.sessionKey, event);
@@ -198,7 +218,7 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onSourceLoaded = (event: any) => {
+  private onSourceLoaded = () => {
     if (this.isAd) {
       // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
       // instead of the actual source.
@@ -210,20 +230,16 @@ export class ConvivaAnalytics {
     // we suppress the ON_SOURCE_UNLOADED event which unloads the temporary ad source, we must also ignore this
     // event. By ignoring these ad-induced events, we end up with a clean ON_SOURCE_LOADED/ON_SOURCE_UNLOADED
     // sequence which only concerns the actual source.
-    if (!this.isValidSession()) {
-      this.startSession(event);
-      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
-    }
+    this.updateSession();
   };
 
   private onReady = (event: any) => {
     this.debugLog('ready', event);
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
   };
 
   private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
-    let playerState = Conviva.PlayerStateManager.PlayerState.UNKNOWN;
+    let playerState;
 
     if (this.player.isStalled()) {
       playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
@@ -233,18 +249,22 @@ export class ConvivaAnalytics {
       playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
     }
 
-    this.playerStateManager.setPlayerState(playerState);
+    if (playerState) {
+      this.playerStateManager.setPlayerState(playerState);
+    }
   };
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
-
-    this.updateContentMetadata();
+    this.updateSession();
+    if (!this.hasPlayingEvent) {
+      this.onPlaybackStateChanged();
+    }
   };
 
   private onPlaying = (event: any) => {
     this.debugLog('playing', event);
-    this.updateContentMetadata();
+    this.updateSession();
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
   };
 
