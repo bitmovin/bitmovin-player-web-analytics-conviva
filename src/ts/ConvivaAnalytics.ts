@@ -166,7 +166,7 @@ export class ConvivaAnalytics {
 
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
-    this.debugLog('startsession', this.sessionKey, event);
+    this.debugLog('startsession', this.sessionKey);
   }
 
   private updateSession = () => {
