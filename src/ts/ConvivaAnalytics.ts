@@ -33,7 +33,7 @@ export interface ConvivaAnalyticsConfiguration {
   /**
    * A key-value map to send customer specific custom tags.
    */
-  customTags?: {[key: string]: any};
+  customTags?: { [key: string]: any };
 }
 
 export interface EventAttributes {
@@ -195,7 +195,7 @@ export class ConvivaAnalytics {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
-      ...this.config.customTags
+      ...this.config.customTags,
     };
     this.contentMetadata.duration = this.player.getDuration();
     this.contentMetadata.streamType
