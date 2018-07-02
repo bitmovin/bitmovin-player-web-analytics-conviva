@@ -29,6 +29,11 @@ export interface ConvivaAnalyticsConfiguration {
    * Can also be set in the source config of the player, which will take precedence over this value.
    */
   viewerId?: string;
+
+  /**
+   * A key-value map to send customer specific custom tags.
+   */
+  customTags?: { [key: string]: any };
 }
 
 export interface EventAttributes {
@@ -166,7 +171,7 @@ export class ConvivaAnalytics {
 
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
-    this.debugLog('startsession', this.sessionKey, event);
+    this.debugLog('startsession', this.sessionKey);
   }
 
   private updateSession = () => {
@@ -190,6 +195,7 @@ export class ConvivaAnalytics {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
+      ...this.config.customTags,
     };
     this.contentMetadata.duration = this.player.getDuration();
     this.contentMetadata.streamType

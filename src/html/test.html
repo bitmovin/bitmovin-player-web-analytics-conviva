@@ -103,6 +103,9 @@
     gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
     applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
     viewerId: 'uniqueViewerId',
+    customTags: {
+      contentType: 'Episode',
+    },
   });
 
   player.setup(conf).then(function() {
