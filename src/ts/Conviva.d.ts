@@ -75,6 +75,9 @@ declare namespace Conviva {
     applicationName: string;
     assetName: string;
     custom: {};
+    /**
+     * @deprecated in at SDK 2.146.0.36444
+     */
     defaultBitrateKbps: number;
     defaultResource: string;
     duration: number;
@@ -152,7 +155,6 @@ declare namespace Conviva {
     setStreamUrl(streamUrl: string): void;
     setUserSeekButtonDown(): void;
     setUserSeekButtonUp(): void;
-    updateContentMetadata(contentMetadata: ContentMetadata): void;
   }
 
   interface StorageLoadDataCallback {
