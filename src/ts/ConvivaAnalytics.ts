@@ -164,7 +164,6 @@ export class ConvivaAnalytics {
    * Multiple updates during session:
    *  - streamUrl
    *  - defaultResource (unused)
-   *  - defaultBitrateKbps (unused)
    *  - encodedFrameRate (unused)
    */
   private initializeSession() {
@@ -213,7 +212,7 @@ export class ConvivaAnalytics {
     if (!this.isValidSession()) {
       return;
     }
-    this.contentMetadata.streamUrl = this.getUrlFromSource(this.player.getConfig().source); // TODO: mid Meta data available
+    this.contentMetadata.streamUrl = this.getUrlFromSource(this.player.getConfig().source);
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
