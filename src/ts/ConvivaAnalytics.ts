@@ -128,9 +128,6 @@ export class ConvivaAnalytics {
   }
 
   private getUrlFromSource(source: any): string {
-    if (!source) {
-      return 'undefined';
-    }
     switch (this.player.getStreamType()) {
       case 'dash':
         return source.dash;
@@ -217,9 +214,6 @@ export class ConvivaAnalytics {
   }
 
   private getAssetName(source: any): string {
-    if (!source) {
-      return 'undefined';
-    }
     let assetName;
 
     let assetId = source.contentId ? `[${source.contentId}]` : undefined;
