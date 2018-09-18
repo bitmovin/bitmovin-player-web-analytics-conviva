@@ -118,7 +118,6 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerType('Bitmovin Player');
     this.playerStateManager.setPlayerVersion(player.version);
 
-    this.initializeSession();
     this.registerPlayerEvents();
   }
 
@@ -145,23 +144,31 @@ export class ConvivaAnalytics {
     }
   }
 
+  /**
+   * A Conviva Session should only be initialized when there is a source provided in the player because
+   * Conviva only allows to update different `contentMetadata` only at different times
+   *
+   * Set only once:
+   *  - assetName
+   *
+   * Update before first video frame:
+   *  - viewerId
+   *  - streamType
+   *  - playerName
+   *  - duration
+   *  - custom
+   *
+   * Multiple updates during session:
+   *  - streamUrl
+   *  - defaultResource (unused)
+   *  - encodedFrameRate (unused)
+   */
   private initializeSession() {
     this.contentMetadata = new Conviva.ContentMetadata();
-    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN;
-    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-
-    let source = this.player.getConfig().source;
-    if (source) {
-      this.contentMetadata.assetName = this.getAssetName(source);
-      this.contentMetadata.streamUrl = this.getUrlFromSource(source);
-
-    } else {
-      this.contentMetadata.assetName = 'unknown';
-      this.contentMetadata.streamUrl = 'unknown';
-    }
+    this.buildContentMetadata();
 
     // Create a Conviva monitoring session.
-    this.sessionKey = this.client.createSession(this.contentMetadata);
+    this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -174,32 +181,36 @@ export class ConvivaAnalytics {
     this.debugLog('startsession', this.sessionKey);
   }
 
-  private updateSession = () => {
-    if (!this.sessionDataPopulated) {
-      this.sessionDataPopulated = true;
-      this.updateContentMetadata();
-      this.playerStateManager.updateContentMetadata(this.contentMetadata);
-    }
-  };
-
-  private updateContentMetadata() {
+  /**
+   * Update contentMetadata which must be present before first video frame
+   */
+  private buildContentMetadata() {
     let source = this.player.getConfig().source;
 
-    if (this.contentMetadata.assetName !== this.getAssetName(source)) {
-      this.contentMetadata.assetName = this.getAssetName(source);
-    }
-
+    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
+    this.contentMetadata.assetName = this.getAssetName(source);
     this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
-    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    this.contentMetadata.duration = this.player.getDuration();
+    this.contentMetadata.streamType =
+      this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+
     this.contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
       ...this.config.customTags,
     };
-    this.contentMetadata.duration = this.player.getDuration();
-    this.contentMetadata.streamType
-      = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+  }
+
+  /**
+   * Update contentMetadata which are allowed during the session
+   */
+  private updateSession() {
+    if (!this.isValidSession()) {
+      return;
+    }
+    this.contentMetadata.streamUrl = this.getUrlFromSource(this.player.getConfig().source);
+    this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
   private getAssetName(source: any): string {
@@ -247,6 +258,13 @@ export class ConvivaAnalytics {
 
   private onReady = (event: any) => {
     this.debugLog('ready', event);
+
+    // initialize if not yet initialized but only when a not empty source is present
+    const source = this.player.getConfig().source;
+    const isSourcePresent = source && Object.keys(source).length > 0;
+    if (!this.isValidSession() && isSourcePresent) {
+      this.initializeSession();
+    }
   };
 
   private onPlaybackStateChanged = (event?: any) => {
