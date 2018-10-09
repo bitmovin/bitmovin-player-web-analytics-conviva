@@ -405,6 +405,11 @@ export class ConvivaAnalytics {
   };
 
   private onError = (event: any) => {
+    if (!this.isValidSession()) {
+      // initialize Session if not yet initialized to capture Video Start Failures
+      this.initializeSession();
+    }
+
     this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
       Conviva.Client.ErrorSeverity.FATAL);
     this.endSession();
