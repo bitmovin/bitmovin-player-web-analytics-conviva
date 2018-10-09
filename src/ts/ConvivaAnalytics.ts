@@ -194,12 +194,7 @@ export class ConvivaAnalytics {
     this.contentMetadata.streamType =
       this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
 
-    this.contentMetadata.custom = {
-      'playerType': this.player.getPlayerType(),
-      'streamType': this.player.getStreamType(),
-      'vrContentType': this.player.getVRStatus().contentType,
-      ...this.config.customTags,
-    };
+    this.contentMetadata.custom = this.config.customTags;
   }
 
   /**
