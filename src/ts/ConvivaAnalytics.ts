@@ -239,30 +239,6 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onSourceLoaded = () => {
-    if (this.isAd) {
-      // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
-      // instead of the actual source.
-      return;
-    }
-
-    // in case a source has been loaded after an source_unloaded initialize a new session
-    if (!this.isValidSession()) {
-      this.initializeSession();
-    }
-  };
-
-  private onReady = (event: any) => {
-    this.debugLog('ready', event);
-
-    // initialize if not yet initialized but only when a not empty source is present
-    const source = this.player.getConfig().source;
-    const isSourcePresent = source && Object.keys(source).length > 0;
-    if (!this.isValidSession() && isSourcePresent) {
-      this.initializeSession();
-    }
-  };
-
   private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
     let playerState;
@@ -428,8 +404,6 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
-    playerEvents.add(player.EVENT.ON_READY, this.onReady);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
     playerEvents.add(player.EVENT.ON_PLAYING, this.onPlaying);
     playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
