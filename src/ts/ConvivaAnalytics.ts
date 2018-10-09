@@ -169,6 +169,7 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
+    this.updateSession();
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
