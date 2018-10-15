@@ -196,7 +196,15 @@ export class ConvivaAnalytics {
     this.contentMetadata.streamType =
       this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
 
-    this.contentMetadata.custom = this.config.customTags;
+    this.contentMetadata.custom = {
+      'playerType': this.player.getPlayerType(),
+      'streamType': this.player.getStreamType(),
+      'vrContentType': this.player.getVRStatus().contentType,
+      // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
+      'autoplay': PlayerConfigHelper.getAutoplayConfig(this.player) + '',
+      'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
+      ...this.config.customTags,
+    };
   }
 
   /**
@@ -480,6 +488,58 @@ export class ConvivaAnalytics {
   }
 }
 
+class PlayerConfigHelper {
+  /**
+   * The config for autoplay and preload have great impact to the VST (Video Startup Time) we track it.
+   * Since there is no way to get default config values from the player they are hardcoded.
+   */
+  static AUTOPLAY_DEFAULT_CONFIG: boolean = false;
+
+  /**
+   * Extract autoplay config form player
+   *
+   * @param player: Player
+   */
+  public static getAutoplayConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (playerConfig.playback && playerConfig.playback.autoplay !== undefined) {
+      return playerConfig.playback.autoplay;
+    } else {
+      return PlayerConfigHelper.AUTOPLAY_DEFAULT_CONFIG;
+    }
+  }
+
+  /**
+   * Extract preload config from player
+   *
+   * The preload config can be set individual for mobile or desktop.
+   * Default value is true for VOD and false for live streams. If the value is not set for current platform
+   * the default value will be used over the value for the other platform.
+   *
+   * @param player: Player
+   */
+  public static getPreloadConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (BrowserUtils.isMobile()) {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.mobile
+          && playerConfig.adaptation.mobile.preload !== undefined) {
+        return playerConfig.adaptation.mobile.preload;
+      }
+    } else {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.desktop
+          && playerConfig.adaptation.desktop.preload !== undefined) {
+        return playerConfig.adaptation.desktop.preload;
+      }
+    }
+
+    return !player.isLive();
+  }
+}
+
 class PlayerEventWrapper {
 
   private player: Player;
@@ -535,5 +595,15 @@ namespace ArrayUtils {
     } else {
       return null;
     }
+  }
+}
+
+class BrowserUtils {
+  static isMobile(): boolean {
+    const isAndroid: boolean = /Android/i.test(navigator.userAgent);
+    const isIEMobile: boolean = /IEMobile/i.test(navigator.userAgent);
+    const isEdgeMobile: boolean = /Windows Phone 10.0/i.test(navigator.userAgent);
+    const isMobileSafari: boolean = /Safari/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
+    return isAndroid || isIEMobile || isEdgeMobile || isMobileSafari;
   }
 }
