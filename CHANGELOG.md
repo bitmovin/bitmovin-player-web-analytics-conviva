@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Tracking of `autoplay` and `preload` config attributes
+- Live stream support
 
 ### Changed
 - Updated Conviva-SDK to 2.146.0.36444

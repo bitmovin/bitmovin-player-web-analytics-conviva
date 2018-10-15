@@ -313,7 +313,26 @@ export class ConvivaAnalytics {
   };
 
   private onSeek = (event: any) => {
+    if (!this.isValidSession()) {
+      // Handle use case when startTime is set.
+      // Then seek is called before the user show intention to play content so do not track seek in this case.
+      return;
+    }
+
     this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
+  };
+
+  private onTimeShift = (event: any) => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
+    this.playerStateManager.setPlayerSeekStart(Math.round(event.target * 1000));
+  };
+
+  private onTimeShifted = () => {
+    this.onSeeked();
   };
 
   private onSeeked = () => {
@@ -432,7 +451,9 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
     playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
+    playerEvents.add(player.EVENT.ON_TIME_SHIFT, this.onTimeShift);
     playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
+    playerEvents.add(player.EVENT.ON_TIME_SHIFTED, this.onTimeShifted);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
     playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
