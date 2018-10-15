@@ -244,6 +244,11 @@ export class ConvivaAnalytics {
 
   private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
+    if (event && event.issuer === 'IMA') {
+      // Do not track playback state changes from IMA
+      return;
+    }
+
     let playerState;
 
     if (this.player.isStalled()) {
@@ -263,6 +268,10 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
+    if (event.issuer === 'IMA') {
+      // Do not track play event from IMA
+      return;
+    }
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isValidSession()) {
