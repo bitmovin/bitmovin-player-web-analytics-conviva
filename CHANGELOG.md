@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [develop]
 
+### Added
+- Tracking of `autoplay` and `preload` config attributes
+
 ### Changed
 - Updated Conviva-SDK to 2.146.0.36444
+- Bind `PlayerStateManager`'s lifecycle to the lifecycle of the `Client`
 
 ## [95c526]
 
