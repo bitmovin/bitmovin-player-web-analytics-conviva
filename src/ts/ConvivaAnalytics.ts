@@ -114,10 +114,6 @@ export class ConvivaAnalytics {
 
     this.client = new Conviva.Client(clientSettings, this.systemFactory);
 
-    this.playerStateManager = this.client.getPlayerStateManager();
-    this.playerStateManager.setPlayerType('Bitmovin Player');
-    this.playerStateManager.setPlayerVersion(player.version);
-
     this.registerPlayerEvents();
   }
 
@@ -164,6 +160,11 @@ export class ConvivaAnalytics {
    *  - encodedFrameRate (unused)
    */
   private initializeSession() {
+    // initialize PlayerStateManager
+    this.playerStateManager = this.client.getPlayerStateManager();
+    this.playerStateManager.setPlayerType('Bitmovin Player');
+    this.playerStateManager.setPlayerVersion(this.player.version);
+
     this.contentMetadata = new Conviva.ContentMetadata();
     this.buildContentMetadata();
 
@@ -231,6 +232,8 @@ export class ConvivaAnalytics {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
+    this.client.releasePlayerStateManager(this.playerStateManager);
+
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.sessionDataPopulated = false;
   };
@@ -463,7 +466,6 @@ export class ConvivaAnalytics {
   release(): void {
     this.unregisterPlayerEvents();
     this.endSession();
-    this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
   }
