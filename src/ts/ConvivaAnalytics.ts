@@ -328,7 +328,8 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.playerStateManager.setPlayerSeekStart(Math.round(event.target * 1000));
+    // According to conviva it is valid to pass -1 for seeking in live streams
+    this.playerStateManager.setPlayerSeekStart(-1);
   };
 
   private onTimeShifted = () => {
