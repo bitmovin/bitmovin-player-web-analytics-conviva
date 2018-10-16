@@ -337,6 +337,11 @@ export class ConvivaAnalytics {
   };
 
   private onSeeked = () => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
     this.playerStateManager.setPlayerSeekEnd();
   };
 
