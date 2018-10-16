@@ -540,9 +540,9 @@ class PlayerConfigHelper {
   /**
    * Extract preload config from player
    *
-   * The preload config can be set individual for mobile or desktop.
-   * Default value is true for VOD and false for live streams. If the value is not set for current platform
-   * the default value will be used over the value for the other platform.
+   * The preload config can be set individual for mobile or desktop as well as on root level for both platforms.
+   * Default value is true for VOD and false for live streams. If the value is not set for current platform or on root
+   * level the default value will be used over the value for the other platform.
    *
    * @param player: Player
    */
@@ -561,6 +561,11 @@ class PlayerConfigHelper {
           && playerConfig.adaptation.desktop.preload !== undefined) {
         return playerConfig.adaptation.desktop.preload;
       }
+    }
+
+    if (playerConfig.adaptation
+        && playerConfig.adaptation.preload !== undefined) {
+      return playerConfig.adaptation.preload
     }
 
     return !player.isLive();
