@@ -114,10 +114,6 @@ export class ConvivaAnalytics {
 
     this.client = new Conviva.Client(clientSettings, this.systemFactory);
 
-    this.playerStateManager = this.client.getPlayerStateManager();
-    this.playerStateManager.setPlayerType('Bitmovin Player');
-    this.playerStateManager.setPlayerVersion(player.version);
-
     this.registerPlayerEvents();
   }
 
@@ -164,11 +160,17 @@ export class ConvivaAnalytics {
    *  - encodedFrameRate (unused)
    */
   private initializeSession() {
+    // initialize PlayerStateManager
+    this.playerStateManager = this.client.getPlayerStateManager();
+    this.playerStateManager.setPlayerType('Bitmovin Player');
+    this.playerStateManager.setPlayerVersion(this.player.version);
+
     this.contentMetadata = new Conviva.ContentMetadata();
     this.buildContentMetadata();
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
+    this.updateSession();
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -198,6 +200,9 @@ export class ConvivaAnalytics {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
+      // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
+      'autoplay': PlayerConfigHelper.getAutoplayConfig(this.player) + '',
+      'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
       ...this.config.customTags,
     };
   }
@@ -235,6 +240,8 @@ export class ConvivaAnalytics {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
+    this.client.releasePlayerStateManager(this.playerStateManager);
+
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.sessionDataPopulated = false;
   };
@@ -243,32 +250,13 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onSourceLoaded = () => {
-    if (this.isAd) {
-      // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
-      // instead of the actual source.
+  private onPlaybackStateChanged = (event?: any) => {
+    this.debugLog('reportplaybackstate', event);
+    if (event && event.issuer === 'IMA') {
+      // Do not track playback state changes from IMA
       return;
     }
 
-    // in case a source has been loaded after an source_unloaded initialize a new session
-    if (!this.isValidSession()) {
-      this.initializeSession();
-    }
-  };
-
-  private onReady = (event: any) => {
-    this.debugLog('ready', event);
-
-    // initialize if not yet initialized but only when a not empty source is present
-    const source = this.player.getConfig().source;
-    const isSourcePresent = source && Object.keys(source).length > 0;
-    if (!this.isValidSession() && isSourcePresent) {
-      this.initializeSession();
-    }
-  };
-
-  private onPlaybackStateChanged = (event?: any) => {
-    this.debugLog('reportplaybackstate', event);
     let playerState;
 
     if (this.player.isStalled()) {
@@ -288,6 +276,10 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
+    if (event.issuer === 'IMA') {
+      // Do not track play event from IMA
+      return;
+    }
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isValidSession()) {
@@ -321,10 +313,35 @@ export class ConvivaAnalytics {
   };
 
   private onSeek = (event: any) => {
+    if (!this.isValidSession()) {
+      // Handle use case when startTime is set.
+      // Then seek is called before the user show intention to play content so do not track seek in this case.
+      return;
+    }
+
     this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
   };
 
+  private onTimeShift = (event: any) => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
+    // According to conviva it is valid to pass -1 for seeking in live streams
+    this.playerStateManager.setPlayerSeekStart(-1);
+  };
+
+  private onTimeShifted = () => {
+    this.onSeeked();
+  };
+
   private onSeeked = () => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
     this.playerStateManager.setPlayerSeekEnd();
   };
 
@@ -410,6 +427,11 @@ export class ConvivaAnalytics {
   };
 
   private onError = (event: any) => {
+    if (!this.isValidSession()) {
+      // initialize Session if not yet initialized to capture Video Start Failures
+      this.initializeSession();
+    }
+
     this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
       Conviva.Client.ErrorSeverity.FATAL);
     this.endSession();
@@ -427,8 +449,6 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
-    playerEvents.add(player.EVENT.ON_READY, this.onReady);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
     playerEvents.add(player.EVENT.ON_PLAYING, this.onPlaying);
     playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
@@ -437,7 +457,9 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
     playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
+    playerEvents.add(player.EVENT.ON_TIME_SHIFT, this.onTimeShift);
     playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
+    playerEvents.add(player.EVENT.ON_TIME_SHIFTED, this.onTimeShifted);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
     playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
@@ -488,9 +510,65 @@ export class ConvivaAnalytics {
   release(): void {
     this.unregisterPlayerEvents();
     this.endSession();
-    this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
+  }
+}
+
+class PlayerConfigHelper {
+  /**
+   * The config for autoplay and preload have great impact to the VST (Video Startup Time) we track it.
+   * Since there is no way to get default config values from the player they are hardcoded.
+   */
+  static AUTOPLAY_DEFAULT_CONFIG: boolean = false;
+
+  /**
+   * Extract autoplay config form player
+   *
+   * @param player: Player
+   */
+  public static getAutoplayConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (playerConfig.playback && playerConfig.playback.autoplay !== undefined) {
+      return playerConfig.playback.autoplay;
+    } else {
+      return PlayerConfigHelper.AUTOPLAY_DEFAULT_CONFIG;
+    }
+  }
+
+  /**
+   * Extract preload config from player
+   *
+   * The preload config can be set individual for mobile or desktop as well as on root level for both platforms.
+   * Default value is true for VOD and false for live streams. If the value is not set for current platform or on root
+   * level the default value will be used over the value for the other platform.
+   *
+   * @param player: Player
+   */
+  public static getPreloadConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (BrowserUtils.isMobile()) {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.mobile
+          && playerConfig.adaptation.mobile.preload !== undefined) {
+        return playerConfig.adaptation.mobile.preload;
+      }
+    } else {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.desktop
+          && playerConfig.adaptation.desktop.preload !== undefined) {
+        return playerConfig.adaptation.desktop.preload;
+      }
+    }
+
+    if (playerConfig.adaptation
+        && playerConfig.adaptation.preload !== undefined) {
+      return playerConfig.adaptation.preload
+    }
+
+    return !player.isLive();
   }
 }
 
@@ -549,5 +627,15 @@ namespace ArrayUtils {
     } else {
       return null;
     }
+  }
+}
+
+class BrowserUtils {
+  static isMobile(): boolean {
+    const isAndroid: boolean = /Android/i.test(navigator.userAgent);
+    const isIEMobile: boolean = /IEMobile/i.test(navigator.userAgent);
+    const isEdgeMobile: boolean = /Windows Phone 10.0/i.test(navigator.userAgent);
+    const isMobileSafari: boolean = /Safari/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
+    return isAndroid || isIEMobile || isEdgeMobile || isMobileSafari;
   }
 }
