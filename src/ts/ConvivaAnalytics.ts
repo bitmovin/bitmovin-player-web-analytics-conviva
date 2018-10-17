@@ -410,7 +410,9 @@ export class ConvivaAnalytics {
 
   private onAdError = (event: any) => {
     this.onCustomEvent(event);
-    this.onAdFinished(event);
+    if (this.isAd) {
+      this.onAdFinished(event);
+    }
   };
 
   private onAdFinished = (event?: any) => {
