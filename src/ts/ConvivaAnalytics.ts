@@ -299,6 +299,12 @@ export class ConvivaAnalytics {
   };
 
   private onPlaying = (event: any) => {
+    // When seeking over the buffer the player emits an onPlaying event followed by an onStallStarted within 0 ms.
+    // To suppress this play state transition we check the buffer if the video element is really ready to start playing.
+    if (this.player.getVideoBufferLength() === 0) {
+      this.debugLog('no buffer - skipped playing event', event);
+      return;
+    }
     this.playbackStarted = true;
     this.debugLog('playing', event);
     this.updateSession();
