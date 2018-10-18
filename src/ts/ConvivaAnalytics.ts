@@ -170,7 +170,6 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
-    this.updateSession();
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -205,16 +204,24 @@ export class ConvivaAnalytics {
       'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
       ...this.config.customTags,
     };
+
+    // also include dynamic content metadata at initial creation
+    this.buildDynamicContentMetadata();
   }
 
   /**
    * Update contentMetadata which are allowed during the session
    */
+  private buildDynamicContentMetadata() {
+    let source = this.player.getConfig().source;
+    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+  }
+
   private updateSession() {
     if (!this.isValidSession()) {
       return;
     }
-    this.contentMetadata.streamUrl = this.getUrlFromSource(this.player.getConfig().source);
+    this.buildDynamicContentMetadata();
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
