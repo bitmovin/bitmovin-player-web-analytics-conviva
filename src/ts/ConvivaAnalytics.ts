@@ -299,12 +299,6 @@ export class ConvivaAnalytics {
   };
 
   private onPlaying = (event: any) => {
-    // When seeking over the buffer the player emits an onPlaying event followed by an onStallStarted within 0 ms.
-    // To suppress this play state transition we check the buffer if the video element is really ready to start playing.
-    if (this.player.getVideoBufferLength() === 0) {
-      this.debugLog('no buffer - skipped playing event', event);
-      return;
-    }
     this.playbackStarted = true;
     this.debugLog('playing', event);
     this.updateSession();
@@ -323,39 +317,6 @@ export class ConvivaAnalytics {
     this.debugLog('playbackfinished', event);
     this.onPlaybackStateChanged(event);
     this.endSession(event);
-  };
-
-  private onSeek = (event: any) => {
-    if (!this.isValidSession()) {
-      // Handle use case when startTime is set.
-      // Then seek is called before the user show intention to play content so do not track seek in this case.
-      return;
-    }
-
-    this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
-  };
-
-  private onTimeShift = (event: any) => {
-    if (!this.isValidSession()) {
-      // See comment in onSeek
-      return;
-    }
-
-    // According to conviva it is valid to pass -1 for seeking in live streams
-    this.playerStateManager.setPlayerSeekStart(-1);
-  };
-
-  private onTimeShifted = () => {
-    this.onSeeked();
-  };
-
-  private onSeeked = () => {
-    if (!this.isValidSession()) {
-      // See comment in onSeek
-      return;
-    }
-
-    this.playerStateManager.setPlayerSeekEnd();
   };
 
   private onVideoQualityChanged = (event: any) => {
@@ -471,10 +432,6 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
-    playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
-    playerEvents.add(player.EVENT.ON_TIME_SHIFT, this.onTimeShift);
-    playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
-    playerEvents.add(player.EVENT.ON_TIME_SHIFTED, this.onTimeShifted);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
     playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
