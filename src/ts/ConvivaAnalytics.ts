@@ -170,7 +170,6 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
-    this.updateSession();
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -205,16 +204,24 @@ export class ConvivaAnalytics {
       'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
       ...this.config.customTags,
     };
+
+    // also include dynamic content metadata at initial creation
+    this.buildDynamicContentMetadata();
   }
 
   /**
    * Update contentMetadata which are allowed during the session
    */
+  private buildDynamicContentMetadata() {
+    let source = this.player.getConfig().source;
+    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+  }
+
   private updateSession() {
     if (!this.isValidSession()) {
       return;
     }
-    this.contentMetadata.streamUrl = this.getUrlFromSource(this.player.getConfig().source);
+    this.buildDynamicContentMetadata();
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
@@ -312,39 +319,6 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
-  private onSeek = (event: any) => {
-    if (!this.isValidSession()) {
-      // Handle use case when startTime is set.
-      // Then seek is called before the user show intention to play content so do not track seek in this case.
-      return;
-    }
-
-    this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
-  };
-
-  private onTimeShift = (event: any) => {
-    if (!this.isValidSession()) {
-      // See comment in onSeek
-      return;
-    }
-
-    // According to conviva it is valid to pass -1 for seeking in live streams
-    this.playerStateManager.setPlayerSeekStart(-1);
-  };
-
-  private onTimeShifted = () => {
-    this.onSeeked();
-  };
-
-  private onSeeked = () => {
-    if (!this.isValidSession()) {
-      // See comment in onSeek
-      return;
-    }
-
-    this.playerStateManager.setPlayerSeekEnd();
-  };
-
   private onVideoQualityChanged = (event: any) => {
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
@@ -410,7 +384,9 @@ export class ConvivaAnalytics {
 
   private onAdError = (event: any) => {
     this.onCustomEvent(event);
-    this.onAdFinished(event);
+    if (this.isAd) {
+      this.onAdFinished(event);
+    }
   };
 
   private onAdFinished = (event?: any) => {
@@ -456,10 +432,6 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
-    playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
-    playerEvents.add(player.EVENT.ON_TIME_SHIFT, this.onTimeShift);
-    playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
-    playerEvents.add(player.EVENT.ON_TIME_SHIFTED, this.onTimeShifted);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
     playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated Conviva-SDK to 2.146.0.36444
 - Bind `PlayerStateManager`'s lifecycle to the lifecycle of the `Client`
 
+### Removed
+- Seek event tracking
+
 ## [95c526]
 
 Support for Conviva-SDK version below 2.146.0.36444
