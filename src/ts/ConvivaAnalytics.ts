@@ -259,8 +259,8 @@ export class ConvivaAnalytics {
 
   private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
-    if (event && event.issuer === 'IMA') {
-      // Do not track playback state changes from IMA
+    if (this.isAd) {
+      // Do not track playback state changes during ad (e.g. triggered from IMA)
       return;
     }
 
@@ -283,8 +283,8 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
-    if (event.issuer === 'IMA') {
-      // Do not track play event from IMA
+    if (this.isAd) {
+      // Do not track play event during ad (e.g. triggered from IMA)
       return;
     }
 
