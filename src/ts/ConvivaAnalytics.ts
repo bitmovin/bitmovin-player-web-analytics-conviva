@@ -424,6 +424,10 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
+  private onDestroy = (event: any) => {
+    this.endSession(event);
+  };
+
   // The adStarted event is triggered after the playing event of the ad so we need to set the isAd flag when an
   // adBreakStarts instead
   private onAdBreakStarted = (event: any) => {
@@ -462,6 +466,7 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_AD_ERROR, this.onAdError);
     playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.onSourceUnloaded);
     playerEvents.add(player.EVENT.ON_ERROR, this.onError);
+    playerEvents.add(player.EVENT.ON_DESTROY, this.onDestroy);
   }
 
   private unregisterPlayerEvents(): void {
