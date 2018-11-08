@@ -258,11 +258,11 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event?: any) => {
-    this.debugLog('reportplaybackstate', event);
     if (this.isAd) {
       // Do not track playback state changes during ad (e.g. triggered from IMA)
       return;
     }
+    this.debugLog('reportplaybackstate', event);
 
     let playerState;
 
@@ -354,12 +354,11 @@ export class ConvivaAnalytics {
     };
     objectWalker(event);
 
+    this.debugLog('customevent', eventAttributes);
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
   private onAdStarted = (event: any) => {
-    this.isAd = true;
-    this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
     switch (event.timeOffset) {
@@ -376,6 +375,7 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('adstart', event);
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
     this.onPlaybackStateChanged();
   };
@@ -393,14 +393,13 @@ export class ConvivaAnalytics {
   };
 
   private onAdFinished = (event?: any) => {
-    this.isAd = false;
-    this.debugLog('adend', event);
 
     if (!this.isValidSession()) {
       // Don't report without a valid session (e.g. in case of a post-roll ad)
       return;
     }
 
+    this.debugLog('adend', event);
     this.client.adEnd(this.sessionKey);
     this.onPlaybackStateChanged();
   };
@@ -425,6 +424,18 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
+  // The adStarted event is triggered after the playing event of the ad so we need to set the isAd flag when an
+  // adBreakStarts instead
+  private onAdBreakStarted = (event: any) => {
+    this.debugLog('adbreakstart', event);
+    this.isAd = true;
+  };
+
+  private onAdBreakFinished = (event: any) => {
+    this.debugLog('adbreakend', event);
+    this.isAd = false;
+  };
+
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
@@ -444,7 +455,9 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_CAST_STARTED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_AD_STARTED, this.onAdStarted);
+    playerEvents.add(player.EVENT.ON_AD_BREAK_STARTED, this.onAdBreakStarted);
     playerEvents.add(player.EVENT.ON_AD_FINISHED, this.onAdFinished);
+    playerEvents.add(player.EVENT.ON_AD_BREAK_FINISHED, this.onAdBreakFinished);
     playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.onAdSkipped);
     playerEvents.add(player.EVENT.ON_AD_ERROR, this.onAdError);
     playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.onSourceUnloaded);
