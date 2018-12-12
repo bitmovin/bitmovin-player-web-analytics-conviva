@@ -11,7 +11,7 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
 
  0. Clone Git repository
  1. Install node.js
- 2. Install required npm packages: `npm install`
+ 2. Install required npm packages: `npm install` or `yarn`
  3. Run tasks (`npm run tasks`)
   * `npm run build:dev` to build project into `dist` directory
   * `npm run watch` to develop and rebuild changed files automatically
@@ -24,19 +24,17 @@ To just take a look at the project, also run `npm run serve`.
 
 ## Usage
 
- 1. Build the script by running `npm run build`
+ 1. Build the script by running `npm run build` or `yarn build`
  2. Include `bitmovinplayer-analytics-conviva.min.js` **after** `conviva-core-sdk.min.js` in your HTML document
  3. Create an instance of `ConvivaAnalytics` **before** calling `player.setup(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
     ```js
     var playerConfig = {
       key: 'YOUR-PLAYER-KEY',
-      source: {
-        ...
-      },
-      ...
+      // ...
     };
 
-    var player = bitmovin.player('player');
+    var container = document.getElementById('player');
+    var player = new bitmovin.player.Player(container, playerConfig);
     
     // A ConvivaAnalytics instance is always tied to one player instance
     var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
@@ -46,7 +44,11 @@ To just take a look at the project, also run `npm run serve`.
       viewerId: 'uniqueViewerId', // optional
     });
     
-    player.setup(playerConfig).then(function() {
+    var sourceConfig = {
+      // ...
+    };
+    
+    player.load(sourceConfig).then(function() {
       console.log('player loaded');
     }, function(reason) {
       console.error('player setup failed', reason);
