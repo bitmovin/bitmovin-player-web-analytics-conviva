@@ -2,36 +2,22 @@
   "name": "bitmovin-player-analytics-conviva",
   "version": "1.0.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
-  "main": "index.js",
+  "main": "js/bitmovinplayer-analytics-conviva.js",
   "scripts": {
-    "tasks": "node_modules/.bin/gulp --tasks",
-    "build": "node_modules/.bin/gulp build-prod",
-    "build:dev": "node_modules/.bin/gulp build",
-    "watch": "node_modules/.bin/gulp watch",
-    "serve": "node_modules/.bin/gulp serve",
-    "lint": "node_modules/.bin/gulp lint"
+    "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
+    "start": "yarn build && ./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
+    "build": "yarn lint && rm -rf ./dist && ./node_modules/.bin/webpack --config webpack.prod.js && cp ./package.json ./dist/package.json"
   },
   "author": "Bitmovin",
   "license": "ISC",
   "devDependencies": {
     "bitmovin-player": "^8.0.3",
-    "browser-sync": "^2.18.8",
-    "browserify": "^14.1.0",
-    "del": "^2.2.2",
-    "gulp": "^3.9.1",
-    "gulp-cli": "^2.0.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-sourcemaps": "^2.4.1",
-    "gulp-tslint": "^7.1.0",
-    "gulp-typescript": "^3.1.5",
-    "gulp-uglify": "^2.0.1",
-    "merge2": "^1.0.3",
-    "run-sequence": "^1.2.2",
-    "tsify": "^3.0.1",
-    "tslint": "^4.5.0",
-    "typescript": "^2.2.1",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.9.0"
+    "ts-loader": "^5.3.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.2",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10",
+    "webpack-merge": "^4.1.5"
   }
 }
