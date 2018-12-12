@@ -1,4 +1,5 @@
-///<reference path="Conviva.d.ts"/>
+/// <reference path="Conviva.d.ts"/>
+
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Html5Http } from './Html5Http';
@@ -7,11 +8,14 @@ import { Html5Metadata } from './Html5Metadata';
 import { Html5Logging } from './Html5Logging';
 import ContentMetadata = Conviva.ContentMetadata;
 import {
-  AdEvent,
+  AdBreak,
+  AdBreakEvent,
+  ErrorEvent,
   PlaybackEvent,
   PlayerAPI,
   PlayerEvent,
-  PlayerEventBase, SourceConfig,
+  PlayerEventBase,
+  SourceConfig,
   VideoQualityChangedEvent
 } from 'bitmovin-player';
 
@@ -46,6 +50,11 @@ export interface ConvivaAnalyticsConfiguration {
 
 export interface EventAttributes {
   [key: string]: string;
+}
+
+export interface ConvivaSourceConfig extends SourceConfig {
+  viewerId?: string
+  contentId?: string;
 }
 
 export class ConvivaAnalytics {
@@ -91,7 +100,7 @@ export class ConvivaAnalytics {
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.isAd = false;
 
-    let systemInterface = new Conviva.SystemInterface(
+    const systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
       new Html5Timer(),
       new Html5Http(),
@@ -100,10 +109,10 @@ export class ConvivaAnalytics {
       this.logger
     );
 
-    let systemSettings = new Conviva.SystemSettings();
+    const systemSettings = new Conviva.SystemSettings();
     this.systemFactory = new Conviva.SystemFactory(systemInterface, systemSettings);
 
-    let clientSettings = new Conviva.ClientSettings(customerKey);
+    const clientSettings = new Conviva.ClientSettings(customerKey);
 
     if (config.gatewayUrl) {
       clientSettings.gatewayUrl = config.gatewayUrl;
@@ -120,7 +129,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private getUrlFromSource(source: SourceConfig): string {
+  private getUrlFromSource(source: ConvivaSourceConfig): string {
     switch (this.player.getStreamType()) {
       case 'dash':
         return source.dash;
@@ -183,7 +192,7 @@ export class ConvivaAnalytics {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
-    let source = this.player.getConfig().source;
+    const source = this.player.getSource() as ConvivaSourceConfig;
 
     this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
     this.contentMetadata.assetName = this.getAssetName(source);
@@ -195,7 +204,7 @@ export class ConvivaAnalytics {
     this.contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
-      'vrContentType': this.player.getVRStatus().contentType,
+      'vrContentType': source.vr && source.vr.contentType,
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       'autoplay': PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
@@ -210,7 +219,7 @@ export class ConvivaAnalytics {
    * Update contentMetadata which are allowed during the session
    */
   private buildDynamicContentMetadata() {
-    let source = this.player.getConfig().source;
+    const source = this.player.getSource();
     this.contentMetadata.streamUrl = this.getUrlFromSource(source);
   }
 
@@ -222,11 +231,11 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
-  private getAssetName(source: SourceConfig): string {
+  private getAssetName(source: ConvivaSourceConfig): string {
     let assetName;
 
-    let assetId = source.contentId ? `[${source.contentId}]` : undefined;
-    let assetTitle = source.title;
+    const assetId = source.contentId ? `[${source.contentId}]` : undefined;
+    const assetTitle = source.title;
 
     if (assetId && assetTitle) {
       assetName = `${assetId} ${assetTitle}`;
@@ -318,7 +327,7 @@ export class ConvivaAnalytics {
     }
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
-    let bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
+    const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
     console.warn('go video quality changed ', this.sessionKey, bitrateKbps);
 
     this.playerStateManager.setBitrateKbps(bitrateKbps);
@@ -330,32 +339,16 @@ export class ConvivaAnalytics {
       return;
     }
 
-    let eventAttributes: EventAttributes = {};
-
-    // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
-    let objectWalker = (object: any, prefix: string = '') => {
-      for (let key in object) {
-        if (object.hasOwnProperty(key)) {
-          let value = object[key];
-          if (typeof value === 'object') {
-            objectWalker(value, prefix + key + '.');
-          } else {
-            eventAttributes[prefix + key] = String(value);
-          }
-        }
-      }
-    };
-    objectWalker(event);
-
+    const eventAttributes = ObjectUtils.flatten(event);
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
-  private onAdStarted = (event: AdEvent) => {
+  private onAdBreakStarted = (event: AdBreakEvent) => {
     this.isAd = true;
     this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
-    switch (event.timeOffset) {
+    switch (this.getAdBreakPosition(event.adBreak)) {
       case 'pre':
         adPosition = Conviva.Client.AdPosition.PREROLL;
         break;
@@ -373,19 +366,19 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged();
   };
 
-  private onAdSkipped = (event: AdEvent) => {
-    this.onCustomEvent(event);
-    this.onAdFinished(event);
-  };
-
-  private onAdError = (event: ErrorEvent) => {
-    this.onCustomEvent(event);
-    if (this.isAd) {
-      this.onAdFinished(event);
+  private getAdBreakPosition(adBreak: AdBreak) {
+    if (adBreak.scheduleTime <= 0) {
+      return 'pre';
     }
-  };
 
-  private onAdFinished = (event: AdEvent) => {
+    if (adBreak.scheduleTime >= this.player.getDuration()) {
+      return 'post';
+    }
+
+    return 'mid';
+  }
+
+  private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.isAd = false;
     this.debugLog('adend', event);
 
@@ -404,7 +397,7 @@ export class ConvivaAnalytics {
       this.initializeSession();
     }
 
-    this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
+    this.client.reportError(this.sessionKey, `${String(event.code)} ${event.name}: `,
       Conviva.Client.ErrorSeverity.FATAL);
     this.endSession();
   };
@@ -419,8 +412,7 @@ export class ConvivaAnalytics {
   };
 
   private registerPlayerEvents(): void {
-    let player = this.player;
-    let playerEvents = this.playerEvents;
+    const playerEvents = this.playerEvents;
     playerEvents.add(PlayerEvent.Play, this.onPlay);
     playerEvents.add(PlayerEvent.Playing, this.onPlaying);
     playerEvents.add(PlayerEvent.TimeChanged, this.onTimeChanged);
@@ -435,10 +427,8 @@ export class ConvivaAnalytics {
     playerEvents.add(PlayerEvent.ViewModeChanged, this.onCustomEvent);
     playerEvents.add(PlayerEvent.CastStarted, this.onCustomEvent);
     playerEvents.add(PlayerEvent.CastStopped, this.onCustomEvent);
-    playerEvents.add(PlayerEvent.AdStarted, this.onAdStarted);
-    playerEvents.add(PlayerEvent.AdFinished, this.onAdFinished);
-    playerEvents.add(PlayerEvent.AdSkipped, this.onAdSkipped);
-    playerEvents.add(PlayerEvent.AdError, this.onAdError);
+    playerEvents.add(PlayerEvent.AdBreakStarted, this.onAdBreakStarted);
+    playerEvents.add(PlayerEvent.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(PlayerEvent.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(PlayerEvent.Error, this.onError);
   }
@@ -495,7 +485,7 @@ class PlayerConfigHelper {
    * @param player: Player
    */
   public static getAutoplayConfig(player: Player): boolean {
-    let playerConfig = player.getConfig();
+    const playerConfig = player.getConfig();
 
     if (playerConfig.playback && playerConfig.playback.autoplay !== undefined) {
       return playerConfig.playback.autoplay;
@@ -514,7 +504,7 @@ class PlayerConfigHelper {
    * @param player: Player
    */
   public static getPreloadConfig(player: Player): boolean {
-    let playerConfig = player.getConfig();
+    const playerConfig = player.getConfig();
 
     if (BrowserUtils.isMobile()) {
       if (playerConfig.adaptation
@@ -587,13 +577,35 @@ namespace ArrayUtils {
    * @returns {any} the removed item or null if it wasn't part of the array
    */
   export function remove<T>(array: T[], item: T): T | null {
-    let index = array.indexOf(item);
+    const index = array.indexOf(item);
 
     if (index > -1) {
       return array.splice(index, 1)[0];
     } else {
       return null;
     }
+  }
+}
+
+namespace ObjectUtils {
+  export function flatten(object: any, prefix: string = '') {
+    const eventAttributes: EventAttributes = {};
+
+    // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
+    const objectWalker = (object: any, prefix: string) => {
+      for (let key in object) {
+        if (object.hasOwnProperty(key)) {
+          let value = object[key];
+          if (typeof value === 'object') {
+            objectWalker(value, prefix + key + '.');
+          } else {
+            eventAttributes[prefix + key] = String(value);
+          }
+        }
+      }
+    };
+
+    return eventAttributes;
   }
 }
 
