@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Changed
 - Update to Bitmovin Player v8
+- Switch to Webpack and yarn
+- Improve typings
 
 ### Added
 - Tracking of `autoplay` and `preload` config attributes
