@@ -4,16 +4,22 @@
   "description": "Conviva analytics integration for the Bitmovin Player",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tasks": "node_modules/.bin/gulp --tasks",
+    "build": "node_modules/.bin/gulp build-prod",
+    "build:dev": "node_modules/.bin/gulp build",
+    "watch": "node_modules/.bin/gulp watch",
+    "serve": "node_modules/.bin/gulp serve",
+    "lint": "node_modules/.bin/gulp lint"
   },
   "author": "Bitmovin",
   "license": "ISC",
   "devDependencies": {
-    "bitmovin-player": "^7.0.0",
+    "bitmovin-player": "^8.0.3",
     "browser-sync": "^2.18.8",
     "browserify": "^14.1.0",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
+    "gulp-cli": "^2.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^2.4.1",
     "gulp-tslint": "^7.1.0",
