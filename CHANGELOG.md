@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [develop]
 
+## Changed
+- Update to Bitmovin Player v8
+
 ### Added
 - Tracking of `autoplay` and `preload` config attributes
 - Live stream support
