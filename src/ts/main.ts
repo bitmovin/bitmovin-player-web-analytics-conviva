@@ -1,5 +1,3 @@
-/// <reference path="../types/global.d.ts">
-
 import ConvivaAnalytics from './ConvivaAnalytics';
 
 export * from './ConvivaAnalytics';
