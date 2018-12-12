@@ -1,11 +1,17 @@
 {
-  "files": [
-    "src/ts/main.ts"
-  ],
   "compilerOptions": {
-    "noImplicitAny": true,
+    "outDir": "./dist",
     "target": "es5",
+    "module": "commonjs",
     "declaration": true,
-    "outDir": "dist/js/framework"
-  }
+    "noImplicitAny": false,
+    "removeComments": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
+  },
+  "include": [
+    "./src"
+  ]
 }
