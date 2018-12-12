@@ -1,8 +1,11 @@
-import {ConvivaAnalytics} from './ConvivaAnalytics';
+/// <reference path="../types/global.d.ts">
+
+import ConvivaAnalytics from './ConvivaAnalytics';
+
+export * from './ConvivaAnalytics';
 
 // Export Conviva Analytics to global namespace
-let w = (window as any);
-w.bitmovin = w.bitmovin || {};
-w.bitmovin.player = w.bitmovin.player || {};
-w.bitmovin.player.analytics = w.bitmovin.player.analytics || {};
-w.bitmovin.player.analytics.ConvivaAnalytics = ConvivaAnalytics;
+window.bitmovin = window.bitmovin || {};
+window.bitmovin.player = window.bitmovin.player || {};
+window.bitmovin.player.analytics = window.bitmovin.player.analytics || {};
+window.bitmovin.player.analytics.ConvivaAnalytics = ConvivaAnalytics;
