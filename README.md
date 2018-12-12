@@ -11,22 +11,17 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
 
  0. Clone Git repository
  1. Install node.js
- 2. Install required npm packages: `npm install` or `yarn`
- 3. Run tasks (`npm run tasks`)
-  * `npm run build:dev` to build project into `dist` directory
-  * `npm run watch` to develop and rebuild changed files automatically
-  * `npm run serve` to open test page in browser, build and reload changed files automatically
-    * see `conviva\README.md`
-  * `npm run lint` to lint TypeScript and SASS files
-  * `npm run build` to build project with minified files into `dist` directory
-  
-To just take a look at the project, also run `npm run serve`.
+ 2. Install required npm packages: [`yarn`](https://yarnpkg.com/)
+ 3. Run tasks:
+  * `yarn build` to build project into `dist` directory
+  * `yarn start` to open test page in browser, build and reload changed files automatically
+  * `yarn lint` to lint TypeScript files
 
 ## Usage
 
- 1. Build the script by running `npm run build` or `yarn build`
- 2. Include `bitmovinplayer-analytics-conviva.min.js` **after** `conviva-core-sdk.min.js` in your HTML document
- 3. Create an instance of `ConvivaAnalytics` **before** calling `player.setup(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
+ 1. Build the script by running `yarn build`
+ 2. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
+ 3. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
     ```js
     var playerConfig = {
       key: 'YOUR-PLAYER-KEY',
