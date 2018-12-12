@@ -1,4 +1,3 @@
-///<reference path="../ts/Conviva.d.ts"/>
 /*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
 /*! This is sample code meant to illustrate proper Conviva integration in video applications. */
 /*! This file should not be included in video applications as part of integrating Conviva. */
@@ -10,14 +9,15 @@
 // Some JavaScript implementations do not have setInterval, in which case
 // you may have to write it yourself using setTimeout.
 
+import Conviva from './Conviva';
 import TimerCancelFunction = Conviva.TimerCancelFunction;
 import TimerAction = Conviva.TimerAction;
 
 export class Html5Timer implements Conviva.TimerInterface {
 
-  createTimer(timerAction: TimerAction, intervalMs: number, actionName?: string | null): TimerCancelFunction {
+  public createTimer(timerAction: TimerAction, intervalMs: number, actionName?: string | null): TimerCancelFunction {
     let timerId = setInterval(timerAction, intervalMs);
-    let cancelTimerFunc = (function() {
+    const cancelTimerFunc = (function() {
       if (timerId !== -1) {
         clearInterval(timerId);
         timerId = -1;
@@ -26,7 +26,7 @@ export class Html5Timer implements Conviva.TimerInterface {
     return cancelTimerFunc;
   }
 
-  release(): void {
+  public release(): void {
     // nothing to release
   }
 
