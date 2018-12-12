@@ -1,1 +1,1 @@
-`conviva-core-sdk.min.js` must be in this directory for the test page (`gulp serve`) to work!
+`conviva-core-sdk.min.js` is required in this directory for the test page (`npm run serve`) to work.
