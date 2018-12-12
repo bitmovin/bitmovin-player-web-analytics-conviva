@@ -13,9 +13,9 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
 2. Install node.js
 3. Install required npm packages: [`yarn`](https://yarnpkg.com/)
 4. Run tasks:
+  * `yarn lint` to lint TypeScript files
   * `yarn build` to build project into `dist` directory
   * `yarn start` to open test page in browser, build and reload changed files automatically
-  * `yarn lint` to lint TypeScript files
 
 ## Usage
 
