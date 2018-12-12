@@ -6,8 +6,16 @@ import { Html5Storage } from './Html5Storage';
 import { Html5Metadata } from './Html5Metadata';
 import { Html5Logging } from './Html5Logging';
 import ContentMetadata = Conviva.ContentMetadata;
+import {
+  AdEvent,
+  PlaybackEvent,
+  PlayerAPI,
+  PlayerEvent,
+  PlayerEventBase, SourceConfig,
+  VideoQualityChangedEvent
+} from 'bitmovin-player';
 
-export declare type Player = any; // TODO use player API type definitions once available
+export declare type Player = PlayerAPI;
 
 export interface ConvivaAnalyticsConfiguration {
   /**
@@ -46,7 +54,6 @@ export class ConvivaAnalytics {
   private playerEvents: PlayerEventWrapper;
   private config: ConvivaAnalyticsConfiguration;
   private contentMetadata: ContentMetadata;
-  private hasPlayingEvent: boolean;
   private sessionDataPopulated: boolean;
 
   private systemFactory: Conviva.SystemFactory;
@@ -71,17 +78,7 @@ export class ConvivaAnalytics {
       return; // Cancel initialization
     }
 
-    // player versions <=7.2 did not have a ON_PLAYING event
-    // we track this change to correctly transition to the playing state
-    this.hasPlayingEvent = Boolean(player.EVENT.ON_PLAYING);
     this.sessionDataPopulated = false;
-
-    // Assert that this class is instantiated before player.setup() is called.
-    // When instantiated later, we cannot detect startup error events because they are fired during setup.
-    if (player.isReady()) {
-      console.error('ConvivaAnalytics must be instantiated before calling player.setup()');
-      return; // Cancel initialization
-    }
 
     this.player = player;
     this.playerEvents = new PlayerEventWrapper(player);
@@ -123,7 +120,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private getUrlFromSource(source: any): string {
+  private getUrlFromSource(source: SourceConfig): string {
     switch (this.player.getStreamType()) {
       case 'dash':
         return source.dash;
@@ -225,7 +222,7 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
-  private getAssetName(source: any): string {
+  private getAssetName(source: SourceConfig): string {
     let assetName;
 
     let assetId = source.contentId ? `[${source.contentId}]` : undefined;
@@ -243,7 +240,7 @@ export class ConvivaAnalytics {
     return assetName;
   }
 
-  private endSession = (event?: any) => {
+  private endSession = (event?: PlayerEventBase) => {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
@@ -257,7 +254,7 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onPlaybackStateChanged = (event?: any) => {
+  private onPlaybackStateChanged = (event?: PlayerEventBase) => {
     this.debugLog('reportplaybackstate', event);
     if (this.isAd) {
       // Do not track playback state changes during ad (e.g. triggered from IMA)
@@ -281,7 +278,7 @@ export class ConvivaAnalytics {
     }
   };
 
-  private onPlay = (event: any) => {
+  private onPlay = (event: PlaybackEvent) => {
     this.debugLog('play', event);
     if (this.isAd) {
       // Do not track play event during ad (e.g. triggered from IMA)
@@ -292,13 +289,9 @@ export class ConvivaAnalytics {
     if (!this.isValidSession()) {
       this.initializeSession();
     }
-
-    if (!this.hasPlayingEvent) {
-      this.updateSession();
-    }
   };
 
-  private onPlaying = (event: any) => {
+  private onPlaying = (event: PlaybackEvent) => {
     this.playbackStarted = true;
     this.debugLog('playing', event);
     this.updateSession();
@@ -306,20 +299,20 @@ export class ConvivaAnalytics {
   };
 
   // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
-  private onTimeChanged = (event: any) => {
+  private onTimeChanged = (event: PlaybackEvent) => {
     if (this.isValidSession() && !this.playbackStarted) {
       // fallback for player versions <= 7.2 which do not support ON_PLAYING Event
       this.onPlaying(event);
     }
   };
 
-  private onPlaybackFinished = (event: any) => {
+  private onPlaybackFinished = (event: PlayerEventBase) => {
     this.debugLog('playbackfinished', event);
     this.onPlaybackStateChanged(event);
     this.endSession(event);
   };
 
-  private onVideoQualityChanged = (event: any) => {
+  private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
     if (!this.isValidSession()) {
       return;
     }
@@ -331,7 +324,7 @@ export class ConvivaAnalytics {
     this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
 
-  private onCustomEvent = (event: any) => {
+  private onCustomEvent = (event: PlayerEventBase) => {
     if (!this.isValidSession()) {
       this.debugLog('skip custom event, no session existing', event);
       return;
@@ -357,7 +350,7 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
-  private onAdStarted = (event: any) => {
+  private onAdStarted = (event: AdEvent) => {
     this.isAd = true;
     this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
@@ -380,19 +373,19 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged();
   };
 
-  private onAdSkipped = (event: any) => {
+  private onAdSkipped = (event: AdEvent) => {
     this.onCustomEvent(event);
     this.onAdFinished(event);
   };
 
-  private onAdError = (event: any) => {
+  private onAdError = (event: ErrorEvent) => {
     this.onCustomEvent(event);
     if (this.isAd) {
       this.onAdFinished(event);
     }
   };
 
-  private onAdFinished = (event?: any) => {
+  private onAdFinished = (event: AdEvent) => {
     this.isAd = false;
     this.debugLog('adend', event);
 
@@ -405,7 +398,7 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged();
   };
 
-  private onError = (event: any) => {
+  private onError = (event: ErrorEvent) => {
     if (!this.isValidSession()) {
       // initialize Session if not yet initialized to capture Video Start Failures
       this.initializeSession();
@@ -416,7 +409,7 @@ export class ConvivaAnalytics {
     this.endSession();
   };
 
-  private onSourceUnloaded = (event: any) => {
+  private onSourceUnloaded = (event: PlayerEventBase) => {
     if (this.isAd) {
       // Ignore ON_SOURCE_UNLOADED events while
       return;
@@ -428,27 +421,26 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
-    playerEvents.add(player.EVENT.ON_PLAYING, this.onPlaying);
-    playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
-    playerEvents.add(player.EVENT.ON_PAUSED, this.onPlaybackStateChanged);
-    playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
-    playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
-    playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
-    playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
-    playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_UNMUTED, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_FULLSCREEN_ENTER, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_FULLSCREEN_EXIT, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_CAST_STARTED, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.onCustomEvent);
-    playerEvents.add(player.EVENT.ON_AD_STARTED, this.onAdStarted);
-    playerEvents.add(player.EVENT.ON_AD_FINISHED, this.onAdFinished);
-    playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.onAdSkipped);
-    playerEvents.add(player.EVENT.ON_AD_ERROR, this.onAdError);
-    playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.onSourceUnloaded);
-    playerEvents.add(player.EVENT.ON_ERROR, this.onError);
+    playerEvents.add(PlayerEvent.Play, this.onPlay);
+    playerEvents.add(PlayerEvent.Playing, this.onPlaying);
+    playerEvents.add(PlayerEvent.TimeChanged, this.onTimeChanged);
+    playerEvents.add(PlayerEvent.Paused, this.onPlaybackStateChanged);
+    playerEvents.add(PlayerEvent.StallStarted, this.onPlaybackStateChanged);
+    playerEvents.add(PlayerEvent.StallEnded, this.onPlaybackStateChanged);
+    playerEvents.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
+    playerEvents.add(PlayerEvent.VideoPlaybackQualityChanged, this.onVideoQualityChanged);
+    playerEvents.add(PlayerEvent.AudioPlaybackQualityChanged, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.Muted, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.Unmuted, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.ViewModeChanged, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.CastStarted, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.CastStopped, this.onCustomEvent);
+    playerEvents.add(PlayerEvent.AdStarted, this.onAdStarted);
+    playerEvents.add(PlayerEvent.AdFinished, this.onAdFinished);
+    playerEvents.add(PlayerEvent.AdSkipped, this.onAdSkipped);
+    playerEvents.add(PlayerEvent.AdError, this.onAdError);
+    playerEvents.add(PlayerEvent.SourceUnloaded, this.onSourceUnloaded);
+    playerEvents.add(PlayerEvent.Error, this.onError);
   }
 
   private unregisterPlayerEvents(): void {
@@ -550,15 +542,15 @@ class PlayerConfigHelper {
 class PlayerEventWrapper {
 
   private player: Player;
-  private eventHandlers: { [eventType: string]: ((event?: any) => void)[]; };
+  private readonly eventHandlers: { [eventType: string]: ((event?: PlayerEventBase) => void)[]; };
 
   constructor(player: Player) {
     this.player = player;
     this.eventHandlers = {};
   }
 
-  add(eventType: string, callback: (event?: any) => void): void {
-    this.player.addEventHandler(eventType, callback);
+  add(eventType: PlayerEvent, callback: (event?: PlayerEventBase) => void): void {
+    this.player.on(eventType, callback);
 
     if (!this.eventHandlers[eventType]) {
       this.eventHandlers[eventType] = [];
@@ -567,8 +559,8 @@ class PlayerEventWrapper {
     this.eventHandlers[eventType].push(callback);
   }
 
-  remove(eventType: string, callback: (event?: any) => void): void {
-    this.player.removeEventHandler(eventType, callback);
+  remove(eventType: PlayerEvent, callback: (event?: PlayerEventBase) => void): void {
+    this.player.off(eventType, callback);
 
     if (this.eventHandlers[eventType]) {
       ArrayUtils.remove(this.eventHandlers[eventType], callback);
@@ -578,7 +570,7 @@ class PlayerEventWrapper {
   clear(): void {
     for (let eventType in this.eventHandlers) {
       for (let callback of this.eventHandlers[eventType]) {
-        this.player.removeEventHandler(eventType, callback);
+        this.remove(eventType as PlayerEvent, callback);
       }
     }
   }
