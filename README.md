@@ -9,19 +9,21 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
 
 ## Getting Started
 
- 0. Clone Git repository
- 1. Install node.js
- 2. Install required npm packages: [`yarn`](https://yarnpkg.com/)
- 3. Run tasks:
+1. Clone Git repository
+2. Install node.js
+3. Install required npm packages: [`yarn`](https://yarnpkg.com/)
+4. Run tasks:
   * `yarn build` to build project into `dist` directory
   * `yarn start` to open test page in browser, build and reload changed files automatically
   * `yarn lint` to lint TypeScript files
 
 ## Usage
 
- 1. Build the script by running `yarn build`
- 2. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
- 3. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
+1. Build the script by running `yarn build`
+
+2. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
+
+3. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
     ```js
     var playerConfig = {
       key: 'YOUR-PLAYER-KEY',
@@ -49,7 +51,8 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
       console.error('player setup failed', reason);
     });
     ```
- 4. Add optional properties to the player's source configuration object to improve analytics data:
+
+4. Add optional properties to the player's source configuration object to improve analytics data:
     ```js
     {
       title: 'Art of Motion',
@@ -60,5 +63,5 @@ This Conviva integration currently does not track pre-roll ads. The analytics se
       contentId: 'uniqueContentId',
     }
     ```
- 5. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
- 
+
+5. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
