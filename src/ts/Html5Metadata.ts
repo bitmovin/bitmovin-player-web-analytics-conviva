@@ -1,15 +1,3 @@
-/*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
-/*! This is sample code meant to illustrate proper Conviva integration in video applications. */
-/*! This file should not be included in video applications as part of integrating Conviva. */
-
-// Implements Conviva.MetadataInterface for Chrome.
-
-// The Conviva Platform will recognize HTTP user agent strings for major browsers,
-// and use these to fill in some of the missing metadata.
-// You can validate the resulting metadata through our validation tools.
-// If you wish you can maintain your own user agent string parsing on the client side
-// instead, and use it to supply the requested Conviva data.
-
 import Conviva from './Conviva';
 import Client = Conviva.Client;
 

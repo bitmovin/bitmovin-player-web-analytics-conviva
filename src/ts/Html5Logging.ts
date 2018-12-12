@@ -1,9 +1,3 @@
-/*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
-/*! This is sample code meant to illustrate proper Conviva integration in video applications. */
-/*! This file should not be included in video applications as part of integrating Conviva. */
-
-// Implements Conviva.LoggingInterface for Chrome.
-
 import Conviva from './Conviva';
 import SystemSettings = Conviva.SystemSettings;
 
