@@ -440,8 +440,12 @@ export class ConvivaAnalytics {
       this.initializeSession();
     }
 
-    this.client.reportError(this.sessionKey, `${String(event.code)} ${event.name}: `,
-      Conviva.Client.ErrorSeverity.FATAL);
+    this.client.reportError(
+      this.sessionKey,
+      `${String(event.code)} ${event.name}`,
+      Conviva.Client.ErrorSeverity.FATAL
+    );
+
     this.endSession();
   };
 
