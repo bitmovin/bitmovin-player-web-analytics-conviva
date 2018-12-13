@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/ts/main.ts',
+  entry: './src/ts/bundle.ts',
   module: {
     rules: [
       {
@@ -24,5 +24,6 @@ module.exports = {
       commonjs: 'bitmovinplayer-analytics-conviva'
     },
     libraryTarget: 'umd'
-  }
+  },
+  devtool: 'source-map',
 };
