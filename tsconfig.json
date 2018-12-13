@@ -8,11 +8,7 @@
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "removeComments": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ]
+    "removeComments": true
   },
   "include": [
     "./src"
