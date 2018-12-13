@@ -60,7 +60,7 @@ export class ConvivaAnalytics {
 
   private player: Player;
   private events: typeof PlayerEvent;
-  private playerEvents: PlayerEventWrapper;
+  private handlers: PlayerEventWrapper;
   private config: ConvivaAnalyticsConfiguration;
   private contentMetadata: ContentMetadata;
   private sessionDataPopulated: boolean;
@@ -94,7 +94,7 @@ export class ConvivaAnalytics {
     // TODO: Use alternative to deprecated player.exports
     this.events = player.exports.PlayerEvent;
 
-    this.playerEvents = new PlayerEventWrapper(player);
+    this.handlers = new PlayerEventWrapper(player);
     this.config = config;
 
     // Set default config values
@@ -450,7 +450,7 @@ export class ConvivaAnalytics {
   };
 
   private registerPlayerEvents(): void {
-    const playerEvents = this.playerEvents;
+    const playerEvents = this.handlers;
 
     playerEvents.add(this.events.Play, this.onPlay);
     playerEvents.add(this.events.Playing, this.onPlaying);
@@ -473,7 +473,7 @@ export class ConvivaAnalytics {
   }
 
   private unregisterPlayerEvents(): void {
-    this.playerEvents.clear();
+    this.handlers.clear();
   }
 }
 
