@@ -16,8 +16,8 @@
     "copy": "cp ./package.json ./dist/package.json",
     "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:esm && npm run build:bundle && npm run copy",
     "build:describe": "echo \"Building Player Integration...\"",
-    "build:lib": "./node_modules/.bin/tsc -m commonjs --outDir ./dist/lib",
-    "build:esm": "./node_modules/.bin/tsc -m es6 --outDir ./dist/lib-esm",
+    "build:lib": "./node_modules/.bin/tsc --module commonjs --outDir ./dist/lib --declaration",
+    "build:esm": "./node_modules/.bin/tsc --module es6 --outDir ./dist/lib-esm --declaration",
     "build:bundle": "./node_modules/.bin/webpack --config webpack.prod.js"
   },
   "author": "Bitmovin",
