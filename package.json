@@ -7,10 +7,10 @@
   "es2015": "lib-esm/index.js",
   "scripts": {
     "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
-    "start": "yarn build && ./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
+    "start": "npm run build && ./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
     "clean": "rm -rf ./dist",
     "copy": "cp ./package.json ./dist/package.json",
-    "build": "yarn build:describe && yarn lint && yarn clean && yarn build:lib && yarn build:esm && yarn build:bundle && yarn copy",
+    "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:esm && npm run build:bundle && npm run copy",
     "build:describe": "echo \"Building Player Integration...\"",
     "build:lib": "./node_modules/.bin/tsc -m commonjs --outDir ./dist/lib",
     "build:esm": "./node_modules/.bin/tsc -m es6 --outDir ./dist/lib-esm",

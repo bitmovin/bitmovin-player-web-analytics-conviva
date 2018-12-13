@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Changed
 - Update to Bitmovin Player v8
-- Switch to Webpack and yarn
+- Switch to Webpack
 - Improve typings
 
 ### Added
