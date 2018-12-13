@@ -1,4 +1,3 @@
-import Conviva from './Conviva';
 import StorageLoadDataCallback = Conviva.StorageLoadDataCallback;
 import StorageSaveDataCallback = Conviva.StorageSaveDataCallback;
 

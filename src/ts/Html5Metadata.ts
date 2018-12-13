@@ -1,4 +1,3 @@
-import Conviva from './Conviva';
 import Client = Conviva.Client;
 
 export class Html5Metadata implements Conviva.MetadataInterface {

@@ -1,5 +1,3 @@
-import Conviva from './Conviva';
-
 export class Html5Time implements Conviva.TimeInterface {
 
   public getEpochTimeMs(): number {

@@ -1,5 +1,4 @@
-import Conviva from './Conviva';
-import ContentMetadata = Conviva.ContentMetadata;
+type ContentMetadata = Conviva.ContentMetadata;
 import {
   AdBreak,
   AdBreakEvent,

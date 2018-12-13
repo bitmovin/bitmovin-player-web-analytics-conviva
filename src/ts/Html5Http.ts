@@ -1,4 +1,3 @@
-import Conviva from './Conviva';
 import HttpRequestCancelFunction = Conviva.HttpRequestCancelFunction;
 import HttpRequestCallback = Conviva.HttpRequestCallback;
 

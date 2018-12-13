@@ -1,4 +1,3 @@
-import Conviva from './Conviva';
 import TimerCancelFunction = Conviva.TimerCancelFunction;
 import TimerAction = Conviva.TimerAction;
 

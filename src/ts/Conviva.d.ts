@@ -1,4 +1,4 @@
-export declare namespace Conviva {
+declare namespace Conviva {
 
   namespace Client {
     enum AdPlayer {
@@ -200,6 +200,3 @@ export declare namespace Conviva {
     release(): void;
   }
 }
-
-export default Conviva;
-

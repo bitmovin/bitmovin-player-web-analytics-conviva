@@ -1,4 +1,3 @@
-import Conviva from './Conviva';
 import SystemSettings = Conviva.SystemSettings;
 
 export class Html5Logging implements Conviva.LoggingInterface {
