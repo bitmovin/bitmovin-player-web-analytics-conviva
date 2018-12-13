@@ -20,8 +20,8 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     library: {
       root: ['bitmovin', 'player', 'analytics'],
-      amd: 'bitmovinplayer-analytics-conviva',
-      commonjs: 'bitmovinplayer-analytics-conviva'
+      amd: 'bitmovin-player-analytics-conviva',
+      commonjs: 'bitmovin-player-analytics-conviva'
     },
     libraryTarget: 'umd'
   },
