@@ -3,10 +3,18 @@
   "version": "1.0.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "main": "bitmovinplayer-analytics-conviva.js",
+  "module": "lib/index.js",
+  "es2015": "lib-esm/index.js",
   "scripts": {
     "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
     "start": "yarn build && ./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
-    "build": "yarn lint && rm -rf ./dist && ./node_modules/.bin/webpack --config webpack.prod.js && cp ./package.json ./dist/package.json"
+    "clean": "rm -rf ./dist",
+    "copy": "cp ./package.json ./dist/package.json",
+    "build": "yarn build:describe && yarn lint && yarn clean && yarn build:lib && yarn build:esm && yarn build:bundle && yarn copy",
+    "build:describe": "echo \"Building Player Integration...\"",
+    "build:lib": "./node_modules/.bin/tsc -m commonjs --outDir ./dist/lib",
+    "build:esm": "./node_modules/.bin/tsc -m es6 --outDir ./dist/lib-esm",
+    "build:bundle": "./node_modules/.bin/webpack --config webpack.prod.js"
   },
   "author": "Bitmovin",
   "license": "ISC",
