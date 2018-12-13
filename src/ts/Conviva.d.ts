@@ -75,7 +75,6 @@ declare namespace Conviva {
     applicationName: string;
     assetName: string;
     custom: {};
-    defaultBitrateKbps: number;
     defaultResource: string;
     duration: number;
     encodedFrameRate: number;
@@ -152,7 +151,6 @@ declare namespace Conviva {
     setStreamUrl(streamUrl: string): void;
     setUserSeekButtonDown(): void;
     setUserSeekButtonUp(): void;
-    updateContentMetadata(contentMetadata: ContentMetadata): void;
   }
 
   interface StorageLoadDataCallback {

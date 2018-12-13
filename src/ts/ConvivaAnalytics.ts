@@ -114,11 +114,6 @@ export class ConvivaAnalytics {
 
     this.client = new Conviva.Client(clientSettings, this.systemFactory);
 
-    this.playerStateManager = this.client.getPlayerStateManager();
-    this.playerStateManager.setPlayerType('Bitmovin Player');
-    this.playerStateManager.setPlayerVersion(player.version);
-
-    this.initializeSession();
     this.registerPlayerEvents();
   }
 
@@ -145,23 +140,36 @@ export class ConvivaAnalytics {
     }
   }
 
+  /**
+   * A Conviva Session should only be initialized when there is a source provided in the player because
+   * Conviva only allows to update different `contentMetadata` only at different times
+   *
+   * Set only once:
+   *  - assetName
+   *
+   * Update before first video frame:
+   *  - viewerId
+   *  - streamType
+   *  - playerName
+   *  - duration
+   *  - custom
+   *
+   * Multiple updates during session:
+   *  - streamUrl
+   *  - defaultResource (unused)
+   *  - encodedFrameRate (unused)
+   */
   private initializeSession() {
+    // initialize PlayerStateManager
+    this.playerStateManager = this.client.getPlayerStateManager();
+    this.playerStateManager.setPlayerType('Bitmovin Player');
+    this.playerStateManager.setPlayerVersion(this.player.version);
+
     this.contentMetadata = new Conviva.ContentMetadata();
-    this.contentMetadata.streamType = Conviva.ContentMetadata.StreamType.UNKNOWN;
-    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-
-    let source = this.player.getConfig().source;
-    if (source) {
-      this.contentMetadata.assetName = this.getAssetName(source);
-      this.contentMetadata.streamUrl = this.getUrlFromSource(source);
-
-    } else {
-      this.contentMetadata.assetName = 'unknown';
-      this.contentMetadata.streamUrl = 'unknown';
-    }
+    this.buildContentMetadata();
 
     // Create a Conviva monitoring session.
-    this.sessionKey = this.client.createSession(this.contentMetadata);
+    this.sessionKey = this.client.createSession(this.contentMetadata); // this will make the initial request
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -174,32 +182,47 @@ export class ConvivaAnalytics {
     this.debugLog('startsession', this.sessionKey);
   }
 
-  private updateSession = () => {
-    if (!this.sessionDataPopulated) {
-      this.sessionDataPopulated = true;
-      this.updateContentMetadata();
-      this.playerStateManager.updateContentMetadata(this.contentMetadata);
-    }
-  };
-
-  private updateContentMetadata() {
+  /**
+   * Update contentMetadata which must be present before first video frame
+   */
+  private buildContentMetadata() {
     let source = this.player.getConfig().source;
 
-    if (this.contentMetadata.assetName !== this.getAssetName(source)) {
-      this.contentMetadata.assetName = this.getAssetName(source);
-    }
-
+    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
+    this.contentMetadata.assetName = this.getAssetName(source);
     this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
-    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    this.contentMetadata.duration = this.player.getDuration();
+    this.contentMetadata.streamType =
+      this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+
     this.contentMetadata.custom = {
       'playerType': this.player.getPlayerType(),
       'streamType': this.player.getStreamType(),
       'vrContentType': this.player.getVRStatus().contentType,
+      // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
+      'autoplay': PlayerConfigHelper.getAutoplayConfig(this.player) + '',
+      'preload': PlayerConfigHelper.getPreloadConfig(this.player) + '',
       ...this.config.customTags,
     };
-    this.contentMetadata.duration = this.player.getDuration();
-    this.contentMetadata.streamType
-      = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+
+    // also include dynamic content metadata at initial creation
+    this.buildDynamicContentMetadata();
+  }
+
+  /**
+   * Update contentMetadata which are allowed during the session
+   */
+  private buildDynamicContentMetadata() {
+    let source = this.player.getConfig().source;
+    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+  }
+
+  private updateSession() {
+    if (!this.isValidSession()) {
+      return;
+    }
+    this.buildDynamicContentMetadata();
+    this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
   private getAssetName(source: any): string {
@@ -224,6 +247,8 @@ export class ConvivaAnalytics {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
+    this.client.releasePlayerStateManager(this.playerStateManager);
+
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.sessionDataPopulated = false;
   };
@@ -232,25 +257,13 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onSourceLoaded = () => {
+  private onPlaybackStateChanged = (event?: any) => {
     if (this.isAd) {
-      // Ignore ON_SOURCE_LOADED events during ad playback, because that's just an ad being temporarily loaded
-      // instead of the actual source.
+      // Do not track playback state changes during ad (e.g. triggered from IMA)
       return;
     }
-
-    // in case a source has been loaded after an source_unloaded initialize a new session
-    if (!this.isValidSession()) {
-      this.initializeSession();
-    }
-  };
-
-  private onReady = (event: any) => {
-    this.debugLog('ready', event);
-  };
-
-  private onPlaybackStateChanged = (event?: any) => {
     this.debugLog('reportplaybackstate', event);
+
     let playerState;
 
     if (this.player.isStalled()) {
@@ -270,6 +283,10 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: any) => {
     this.debugLog('play', event);
+    if (this.isAd) {
+      // Do not track play event during ad (e.g. triggered from IMA)
+      return;
+    }
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isValidSession()) {
@@ -302,15 +319,10 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
-  private onSeek = (event: any) => {
-    this.playerStateManager.setPlayerSeekStart(Math.round(event.seekTarget * 1000));
-  };
-
-  private onSeeked = () => {
-    this.playerStateManager.setPlayerSeekEnd();
-  };
-
   private onVideoQualityChanged = (event: any) => {
+    if (!this.isValidSession()) {
+      return;
+    }
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
     let bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
@@ -342,12 +354,11 @@ export class ConvivaAnalytics {
     };
     objectWalker(event);
 
+    this.debugLog('customevent', eventAttributes);
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
   private onAdStarted = (event: any) => {
-    this.isAd = true;
-    this.debugLog('adstart', event);
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
     switch (event.timeOffset) {
@@ -364,6 +375,7 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('adstart', event);
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
     this.onPlaybackStateChanged();
   };
@@ -375,23 +387,29 @@ export class ConvivaAnalytics {
 
   private onAdError = (event: any) => {
     this.onCustomEvent(event);
-    this.onAdFinished(event);
+    if (this.isAd) {
+      this.onAdFinished(event);
+    }
   };
 
   private onAdFinished = (event?: any) => {
-    this.isAd = false;
-    this.debugLog('adend', event);
 
     if (!this.isValidSession()) {
       // Don't report without a valid session (e.g. in case of a post-roll ad)
       return;
     }
 
+    this.debugLog('adend', event);
     this.client.adEnd(this.sessionKey);
     this.onPlaybackStateChanged();
   };
 
   private onError = (event: any) => {
+    if (!this.isValidSession()) {
+      // initialize Session if not yet initialized to capture Video Start Failures
+      this.initializeSession();
+    }
+
     this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
       Conviva.Client.ErrorSeverity.FATAL);
     this.endSession();
@@ -406,11 +424,25 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
+  private onDestroy = (event: any) => {
+    this.endSession(event);
+  };
+
+  // The adStarted event is triggered after the playing event of the ad so we need to set the isAd flag when an
+  // adBreakStarts instead
+  private onAdBreakStarted = (event: any) => {
+    this.debugLog('adbreakstart', event);
+    this.isAd = true;
+  };
+
+  private onAdBreakFinished = (event: any) => {
+    this.debugLog('adbreakend', event);
+    this.isAd = false;
+  };
+
   private registerPlayerEvents(): void {
     let player = this.player;
     let playerEvents = this.playerEvents;
-    playerEvents.add(player.EVENT.ON_SOURCE_LOADED, this.onSourceLoaded);
-    playerEvents.add(player.EVENT.ON_READY, this.onReady);
     playerEvents.add(player.EVENT.ON_PLAY, this.onPlay);
     playerEvents.add(player.EVENT.ON_PLAYING, this.onPlaying);
     playerEvents.add(player.EVENT.ON_TIME_CHANGED, this.onTimeChanged);
@@ -418,8 +450,6 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_STALL_STARTED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_STALL_ENDED, this.onPlaybackStateChanged);
     playerEvents.add(player.EVENT.ON_PLAYBACK_FINISHED, this.onPlaybackFinished);
-    playerEvents.add(player.EVENT.ON_SEEK, this.onSeek);
-    playerEvents.add(player.EVENT.ON_SEEKED, this.onSeeked);
     playerEvents.add(player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, this.onVideoQualityChanged);
     playerEvents.add(player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_MUTED, this.onCustomEvent);
@@ -429,11 +459,14 @@ export class ConvivaAnalytics {
     playerEvents.add(player.EVENT.ON_CAST_STARTED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_CAST_STOPPED, this.onCustomEvent);
     playerEvents.add(player.EVENT.ON_AD_STARTED, this.onAdStarted);
+    playerEvents.add(player.EVENT.ON_AD_BREAK_STARTED, this.onAdBreakStarted);
     playerEvents.add(player.EVENT.ON_AD_FINISHED, this.onAdFinished);
+    playerEvents.add(player.EVENT.ON_AD_BREAK_FINISHED, this.onAdBreakFinished);
     playerEvents.add(player.EVENT.ON_AD_SKIPPED, this.onAdSkipped);
     playerEvents.add(player.EVENT.ON_AD_ERROR, this.onAdError);
     playerEvents.add(player.EVENT.ON_SOURCE_UNLOADED, this.onSourceUnloaded);
     playerEvents.add(player.EVENT.ON_ERROR, this.onError);
+    playerEvents.add(player.EVENT.ON_DESTROY, this.onDestroy);
   }
 
   private unregisterPlayerEvents(): void {
@@ -470,9 +503,65 @@ export class ConvivaAnalytics {
   release(): void {
     this.unregisterPlayerEvents();
     this.endSession();
-    this.client.releasePlayerStateManager(this.playerStateManager);
     this.client.release();
     this.systemFactory.release();
+  }
+}
+
+class PlayerConfigHelper {
+  /**
+   * The config for autoplay and preload have great impact to the VST (Video Startup Time) we track it.
+   * Since there is no way to get default config values from the player they are hardcoded.
+   */
+  static AUTOPLAY_DEFAULT_CONFIG: boolean = false;
+
+  /**
+   * Extract autoplay config form player
+   *
+   * @param player: Player
+   */
+  public static getAutoplayConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (playerConfig.playback && playerConfig.playback.autoplay !== undefined) {
+      return playerConfig.playback.autoplay;
+    } else {
+      return PlayerConfigHelper.AUTOPLAY_DEFAULT_CONFIG;
+    }
+  }
+
+  /**
+   * Extract preload config from player
+   *
+   * The preload config can be set individual for mobile or desktop as well as on root level for both platforms.
+   * Default value is true for VOD and false for live streams. If the value is not set for current platform or on root
+   * level the default value will be used over the value for the other platform.
+   *
+   * @param player: Player
+   */
+  public static getPreloadConfig(player: Player): boolean {
+    let playerConfig = player.getConfig();
+
+    if (BrowserUtils.isMobile()) {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.mobile
+          && playerConfig.adaptation.mobile.preload !== undefined) {
+        return playerConfig.adaptation.mobile.preload;
+      }
+    } else {
+      if (playerConfig.adaptation
+          && playerConfig.adaptation.desktop
+          && playerConfig.adaptation.desktop.preload !== undefined) {
+        return playerConfig.adaptation.desktop.preload;
+      }
+    }
+
+    if (playerConfig.adaptation
+        && playerConfig.adaptation.preload !== undefined) {
+      return playerConfig.adaptation.preload
+    }
+
+    return !player.isLive();
   }
 }
 
@@ -531,5 +620,15 @@ namespace ArrayUtils {
     } else {
       return null;
     }
+  }
+}
+
+class BrowserUtils {
+  static isMobile(): boolean {
+    const isAndroid: boolean = /Android/i.test(navigator.userAgent);
+    const isIEMobile: boolean = /IEMobile/i.test(navigator.userAgent);
+    const isEdgeMobile: boolean = /Windows Phone 10.0/i.test(navigator.userAgent);
+    const isMobileSafari: boolean = /Safari/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
+    return isAndroid || isIEMobile || isEdgeMobile || isMobileSafari;
   }
 }
