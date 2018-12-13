@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/ts/bundle.ts',
+  entry: './src/ts/index.ts',
   module: {
     rules: [
       {
@@ -19,7 +19,7 @@ module.exports = {
     umdNamedDefine: true,
     path: path.resolve(__dirname, 'dist'),
     library: {
-      root: 'ConvivaAnalytics',
+      root: ['bitmovin', 'player', 'analytics'],
       amd: 'bitmovinplayer-analytics-conviva',
       commonjs: 'bitmovinplayer-analytics-conviva'
     },
