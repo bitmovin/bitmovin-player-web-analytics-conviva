@@ -87,6 +87,11 @@ export class ConvivaAnalytics {
       return; // Cancel initialization
     }
 
+    if (!player.getSource()) {
+      console.error('Bitmovin Conviva integration must be instantiated before calling player.load()');
+      return; // Cancel initialization
+    }
+
     this.sessionDataPopulated = false;
 
     this.player = player;
