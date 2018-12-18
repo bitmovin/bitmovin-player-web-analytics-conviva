@@ -306,11 +306,12 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event?: PlayerEventBase) => {
-    this.debugLog('reportplaybackstate', event);
     if (this.isAd) {
       // Do not track playback state changes during ad (e.g. triggered from IMA)
       return;
     }
+
+    this.debugLog('reportplaybackstate', event);
 
     let playerState;
 
@@ -387,7 +388,7 @@ export class ConvivaAnalytics {
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
     this.isAd = true;
-    this.debugLog('adstart', event);
+
     let adPosition = Conviva.Client.AdPosition.MIDROLL;
 
     switch (this.getAdBreakPosition(event.adBreak)) {
@@ -404,6 +405,7 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('adbreakstart', event);
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
     this.onPlaybackStateChanged();
   };
@@ -422,13 +424,14 @@ export class ConvivaAnalytics {
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.isAd = false;
-    this.debugLog('adend', event);
+
 
     if (!this.isValidSession()) {
       // Don't report without a valid session (e.g. in case of a post-roll ad)
       return;
     }
 
+    this.debugLog('adbreakfinished', event);
     this.client.adEnd(this.sessionKey);
     this.onPlaybackStateChanged();
   };
@@ -457,6 +460,10 @@ export class ConvivaAnalytics {
     this.endSession(event);
   };
 
+  private onDestroy = (event: any) => {
+    this.endSession(event);
+  };
+
   private registerPlayerEvents(): void {
     const playerEvents = this.handlers;
 
@@ -478,6 +485,7 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
+    playerEvents.add(this.events.Destroy, this.onDestroy);
   }
 
   private unregisterPlayerEvents(): void {
