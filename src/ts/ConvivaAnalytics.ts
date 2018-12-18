@@ -400,6 +400,7 @@ export class ConvivaAnalytics {
         break;
     }
 
+    // TODO: check if also should not report for post-roll (currently doesn't)
     if (!this.isValidSession()) {
       // Don't report without a valid session (e.g. in case of a post-roll ad)
       return;
