@@ -158,7 +158,11 @@ export class ConvivaAnalytics {
     this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
   }
 
-  public release(event?: PlayerEventBase): void {
+  public release(): void {
+    this.destroy();
+  }
+
+  private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
     this.endSession(event);
     this.client.release();
@@ -462,7 +466,7 @@ export class ConvivaAnalytics {
   };
 
   private onDestroy = (event: any) => {
-    this.release(event);
+    this.destroy(event);
   };
 
   private registerPlayerEvents(): void {
