@@ -6,8 +6,8 @@
     "moduleResolution": "node",
     "lib": ["es2015", "dom"],
     "sourceMap": true,
-    "noImplicitAny": false,
-    "removeComments": true
+    "noImplicitAny": true,
+    "removeComments": false
   },
   "include": [
     "./src"
