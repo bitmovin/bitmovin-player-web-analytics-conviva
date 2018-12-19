@@ -42,10 +42,12 @@ declare namespace Conviva {
 
     public adEnd(sessionKey: number): void;
 
-    public adStart(sessionKey: number,
-                   adStream: Client.AdStream,
-                   adPlayer: Client.AdPlayer,
-                   adPosition: Client.AdPosition): void;
+    public adStart(
+      sessionKey: number,
+      adStream: Client.AdStream,
+      adPlayer: Client.AdPlayer,
+      adPosition: Client.AdPosition,
+    ): void;
 
     public attachPlayer(sessionKey: number, playerStateManager: PlayerStateManager): void;
 
@@ -105,8 +107,14 @@ declare namespace Conviva {
   type HttpRequestCallback = (succeeded: boolean, data: string) => void;
 
   interface HttpInterface {
-    makeRequest(httpMethod: 'GET' | 'POST', url: string, data: string | null, contentType: string | null,
-                timeoutMs: number, callback: HttpRequestCallback | null): HttpRequestCancelFunction;
+    makeRequest(
+      httpMethod: 'GET' | 'POST',
+      url: string,
+      data: string | null,
+      contentType: string | null,
+      timeoutMs: number,
+      callback: HttpRequestCallback | null,
+    ): HttpRequestCancelFunction;
 
     release(): void;
   }
@@ -219,8 +227,14 @@ declare namespace Conviva {
   }
 
   class SystemInterface {
-    constructor(timeInterface: TimeInterface, timerInterface: TimerInterface, httpInterface: HttpInterface,
-                storageInterface: StorageInterface, metadataInterface: MetadataInterface, loggingInterface: LoggingInterface);
+    constructor(
+      timeInterface: TimeInterface,
+      timerInterface: TimerInterface,
+      httpInterface: HttpInterface,
+      storageInterface: StorageInterface,
+      metadataInterface: MetadataInterface,
+      loggingInterface: LoggingInterface,
+    );
   }
 
   namespace SystemSettings {
