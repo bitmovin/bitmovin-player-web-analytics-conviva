@@ -393,16 +393,7 @@ export class ConvivaAnalytics {
   private onAdBreakStarted = (event: AdBreakEvent) => {
     this.isAd = true;
 
-    let adPosition = Conviva.Client.AdPosition.MIDROLL;
-
-    switch (this.getAdBreakPosition(event.adBreak)) {
-      case 'pre':
-        adPosition = Conviva.Client.AdPosition.PREROLL;
-        break;
-      case 'post':
-        adPosition = Conviva.Client.AdPosition.POSTROLL;
-        break;
-    }
+    const adPosition = this.mapAdPosition(event.adBreak);
 
     if (!this.isValidSession()) {
       // Don't report without a valid session (e.g. in case of a pre-roll ad)
@@ -414,16 +405,16 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged();
   };
 
-  private getAdBreakPosition(adBreak: AdBreak) {
+  private mapAdPosition(adBreak: AdBreak): Conviva.Client.AdPosition {
     if (adBreak.scheduleTime <= 0) {
-      return 'pre';
+      return Conviva.Client.AdPosition.PREROLL;
     }
 
     if (adBreak.scheduleTime >= this.player.getDuration()) {
-      return 'post';
+      return Conviva.Client.AdPosition.POSTROLL;
     }
 
-    return 'mid';
+    return Conviva.Client.AdPosition.MIDROLL;
   }
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
