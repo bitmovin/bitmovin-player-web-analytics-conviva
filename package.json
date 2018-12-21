@@ -11,7 +11,7 @@
   "es2015": "lib-esm/index.js",
   "scripts": {
     "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
-    "start": "npm run build && ./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
+    "start": "./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
     "clean": "rm -rf ./dist",
     "copy": "cp ./package.json ./dist/package.json",
     "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:esm && npm run build:bundle && npm run copy",
@@ -29,6 +29,7 @@
     "typescript": "^3.2.2",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
+    "webpack-copy-plugin": "0.0.4",
     "webpack-dev-server": "^3.1.10",
     "webpack-merge": "^4.1.5"
   }

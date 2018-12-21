@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyPlugin = require('webpack-copy-plugin');
 
 module.exports = {
   entry: './src/ts/index.ts',
@@ -25,5 +26,8 @@ module.exports = {
     },
     libraryTarget: 'umd'
   },
+  plugins: [
+    new CopyPlugin([])
+  ],
   devtool: 'source-map',
 };
