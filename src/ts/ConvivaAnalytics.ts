@@ -396,7 +396,7 @@ export class ConvivaAnalytics {
     const adPosition = this.mapAdPosition(event.adBreak);
 
     if (!this.isValidSession()) {
-      // Don't report without a valid session (e.g. in case of a pre-roll ad)
+      // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
 
@@ -422,7 +422,7 @@ export class ConvivaAnalytics {
 
 
     if (!this.isValidSession()) {
-      // Don't report without a valid session (e.g. in case of a post-roll ad)
+      // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
 
