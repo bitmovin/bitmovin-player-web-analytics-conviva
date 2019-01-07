@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.0.0] (2018-12-12)
 
+## Changed
+- Update to Bitmovin Player v8
+- Switch to Webpack
+- Improve typings
+
 ### Added
 - Tracking of `autoplay` and `preload` config attributes
 - Live stream support
