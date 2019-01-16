@@ -405,14 +405,7 @@ export class ConvivaAnalytics {
   };
 
   private onError = (event: any) => {
-    if (!this.isValidSession()) {
-      // initialize Session if not yet initialized to capture Video Start Failures
-      this.initializeSession();
-    }
-
-    this.client.reportError(this.sessionKey, String(event.code) + ' ' + event.message,
-      Conviva.Client.ErrorSeverity.FATAL);
-    this.endSession();
+    this.reportPlaybackDeficiency(String(event.code) + ' ' + event.message, Conviva.Client.ErrorSeverity.FATAL);
   };
 
   private onSourceUnloaded = (event: any) => {
@@ -498,6 +491,25 @@ export class ConvivaAnalytics {
     }
 
     this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
+  }
+
+  /**
+   * Sends a custom deficiency event during playback to Conviva's Player Insight. If no session is active it will NOT
+   * create one.
+   *
+   * @param message Message which will be send to conviva
+   * @param severity One of FATAL or WARNING
+   * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
+   */
+  reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
+    if (!this.isValidSession()) {
+      return;
+    }
+
+    this.client.reportError(this.sessionKey, message, severity);
+    if (endSession) {
+      this.endSession();
+    }
   }
 
   release(): void {
