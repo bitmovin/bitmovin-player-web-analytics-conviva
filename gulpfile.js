@@ -6,6 +6,7 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var tslint = require('gulp-tslint');
 var ts = require('gulp-typescript');
+var replace = require('gulp-replace');
 
 // Browserify
 var browserify = require('browserify');
@@ -43,6 +44,8 @@ var browserifyInstance = browserify({
 
 var catchBrowserifyErrors = false;
 var production = false;
+
+var npmPackage = require('./package.json');
 
 // Deletes the target directory containing all generated files
 gulp.task('clean', del.bind(null, [paths.target.html]));
@@ -116,6 +119,7 @@ gulp.task('browserify', function() {
   // Compile output JS file
   var stream = browserifyBundle
   .pipe(source('bitmovinplayer-analytics-conviva.js'))
+  .pipe(replace('{{VERSION}}', npmPackage.version))
   .pipe(buffer())
   .pipe(gulp.dest(paths.target.js));
 
