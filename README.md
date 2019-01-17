@@ -4,9 +4,6 @@
 **This version of the Conviva Analytics Integration works only with Player Version 7.x.
 The recommended version of the Conviva SDK is 2.146.0.36444.** See [CHANGELOG](CHANGELOG.md) for details.
 
-## Limitations
-This Conviva integration currently does not track pre-roll ads. The analytics session is created after pre-roll ads, before the main content is started. This is implemented according to Conviva's guidelines but is still considered a limitation as the `Exit Before Video Start` metrics cannot be measured. All other metrics are working as expected.
-
 ## Getting Started
 
  0. Clone Git repository
@@ -65,4 +62,19 @@ To just take a look at the project, also run `gulp serve`.
     }
     ```
  5. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
+ 
+### Advanced Usage
+
+#### VPF tracking
+
+If you would like to track custom VPF (Video Playback Failures) events when no actual player error happens (e.g. 
+the server closes the connection and return `net::ERR_EMPTY_RESPONSE` or after a certain time of stalling)
+you can use following API to track those deficiencies.
+
+```js
+conviva.reportPlaybackDeficiency('Some Error Message', Conviva.Client.ErrorSeverity.FATAL);
+```
+_See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for parameter details._
+
+Conviva suggests an timeout of about ~10 seconds and before reporting an error to conviva and providing feedback the user.
  
