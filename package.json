@@ -15,6 +15,7 @@
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
+    "gulp-replace": "^1.0.0",
     "gulp-sourcemaps": "^2.4.1",
     "gulp-tslint": "^7.1.0",
     "gulp-typescript": "^3.1.5",
