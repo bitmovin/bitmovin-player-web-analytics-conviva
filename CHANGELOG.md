@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.0] (2019-01-17)
+
+### Added
+- `integrationVersion` as custom `contentMetadata` attribute
+- Method to track custom deficiency events
+
 ## [2.0.0] (2018-12-12)
 
 ### Added
@@ -21,4 +27,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[2.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/tree/2.0.0
 [95c526]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/commit/95c526a7306cef98061f8f65e3dec3023df501af
