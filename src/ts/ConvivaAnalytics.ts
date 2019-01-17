@@ -57,6 +57,8 @@ export interface ConvivaSourceConfig extends SourceConfig {
 
 export class ConvivaAnalytics {
 
+  private static readonly VERSION: string = '{{VERSION}}';
+
   private player: Player;
   private events: typeof PlayerEvent;
   private handlers: PlayerEventWrapper;
@@ -254,6 +256,7 @@ export class ConvivaAnalytics {
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
+      integrationVersion: ConvivaAnalytics.VERSION,
       ...this.config.customTags,
     };
 
@@ -485,6 +488,10 @@ export class ConvivaAnalytics {
 
   private unregisterPlayerEvents(): void {
     this.handlers.clear();
+  }
+
+  static get version(): string {
+    return ConvivaAnalytics.VERSION;
   }
 }
 
