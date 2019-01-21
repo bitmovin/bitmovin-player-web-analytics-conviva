@@ -529,7 +529,7 @@ export class ConvivaAnalytics {
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
     if (this.isAd) {
-      // Ignore ON_SOURCE_UNLOADED events while
+      // Ignore sourceUnloaded events during ads
       return;
     }
 
