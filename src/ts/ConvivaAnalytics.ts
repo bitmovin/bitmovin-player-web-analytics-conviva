@@ -1,7 +1,7 @@
 type ContentMetadata = Conviva.ContentMetadata;
 import {
   AdBreak,
-  AdBreakEvent,
+  AdBreakEvent, AdEvent,
   ErrorEvent,
   PlaybackEvent,
   PlayerAPI,
@@ -454,6 +454,14 @@ export class ConvivaAnalytics {
     this.client.adEnd(this.sessionKey);
   };
 
+  private onAdSkipped = (event: AdEvent) => {
+    this.onCustomEvent(event);
+  };
+
+  private onAdError = (event: AdEvent) => {
+    this.onCustomEvent(event);
+  };
+
   private onSeek = (event: SeekEvent) => {
     if (!this.isValidSession()) {
       // Handle the case that the User seeks on the UI before play was triggered.
@@ -550,6 +558,8 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
+    playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
+    playerEvents.add(this.events.AdError, this.onAdError);
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
     playerEvents.add(this.events.Destroy, this.onDestroy);
