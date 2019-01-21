@@ -80,7 +80,6 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
-  private playbackStarted: boolean;
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
@@ -382,18 +381,9 @@ export class ConvivaAnalytics {
   };
 
   private onPlaying = (event: PlaybackEvent) => {
-    this.playbackStarted = true;
     this.debugLog('playing', event);
     this.updateSession();
     this.onPlaybackStateChanged(event);
-  };
-
-  // When the first ON_TIME_CHANGED event arrives, the loading phase is finished and actual playback has started
-  private onTimeChanged = (event: PlaybackEvent) => {
-    if (this.isValidSession() && !this.playbackStarted) {
-      // fallback for player versions <= 7.2 which do not support ON_PLAYING Event
-      this.onPlaying(event);
-    }
   };
 
   private onPlaybackFinished = (event: PlayerEventBase) => {
@@ -496,7 +486,6 @@ export class ConvivaAnalytics {
 
     playerEvents.add(this.events.Play, this.onPlay);
     playerEvents.add(this.events.Playing, this.onPlaying);
-    playerEvents.add(this.events.TimeChanged, this.onTimeChanged);
     playerEvents.add(this.events.Paused, this.onPlaybackStateChanged);
     playerEvents.add(this.events.StallStarted, this.onPlaybackStateChanged);
     playerEvents.add(this.events.StallEnded, this.onPlaybackStateChanged);
