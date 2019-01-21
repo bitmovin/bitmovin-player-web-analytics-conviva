@@ -16,6 +16,7 @@ import { Html5Metadata } from './Html5Metadata';
 import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
+import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 
 type Player = PlayerAPI;
 
@@ -57,6 +58,8 @@ export interface ConvivaSourceConfig extends SourceConfig {
 
 export class ConvivaAnalytics {
 
+  private static STALL_TRACKING_DELAY_MS = 100;
+
   private player: Player;
   private events: typeof PlayerEvent;
   private handlers: PlayerEventWrapper;
@@ -78,6 +81,11 @@ export class ConvivaAnalytics {
   private isAd: boolean;
 
   private playbackStarted: boolean;
+  // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
+  // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
+  private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING)
+  });
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
@@ -309,7 +317,7 @@ export class ConvivaAnalytics {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
-  private onPlaybackStateChanged = (event?: PlayerEventBase) => {
+  private onPlaybackStateChanged = (event: PlayerEventBase) => {
     if (this.isAd) {
       // Do not track playback state changes during ad (e.g. triggered from IMA)
       return;
@@ -319,14 +327,38 @@ export class ConvivaAnalytics {
 
     let playerState;
 
-    if (this.player.isStalled()) {
-      playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
-    } else if (this.player.isPaused()) {
-      playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
-    } else if (this.player.isPlaying()) {
-      playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
-    } else if (this.player.hasEnded()) {
-      playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
+    switch (event.type) {
+      case PlayerEvent.Play:
+      case PlayerEvent.Seek:
+      case PlayerEvent.TimeShift:
+        this.stallTrackingTimout.start();
+        break;
+      case PlayerEvent.StallStarted:
+        this.stallTrackingTimout.clear();
+        playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
+        break;
+      case PlayerEvent.Playing:
+        this.stallTrackingTimout.clear();
+        playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+        break;
+      case PlayerEvent.Paused:
+        this.stallTrackingTimout.clear();
+        playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+        break;
+      case PlayerEvent.Seeked:
+      case PlayerEvent.TimeShifted:
+      case PlayerEvent.StallEnded:
+        this.stallTrackingTimout.clear();
+        if (this.player.isPlaying()) {
+          playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+        } else {
+          playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+        }
+        break;
+      case PlayerEvent.PlaybackFinished:
+        this.stallTrackingTimout.clear();
+        playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
+        break;
     }
 
     if (playerState) {
@@ -345,6 +377,8 @@ export class ConvivaAnalytics {
     if (!this.isValidSession()) {
       this.initializeSession();
     }
+
+    this.onPlaybackStateChanged(event);
   };
 
   private onPlaying = (event: PlaybackEvent) => {
@@ -402,7 +436,6 @@ export class ConvivaAnalytics {
 
     this.debugLog('adbreakstart', event);
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
-    this.onPlaybackStateChanged();
   };
 
   private mapAdPosition(adBreak: AdBreak): Conviva.Client.AdPosition {
@@ -428,7 +461,6 @@ export class ConvivaAnalytics {
 
     this.debugLog('adbreakfinished', event);
     this.client.adEnd(this.sessionKey);
-    this.onPlaybackStateChanged();
   };
 
   private onError = (event: ErrorEvent) => {
@@ -481,6 +513,12 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
     playerEvents.add(this.events.Destroy, this.onDestroy);
+
+    // TODO: change to seek method and track it again
+    playerEvents.add(this.events.Seek, this.onPlaybackStateChanged);
+    playerEvents.add(this.events.Seeked, this.onPlaybackStateChanged);
+    playerEvents.add(this.events.TimeShift, this.onPlaybackStateChanged);
+    playerEvents.add(this.events.TimeShifted, this.onPlaybackStateChanged);
   }
 
   private unregisterPlayerEvents(): void {
