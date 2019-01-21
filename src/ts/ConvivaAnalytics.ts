@@ -250,7 +250,6 @@ export class ConvivaAnalytics {
     this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
     this.contentMetadata.assetName = this.getAssetName(source);
     this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
-    this.contentMetadata.duration = this.player.getDuration();
     this.contentMetadata.streamType =
       this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
 
@@ -274,6 +273,7 @@ export class ConvivaAnalytics {
   private buildDynamicContentMetadata() {
     const source = this.player.getSource();
     this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    this.contentMetadata.duration = this.player.getDuration();
   }
 
   private updateSession() {
