@@ -6,8 +6,8 @@ import {
   PlaybackEvent,
   PlayerAPI,
   PlayerEvent,
-  PlayerEventBase,
-  SourceConfig,
+  PlayerEventBase, SeekEvent,
+  SourceConfig, TimeShiftEvent,
   VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
@@ -453,6 +453,34 @@ export class ConvivaAnalytics {
     this.client.adEnd(this.sessionKey);
   };
 
+  private onSeek = (event: SeekEvent) => {
+    this.trackSeekStart(event.seekTarget);
+    this.onPlaybackStateChanged(event);
+  };
+
+  private onSeeked = (event: SeekEvent) => {
+    this.trackSeekEnd();
+    this.onPlaybackStateChanged(event);
+  };
+
+  private onTimeShift = (event: TimeShiftEvent) => {
+    this.trackSeekStart(-1);
+    this.onPlaybackStateChanged(event);
+  };
+
+  private onTimeShifted = (event: TimeShiftEvent) => {
+    this.trackSeekEnd();
+    this.onPlaybackStateChanged(event);
+  };
+
+  private trackSeekStart(target: number) {
+    this.playerStateManager.setPlayerSeekStart(target);
+  }
+
+  private trackSeekEnd() {
+    this.playerStateManager.setPlayerSeekEnd();
+  }
+
   private onError = (event: ErrorEvent) => {
     if (!this.isValidSession()) {
       // initialize Session if not yet initialized to capture Video Start Failures
@@ -502,12 +530,10 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
     playerEvents.add(this.events.Destroy, this.onDestroy);
-
-    // TODO: change to seek method and track it again
-    playerEvents.add(this.events.Seek, this.onPlaybackStateChanged);
-    playerEvents.add(this.events.Seeked, this.onPlaybackStateChanged);
-    playerEvents.add(this.events.TimeShift, this.onPlaybackStateChanged);
-    playerEvents.add(this.events.TimeShifted, this.onPlaybackStateChanged);
+    playerEvents.add(this.events.Seek, this.onSeek);
+    playerEvents.add(this.events.Seeked, this.onSeeked);
+    playerEvents.add(this.events.TimeShift, this.onTimeShift);
+    playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
   }
 
   private unregisterPlayerEvents(): void {
