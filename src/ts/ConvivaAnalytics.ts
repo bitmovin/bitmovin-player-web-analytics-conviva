@@ -317,8 +317,9 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
-    if (this.isAd) {
-      // Do not track playback state changes during ad (e.g. triggered from IMA)
+    // Do not track playback state changes during ads, (e.g. triggered from IMA)
+    // or if there is no active session.
+    if (this.isAd || !this.isValidSession()) {
       return;
     }
 
