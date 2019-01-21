@@ -454,21 +454,43 @@ export class ConvivaAnalytics {
   };
 
   private onSeek = (event: SeekEvent) => {
+    if (!this.isValidSession()) {
+      // Handle the case that the User seeks on the UI before play was triggered.
+      // This also handles startTime feature. The same applies for onTimeShift.
+      return;
+    }
+
     this.trackSeekStart(event.seekTarget);
     this.onPlaybackStateChanged(event);
   };
 
   private onSeeked = (event: SeekEvent) => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
     this.trackSeekEnd();
     this.onPlaybackStateChanged(event);
   };
 
   private onTimeShift = (event: TimeShiftEvent) => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
+    // According to conviva it is valid to pass -1 for seeking in live streams
     this.trackSeekStart(-1);
     this.onPlaybackStateChanged(event);
   };
 
   private onTimeShifted = (event: TimeShiftEvent) => {
+    if (!this.isValidSession()) {
+      // See comment in onSeek
+      return;
+    }
+
     this.trackSeekEnd();
     this.onPlaybackStateChanged(event);
   };
