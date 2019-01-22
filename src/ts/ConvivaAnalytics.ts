@@ -328,26 +328,26 @@ export class ConvivaAnalytics {
     let playerState;
 
     switch (event.type) {
-      case PlayerEvent.Play:
-      case PlayerEvent.Seek:
-      case PlayerEvent.TimeShift:
+      case this.events.Play:
+      case this.events.Seek:
+      case this.events.TimeShift:
         this.stallTrackingTimout.start();
         break;
-      case PlayerEvent.StallStarted:
+      case this.events.StallStarted:
         this.stallTrackingTimout.clear();
         playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
         break;
-      case PlayerEvent.Playing:
+      case this.events.Playing:
         this.stallTrackingTimout.clear();
         playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
         break;
-      case PlayerEvent.Paused:
+      case this.events.Paused:
         this.stallTrackingTimout.clear();
         playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
         break;
-      case PlayerEvent.Seeked:
-      case PlayerEvent.TimeShifted:
-      case PlayerEvent.StallEnded:
+      case this.events.Seeked:
+      case this.events.TimeShifted:
+      case this.events.StallEnded:
         this.stallTrackingTimout.clear();
         if (this.player.isPlaying()) {
           playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
@@ -355,7 +355,7 @@ export class ConvivaAnalytics {
           playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
         }
         break;
-      case PlayerEvent.PlaybackFinished:
+      case this.events.PlaybackFinished:
         this.stallTrackingTimout.clear();
         playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
         break;
