@@ -1,7 +1,4 @@
 {
-  "defaultSeverity": "error",
-  "extends": [],
-  "jsRules": {},
   "rules": {
     "class-name": true,
     "comment-format": [
@@ -26,7 +23,11 @@
       true,
       "single"
     ],
-    "semicolon": false,
+    "semicolon": [
+      true,
+      "always",
+      "ignore-bound-class-methods"
+    ],
     "triple-equals": [
       true,
       "allow-null-check"
@@ -52,7 +53,20 @@
       "check-operator",
       "check-separator",
       "check-type"
+    ],
+    "trailing-comma": [
+      true,
+      {
+        "multiline": {
+          "arrays": "always",
+          "exports": "always",
+          "functions": "always",
+          "imports": "always",
+          "objects": "always",
+          "typeLiterals": "always"
+        },
+        "singleline": "never"
+      }
     ]
-  },
-  "rulesDirectory": []
+  }
 }
