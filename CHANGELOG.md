@@ -4,12 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [2.0.0] (2018-12-12)
+## develop
 
-## Changed
+### Added
+- `initializeSession` to external start session
+- `endSession` to external end session 
+
+### Changed
 - Update to Bitmovin Player v8
 - Switch to Webpack
 - Improve typings
+
+## [2.0.0] (2018-12-12)
 
 ### Added
 - Tracking of `autoplay` and `preload` config attributes
