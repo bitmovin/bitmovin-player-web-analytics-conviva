@@ -1,4 +1,4 @@
-type ContentMetadata = Conviva.ContentMetadata;
+import ContentMetadata = Conviva.ContentMetadata;
 import {
   AdBreak,
   AdBreakEvent,
@@ -55,8 +55,23 @@ export interface ConvivaSourceConfig extends SourceConfig {
   contentId?: string;
 }
 
-export interface MetadataOverrides {
+interface MetadataOverrides extends ModifiableMetadataOverrides {
+  // Can only be set once
   assetName?: string;
+}
+
+export interface ModifiableMetadataOverrides  {
+  // Static Attributes
+  viewerId?: string;
+  streamType?: ContentMetadata.StreamType;
+  applicationName?: string;
+  custom?: {};
+  duration?: number;
+
+  // Dynamic
+  encodedFrameRate?: number;
+  defaultResource?: string;
+  streamUrl?: string;
 }
 
 export class ConvivaAnalytics {
@@ -204,6 +219,66 @@ export class ConvivaAnalytics {
     this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
   }
 
+  /**
+   * TODO:
+   * @param metadata
+   */
+  public updateContentMetadata(metadata: ModifiableMetadataOverrides) {
+    if (!this.isValidSession()) {
+      this.logger.consoleLog(
+        '[ Conviva Analytics ] no active session; Skipping content metadata update',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
+      return;
+    }
+
+    const cleanStaticContentMetadata = () => {
+      const staticContentMetadataKeys: string[] = [
+        'assetName', 'viewerId', 'streamType', 'applicationName', 'custom', 'duration',
+      ];
+
+      Object.keys(metadata).forEach((key: string) => {
+        if (staticContentMetadataKeys.includes(key)) {
+          this.logger.consoleLog(
+            '[ Conviva Analytics ] Illegal update during playback for key: \'' + key + '\'.',
+            Conviva.SystemSettings.LogLevel.WARNING,
+          );
+          delete (metadata as any)[key];
+        }
+      });
+    };
+
+    if (this.playbackStarted) {
+      cleanStaticContentMetadata();
+    }
+
+    this.metadataOverrides = {
+      ...this.metadataOverrides,
+      ...metadata,
+    };
+
+    this.buildContentMetadata();
+
+    // Set source related overrides outside of where a source is needed (overriding)
+    if (this.metadataOverrides.custom) {
+      this.contentMetadata.custom = {
+        ...this.contentMetadata.custom,
+        ...this.metadataOverrides.custom,
+      };
+    }
+
+    if (this.metadataOverrides.viewerId) {
+      this.contentMetadata.viewerId = this.metadataOverrides.viewerId;
+    }
+
+    if (this.metadataOverrides.streamUrl) {
+      this.contentMetadata.streamUrl = this.metadataOverrides.streamUrl;
+    }
+
+    // Dynamic metadata will be updated in updateSession
+    this.updateSession();
+  }
+
   public release(): void {
     this.destroy();
   }
@@ -286,11 +361,10 @@ export class ConvivaAnalytics {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
-    this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-    this.contentMetadata.viewerId = this.config.viewerId || null;
-    this.contentMetadata.duration = this.player.getDuration();
-    this.contentMetadata.streamType =
-      this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+    this.contentMetadata.applicationName = this.metadataOverrides.applicationName || this.config.applicationName || 'Unknown (no config.applicationName set)';
+    this.contentMetadata.viewerId = this.config.viewerId || null; // Overrides will be handled outside
+    this.contentMetadata.duration = this.metadataOverrides.duration || this.player.getDuration();
+    this.contentMetadata.streamType = this.metadataOverrides.streamType || (this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD);
 
     let customMetadata: {} = {
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
@@ -300,14 +374,18 @@ export class ConvivaAnalytics {
     };
 
     const source = this.player.getSource() as ConvivaSourceConfig;
+    // console.log('[log] source?', source);
     // This could be called before we got a source
     if (source) {
       this.buildSourceRelatedMetadata(source);
     }
 
     // Either metadataOverrides or source should exist at this point
-    this.contentMetadata.assetName = this.metadataOverrides.assetName || source && this.getAssetNameFromSource(source);
-    this.contentMetadata.custom = customMetadata;
+    this.contentMetadata.assetName = this.metadataOverrides.assetName || (source && this.getAssetNameFromSource(source));
+    this.contentMetadata.custom = {
+      ...customMetadata,
+      ...this.metadataOverrides.custom,
+    };
   }
 
   private buildSourceRelatedMetadata(source: ConvivaSourceConfig) {
@@ -319,6 +397,8 @@ export class ConvivaAnalytics {
       ...this.contentMetadata.custom,
     };
 
+    this.contentMetadata.streamUrl = this.metadataOverrides.streamUrl || this.getUrlFromSource(source);
+
     // also include dynamic content metadata at initial creation
     this.buildDynamicContentMetadata();
   }
@@ -327,8 +407,13 @@ export class ConvivaAnalytics {
    * Update contentMetadata which are allowed during the session
    */
   private buildDynamicContentMetadata() {
-    const source = this.player.getSource();
-    this.contentMetadata.streamUrl = this.getUrlFromSource(source);
+    if (this.metadataOverrides.encodedFrameRate) {
+      this.contentMetadata.encodedFrameRate = this.metadataOverrides.encodedFrameRate;
+    }
+
+    if (this.metadataOverrides.defaultResource) {
+      this.contentMetadata.defaultResource = this.metadataOverrides.defaultResource;
+    }
   }
 
   private updateSession() {
@@ -597,20 +682,20 @@ class PlayerConfigHelper {
 
     if (BrowserUtils.isMobile()) {
       if (playerConfig.adaptation
-          && playerConfig.adaptation.mobile
-          && playerConfig.adaptation.mobile.preload !== undefined) {
+        && playerConfig.adaptation.mobile
+        && playerConfig.adaptation.mobile.preload !== undefined) {
         return playerConfig.adaptation.mobile.preload;
       }
     } else {
       if (playerConfig.adaptation
-          && playerConfig.adaptation.desktop
-          && playerConfig.adaptation.desktop.preload !== undefined) {
+        && playerConfig.adaptation.desktop
+        && playerConfig.adaptation.desktop.preload !== undefined) {
         return playerConfig.adaptation.desktop.preload;
       }
     }
 
     if (playerConfig.adaptation
-        && playerConfig.adaptation.preload !== undefined) {
+      && playerConfig.adaptation.preload !== undefined) {
       return playerConfig.adaptation.preload;
     }
 
