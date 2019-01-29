@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Switch to Webpack
 - Improve typings
 
+### Removed
+- `viewerId`, `applicationName` and `customTags` from `ConvivaAnalyticsConfiguration`. Use `updateContentMetadata` instead
+
 ## [2.0.0] (2018-12-12)
 
 ### Added
