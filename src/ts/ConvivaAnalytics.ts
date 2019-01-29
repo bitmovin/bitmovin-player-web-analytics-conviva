@@ -51,8 +51,12 @@ export interface EventAttributes {
 }
 
 export interface ConvivaSourceConfig extends SourceConfig {
-  viewerId?: string
+  viewerId?: string;
   contentId?: string;
+}
+
+export interface MetadataOverrides {
+  assetName?: string;
 }
 
 export class ConvivaAnalytics {
@@ -78,6 +82,7 @@ export class ConvivaAnalytics {
   private isAd: boolean;
 
   private playbackStarted: boolean;
+  private metadataOverrides: MetadataOverrides = {};
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
@@ -132,6 +137,47 @@ export class ConvivaAnalytics {
   }
 
   /**
+   * Initializes a new conviva tracking session.
+   *
+   * Warning: The integration can only be validated without external session managing. So when using this method we can
+   * no longer ensure that the session is managed at the correct time. Additional: Since some metadata attributes
+   * relies on the players source we can't ensure that all metadata attributes are present at session creation.
+   * Therefore it could be that there will be a 'ContentMetadata created late' issue after conviva validation.
+   *
+   * @param assetName Will be used as contentMetadata.assetName if no source was loaded before. This overrides the
+   *                  source assetName. If no source was loaded and no assetName is present this method will throw an
+   *                  error.
+   */
+  public initializeSession(assetName?: string): void {
+    // This could be called before source loaded.
+    // Without setting the asset name on the content metadata when initializing the session the SDK will throw errors.
+    if (!this.player.getSource() && !assetName) {
+      throw('AssetName is missing. Provide assetName attribute or load player source first');
+    }
+
+    if (assetName) {
+      this.metadataOverrides.assetName = assetName;
+    }
+
+    this.internalInitializeSession();
+  }
+
+  /**
+   * Ends the current conviva tracking session.
+   * Results in a no-opt if there is no active session.
+   *
+   * Warning: The integration can only be validated without external session managing. So when using this method we can
+   * no longer ensure that the session is managed at the correct time.
+   */
+  public endSession(): void {
+    if (!this.isValidSession()) {
+      return;
+    }
+
+    this.internalEndSession();
+  }
+
+  /**
    * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
    * be sent and is not tied to a specific video.
    * @param eventName arbitrary event name
@@ -173,7 +219,7 @@ export class ConvivaAnalytics {
 
     this.client.reportError(this.sessionKey, message, severity);
     if (endSession) {
-      this.endSession();
+      this.internalEndSession();
     }
   }
 
@@ -183,7 +229,7 @@ export class ConvivaAnalytics {
 
   private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
-    this.endSession(event);
+    this.internalEndSession(event);
     this.client.release();
     this.systemFactory.release();
   }
@@ -213,7 +259,9 @@ export class ConvivaAnalytics {
 
   /**
    * A Conviva Session should only be initialized when there is a source provided in the player because
-   * Conviva only allows to update different `contentMetadata` only at different times
+   * Conviva only allows to update different `contentMetadata` only at different times.
+   *
+   * The session should be created as soon as there was a play intention from the user.
    *
    * Set only once:
    *  - assetName
@@ -230,7 +278,7 @@ export class ConvivaAnalytics {
    *  - defaultResource (unused)
    *  - encodedFrameRate (unused)
    */
-  private initializeSession() {
+  private internalInitializeSession() {
     // initialize PlayerStateManager
     this.playerStateManager = this.client.getPlayerStateManager();
     this.playerStateManager.setPlayerType('Bitmovin Player');
@@ -257,23 +305,37 @@ export class ConvivaAnalytics {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
-    const source = this.player.getSource() as ConvivaSourceConfig;
-
     this.contentMetadata.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-    this.contentMetadata.assetName = this.getAssetName(source);
-    this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+    this.contentMetadata.viewerId = this.config.viewerId || null;
     this.contentMetadata.duration = this.player.getDuration();
     this.contentMetadata.streamType =
       this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
 
-    this.contentMetadata.custom = {
-      playerType: this.player.getPlayerType(),
-      streamType: this.player.getStreamType(),
-      vrContentType: source.vr && source.vr.contentType,
+    let customMetadata: {} = {
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
       ...this.config.customTags,
+    };
+
+    const source = this.player.getSource() as ConvivaSourceConfig;
+    // This could be called before we got a source
+    if (source) {
+      this.buildSourceRelatedMetadata(source);
+    }
+
+    // Either metadataOverrides or source should exist at this point
+    this.contentMetadata.assetName = this.metadataOverrides.assetName || source && this.getAssetNameFromSource(source);
+    this.contentMetadata.custom = customMetadata;
+  }
+
+  private buildSourceRelatedMetadata(source: ConvivaSourceConfig) {
+    this.contentMetadata.viewerId = source.viewerId || this.config.viewerId || null;
+    this.contentMetadata.custom = {
+      playerType: this.player.getPlayerType(),
+      streamType: this.player.getStreamType(),
+      vrContentType: source.vr && source.vr.contentType,
+      ...this.contentMetadata.custom,
     };
 
     // also include dynamic content metadata at initial creation
@@ -296,7 +358,7 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
   }
 
-  private getAssetName(source: ConvivaSourceConfig): string {
+  private getAssetNameFromSource(source: ConvivaSourceConfig): string {
     let assetName;
 
     const assetId = source.contentId ? `[${source.contentId}]` : undefined;
@@ -314,7 +376,7 @@ export class ConvivaAnalytics {
     return assetName;
   }
 
-  private endSession = (event?: PlayerEventBase) => {
+  private internalEndSession = (event?: PlayerEventBase) => {
     this.debugLog('endsession', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
@@ -353,6 +415,16 @@ export class ConvivaAnalytics {
     }
   };
 
+  private onSourceLoaded = (event: PlayerEventBase) => {
+    // In case the session was created external before loading the source
+    if (!this.isValidSession()) {
+      return;
+    }
+
+    this.buildSourceRelatedMetadata(this.player.getSource());
+    this.client.updateContentMetadata(this.sessionKey, this.contentMetadata);
+  };
+
   private onPlay = (event: PlaybackEvent) => {
     this.debugLog('play', event);
     if (this.isAd) {
@@ -362,7 +434,7 @@ export class ConvivaAnalytics {
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isValidSession()) {
-      this.initializeSession();
+      this.internalInitializeSession();
     }
   };
 
@@ -384,7 +456,7 @@ export class ConvivaAnalytics {
   private onPlaybackFinished = (event: PlayerEventBase) => {
     this.debugLog('playbackfinished', event);
     this.onPlaybackStateChanged(event);
-    this.endSession(event);
+    this.internalEndSession(event);
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
@@ -453,7 +525,7 @@ export class ConvivaAnalytics {
   private onError = (event: ErrorEvent) => {
     if (!this.isValidSession()) {
       // initialize Session if not yet initialized to capture Video Start Failures
-      this.initializeSession();
+      this.internalInitializeSession();
     }
 
     this.reportPlaybackDeficiency(String(event.code) + ' ' + event.name, Conviva.Client.ErrorSeverity.FATAL);
@@ -465,7 +537,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.endSession(event);
+    this.internalEndSession(event);
   };
 
   private onDestroy = (event: any) => {
@@ -475,6 +547,7 @@ export class ConvivaAnalytics {
   private registerPlayerEvents(): void {
     const playerEvents = this.handlers;
 
+    playerEvents.add(this.events.SourceLoaded, this.onSourceLoaded);
     playerEvents.add(this.events.Play, this.onPlay);
     playerEvents.add(this.events.Playing, this.onPlaying);
     playerEvents.add(this.events.TimeChanged, this.onTimeChanged);
@@ -551,7 +624,7 @@ class PlayerConfigHelper {
 
     if (playerConfig.adaptation
         && playerConfig.adaptation.preload !== undefined) {
-      return playerConfig.adaptation.preload
+      return playerConfig.adaptation.preload;
     }
 
     return !player.isLive();
