@@ -346,6 +346,7 @@ export class ConvivaAnalytics {
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.sessionDataPopulated = false;
+    this.contentMetadataBuilder.setPlaybackStarted(false);
   };
 
   private isValidSession(): boolean {
