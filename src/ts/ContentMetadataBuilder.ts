@@ -22,7 +22,7 @@ interface CustomContentMetadata {
 export class ContentMetadataBuilder {
 
   private readonly logger: Conviva.LoggingInterface;
-  private readonly contentMetadata: Conviva.ContentMetadata;
+  private contentMetadata: Conviva.ContentMetadata;
 
   // internal metadata fields to enable merging / overriding
   private metadataOverrides: Metadata = {};
@@ -125,5 +125,12 @@ export class ContentMetadataBuilder {
 
   set streamUrl(newValue: string) {
     this.metadata.streamUrl = newValue;
+  }
+
+  public reset(): void {
+    this.metadataOverrides = {};
+    this.metadata = {};
+    this.playbackStarted = false;
+    this.contentMetadata = new Conviva.ContentMetadata();
   }
 }
