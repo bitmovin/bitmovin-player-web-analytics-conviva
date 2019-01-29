@@ -190,11 +190,11 @@ export class ConvivaAnalytics {
    * If there is no active session the values will set on session creation.
    *
    * Attributes set via this method will override automatic tracked once.
-   * @param metadata Metadata attributes which will be used to track to conviva.
+   * @param metadataOverrides Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
-  public updateContentMetadata(metadata: Metadata) {
-    this.contentMetadataBuilder.setOverrides(metadata);
+  public updateContentMetadata(metadataOverrides: Metadata) {
+    this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
     if (!this.isValidSession()) {
       this.logger.consoleLog(
