@@ -8,12 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - `initializeSession` to external start session
-- `endSession` to external end session 
+- `endSession` to external end session
+- `updateContentMetadata` to update content metadata after initializing `ConvivaAnalytics`
 
 ### Changed
 - Update to Bitmovin Player v8
 - Switch to Webpack
 - Improve typings
+
+### Removed
+- `viewerId`, `applicationName` and `customTags` from `ConvivaAnalyticsConfiguration`. Use `updateContentMetadata` instead
 
 ## [2.0.0] (2018-12-12)
 
