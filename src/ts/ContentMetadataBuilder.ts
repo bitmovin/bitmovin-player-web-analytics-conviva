@@ -24,7 +24,7 @@ export class ContentMetadataBuilder {
   private readonly logger: Conviva.LoggingInterface;
   private readonly contentMetadata: Conviva.ContentMetadata;
 
-  // intern metadata fields to enable merging / overriding
+  // internal metadata fields to enable merging / overriding
   private metadataOverrides: Metadata = {};
   private metadata: Metadata = {};
   private playbackStarted: boolean = false;
@@ -49,7 +49,6 @@ export class ContentMetadataBuilder {
     this.metadataOverrides = newValue;
   }
 
-  // Is needed to determine which attributes are allowed to update
   setPlaybackStarted(value: boolean) {
     this.playbackStarted = value;
   }
@@ -76,7 +75,7 @@ export class ContentMetadataBuilder {
     return this.contentMetadata;
   }
 
-  // Those methods should be treated as package private
+  // These methods should be treated as package private
   set assetName(newValue: string) {
     this.metadata.assetName = newValue;
   }

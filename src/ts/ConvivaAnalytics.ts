@@ -133,7 +133,7 @@ export class ConvivaAnalytics {
     }
 
     // This could be called before source loaded.
-    // Without setting the asset name on the content metadata when initializing the session the SDK will throw errors.
+    // Without setting the asset name on the content metadata the SDK will throw errors when we initialize the session.
     if (!this.player.getSource() && !this.contentMetadataBuilder.assetName) {
       throw('AssetName is missing. Load player source first or set assetName via updateContentMetadata');
     }
@@ -190,7 +190,7 @@ export class ConvivaAnalytics {
    * If there is no active session the values will set on session creation.
    *
    * Attributes set via this method will override automatic tracked once.
-   * @param metadata
+   * @param metadata Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadata: Metadata) {
