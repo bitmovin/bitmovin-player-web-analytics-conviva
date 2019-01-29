@@ -15,7 +15,7 @@ import { Html5Metadata } from './Html5Metadata';
 import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
-import { ContentMetadataBuilder, ModifiableMetadata } from './ContentMetadataBuilder';
+import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 
 type Player = PlayerAPI;
 
@@ -29,21 +29,6 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
-  /**
-   * A string value used to distinguish individual apps, players, locations, platforms, and/or deployments.
-   */
-  applicationName?: string;
-  /**
-   * A unique identifier to distinguish individual viewers/subscribers and their watching experience through
-   * Conviva's Viewers Module in Pulse.
-   * Can also be set in the source config of the player, which will take precedence over this value.
-   */
-  viewerId?: string;
-
-  /**
-   * A key-value map to send customer specific custom tags.
-   */
-  customTags?: { [key: string]: any };
 }
 
 export interface EventAttributes {
@@ -138,11 +123,9 @@ export class ConvivaAnalytics {
    * relies on the players source we can't ensure that all metadata attributes are present at session creation.
    * Therefore it could be that there will be a 'ContentMetadata created late' issue after conviva validation.
    *
-   * @param assetName Will be used as contentMetadata.assetName if no source was loaded before. This overrides the
-   *                  source assetName. If no source was loaded and no assetName is present this method will throw an
-   *                  error.
+   * If no source was loaded and no assetName was set via updateContentMetadata this method will throw an error.
    */
-  public initializeSession(assetName?: string): void {
+  public initializeSession(): void {
     if (this.isValidSession()) {
       this.logger.consoleLog('There is already a session running.', Conviva.SystemSettings.LogLevel.WARNING);
       return;
@@ -150,12 +133,8 @@ export class ConvivaAnalytics {
 
     // This could be called before source loaded.
     // Without setting the asset name on the content metadata when initializing the session the SDK will throw errors.
-    if (!this.player.getSource() && !assetName) {
-      throw('AssetName is missing. Provide assetName attribute or load player source first');
-    }
-
-    if (assetName) {
-      this.contentMetadataBuilder.assetName = assetName;
+    if (!this.player.getSource() && !this.contentMetadataBuilder.assetName) {
+      throw('AssetName is missing. Load player source first or set assetName via updateContentMetadata');
     }
 
     this.internalInitializeSession();
@@ -207,16 +186,16 @@ export class ConvivaAnalytics {
    * TODO:
    * @param metadata
    */
-  public updateContentMetadata(metadata: ModifiableMetadata) {
+  public updateContentMetadata(metadata: Metadata) {
+    this.contentMetadataBuilder.setOverrides(metadata);
+
     if (!this.isValidSession()) {
       this.logger.consoleLog(
-        '[ Conviva Analytics ] no active session; Skipping content metadata update',
+        '[ Conviva Analytics ] no active session; Don\'t propagate content metadata to conviva.',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
     }
-
-    this.contentMetadataBuilder.setOverrides(metadata);
 
     this.buildContentMetadata();
     this.updateSession();
@@ -303,8 +282,6 @@ export class ConvivaAnalytics {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
-    this.contentMetadataBuilder.applicationName = this.config.applicationName || 'Unknown (no config.applicationName set)';
-    this.contentMetadataBuilder.viewerId = this.config.viewerId || null;
     this.contentMetadataBuilder.duration = this.player.getDuration();
     this.contentMetadataBuilder.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
 
@@ -312,7 +289,6 @@ export class ConvivaAnalytics {
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
-      ...this.config.customTags,
     };
 
     const source = this.player.getSource() as ConvivaSourceConfig;

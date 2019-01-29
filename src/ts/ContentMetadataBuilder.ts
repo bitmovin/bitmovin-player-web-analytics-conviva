@@ -1,4 +1,7 @@
-export interface ModifiableMetadata {
+export interface Metadata {
+  // Can only be set once
+  assetName?: string;
+
   // Static Attributes
   viewerId?: string;
   streamType?: Conviva.ContentMetadata.StreamType;
@@ -10,11 +13,6 @@ export interface ModifiableMetadata {
   encodedFrameRate?: number;
   defaultResource?: string;
   streamUrl?: string;
-}
-
-interface Metadata extends ModifiableMetadata {
-  // Can only be set once
-  assetName?: string;
 }
 
 interface CustomContentMetadata {
@@ -40,7 +38,7 @@ export class ContentMetadataBuilder {
    * This method is used for custom content metadata updates during / before a session.
    * @param newValue
    */
-  setOverrides(newValue: ModifiableMetadata) {
+  setOverrides(newValue: Metadata) {
     if (this.playbackStarted) {
       this.logger.consoleLog(
         '[ Conviva Analytics ] Playback has started. Only some metadata attributes will be updated',
@@ -60,7 +58,7 @@ export class ContentMetadataBuilder {
     if (!this.playbackStarted) {
       // Asset name is only allowed to be set once
       if (!this.contentMetadata.assetName) {
-        this.contentMetadata.assetName = this.metadataOverrides.assetName || this.metadata.assetName;
+        this.contentMetadata.assetName = this.assetName;
       }
 
       this.contentMetadata.viewerId = this.viewerId;
@@ -81,6 +79,10 @@ export class ContentMetadataBuilder {
   // Those methods should be treated as package private
   set assetName(newValue: string) {
     this.metadata.assetName = newValue;
+  }
+
+  get assetName(): string {
+    return this.metadataOverrides.assetName || this.metadata.assetName;
   }
 
   set viewerId(newValue: string) {
