@@ -2,7 +2,7 @@ export interface Metadata {
   // Can only be set once
   assetName?: string;
 
-  // Static Attributes
+  // Can only be set before playback started
   viewerId?: string;
   streamType?: Conviva.ContentMetadata.StreamType;
   applicationName?: string;

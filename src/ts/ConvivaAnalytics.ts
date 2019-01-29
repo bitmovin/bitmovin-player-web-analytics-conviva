@@ -183,8 +183,14 @@ export class ConvivaAnalytics {
   }
 
   /**
-   * TODO:
+   * Will update the contentMetadata which are tracked with conviva.
+   *
+   * If there is an active session only permitted values will be updated and propagated immediately.
+   * If there is no active session the values will set on session creation.
+   *
+   * Attributes set via this method will override automatic tracked once.
    * @param metadata
+   * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadata: Metadata) {
     this.contentMetadataBuilder.setOverrides(metadata);
