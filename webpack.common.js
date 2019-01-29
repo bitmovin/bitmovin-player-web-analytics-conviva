@@ -1,5 +1,5 @@
+const npmPackage = require('./package.json');
 const path = require('path');
-const CopyPlugin = require('webpack-copy-plugin');
 
 module.exports = {
   entry: './src/ts/index.ts',
@@ -9,6 +9,15 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/
+      },
+      {
+        test: /\.tsx?$/,
+        loader: 'string-replace-loader',
+        options: {
+          search: '{{VERSION}}',
+          replace: npmPackage.version,
+          flags: 'g'
+        }
       }
     ]
   },
@@ -26,8 +35,5 @@ module.exports = {
     },
     libraryTarget: 'umd'
   },
-  plugins: [
-    new CopyPlugin([])
-  ],
   devtool: 'source-map',
 };
