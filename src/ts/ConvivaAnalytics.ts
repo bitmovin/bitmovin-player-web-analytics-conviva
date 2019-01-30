@@ -211,7 +211,7 @@ export class ConvivaAnalytics {
 
     if (!this.isValidSession()) {
       this.logger.consoleLog(
-        '[ Conviva Analytics ] no active session; Don\'t propagate content metadata to conviva.',
+        '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
@@ -305,6 +305,7 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
+    this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isValidSession()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -314,7 +315,6 @@ export class ConvivaAnalytics {
 
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
-    this.debugLog('startsession', this.sessionKey);
   }
 
   /**
@@ -379,7 +379,7 @@ export class ConvivaAnalytics {
   }
 
   private internalEndSession = (event?: PlayerEventBase) => {
-    this.debugLog('endsession', this.sessionKey, event);
+    this.debugLog('[ ConvivaAnalytics ] end session', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
     this.client.releasePlayerStateManager(this.playerStateManager);
@@ -399,8 +399,6 @@ export class ConvivaAnalytics {
     if (this.isAd || !this.isValidSession()) {
       return;
     }
-
-    this.debugLog('reportplaybackstate', event);
 
     let playerState;
 
@@ -447,6 +445,7 @@ export class ConvivaAnalytics {
     }
 
     if (playerState) {
+      this.debugLog('[ ConvivaAnalytics ] report playback state', event);
       this.playerStateManager.setPlayerState(playerState);
     }
   };
@@ -462,11 +461,13 @@ export class ConvivaAnalytics {
   };
 
   private onPlay = (event: PlaybackEvent) => {
-    this.debugLog('play', event);
+    this.debugLog('[ Player Event ] play', event);
+
     this.initialPlayback = false;
 
     if (this.isAd) {
       // Do not track play event during ad (e.g. triggered from IMA)
+      console.log('[log] returning cause of ad (onplay)');
       return;
     }
 
@@ -480,13 +481,19 @@ export class ConvivaAnalytics {
 
   private onPlaying = (event: PlaybackEvent) => {
     this.contentMetadataBuilder.setPlaybackStarted(true);
-    this.debugLog('playing', event);
+    this.debugLog('[ Player Event ] playing', event);
     this.updateSession();
     this.onPlaybackStateChanged(event);
   };
 
   private onPlaybackFinished = (event: PlayerEventBase) => {
-    this.debugLog('playbackfinished', event);
+    this.debugLog('[ Player Event ] playback finished', event);
+
+    if (!this.isValidSession()) {
+      return;
+    }
+
+    this.initialPlayback = true;
     this.onPlaybackStateChanged(event);
     this.internalEndSession(event);
   };
@@ -514,6 +521,7 @@ export class ConvivaAnalytics {
   };
 
   private trackAdBreakStarted = (event: AdBreakEvent) => {
+    this.debugLog('[ ConvivaAnalytics ] adbreak started', event);
     this.isAd = true;
 
     const adPosition = this.mapAdPosition(event.adBreak);
@@ -523,7 +531,6 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.debugLog('adbreakstart', event);
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
   };
 
@@ -540,6 +547,7 @@ export class ConvivaAnalytics {
   }
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
+    this.debugLog('[ ConvivaAnalytics ] adbreak finished', event);
     this.isAd = false;
 
 
@@ -548,7 +556,6 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.debugLog('adbreakfinished', event);
     this.client.adEnd(this.sessionKey);
   };
 
@@ -670,7 +677,7 @@ export class ConvivaAnalytics {
 
     if (isPostRollAdBreak(event.adBreak)) {
       // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
-      this.debugLog('[ Conviva Analytics ] detected post-roll ad ... Ending session');
+      this.debugLog('[ ConvivaAnalytics ] detected post-roll ad ... Ending session');
       this.onPlaybackFinished({
           timestamp: Date.now(),
           type: this.events.PlaybackFinished,
