@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `initializeSession` to external start session
 - `endSession` to external end session
 - `updateContentMetadata` to update content metadata after initializing `ConvivaAnalytics`
+- Support for Player v8 events
 
 ### Changed
-- Update to Bitmovin Player v8
+- Update to Bitmovin Player v8 API
 - Switch to Webpack
 - Improve typings
 
