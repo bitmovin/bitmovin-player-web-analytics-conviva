@@ -444,7 +444,7 @@ export class ConvivaAnalytics {
     }
 
     if (playerState) {
-      this.debugLog('[ ConvivaAnalytics ] report playback state', event);
+      this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
       this.playerStateManager.setPlayerState(playerState);
     }
   };
