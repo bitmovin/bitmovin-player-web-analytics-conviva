@@ -65,14 +65,14 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
+  // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
+  private adBreakStartedToFire: AdBreakEvent;
+
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
   });
-
-  // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
-  private adBreakStartedToFire: AdBreakEvent;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
