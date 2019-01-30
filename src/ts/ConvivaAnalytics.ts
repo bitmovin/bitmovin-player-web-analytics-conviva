@@ -73,7 +73,6 @@ export class ConvivaAnalytics {
   });
 
   // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
-  private initialPlayback: boolean = true;
   private adBreakStartedToFire: AdBreakEvent;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
@@ -463,8 +462,6 @@ export class ConvivaAnalytics {
   private onPlay = (event: PlaybackEvent) => {
     this.debugLog('[ Player Event ] play', event);
 
-    this.initialPlayback = false;
-
     if (this.isAd) {
       // Do not track play event during ad (e.g. triggered from IMA)
       console.log('[log] returning cause of ad (onplay)');
@@ -493,7 +490,6 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.initialPlayback = true;
     this.onPlaybackStateChanged(event);
     this.internalEndSession(event);
   };
@@ -692,12 +688,8 @@ export class ConvivaAnalytics {
     // a to early triggered adBreakStarted event. The initial onPlay event is called after the AdBreakStarted
     // of the pre-roll ad so we won't initialize a session. Therefore we save the adBreakStarted event and
     // trigger it in the initial onPlay event (after initializing the session). (See #onPlaybackStateChanged)
-
-    // TODO: can we use isValidSession here?
-    if (this.initialPlayback) {
+    if (!this.isValidSession()) {
       this.adBreakStartedToFire = event;
-      // TODO: reset to true after replay
-      this.initialPlayback = false;
     } else {
       this.trackAdBreakStarted(event);
     }
