@@ -23,7 +23,8 @@
   "author": "Bitmovin",
   "license": "ISC",
   "devDependencies": {
-    "bitmovin-player": "^8.0.3",
+    "bitmovin-player": "8.2.0-rc2",
+    "bitmovin-player-ui": "^3.3.1",
     "ts-loader": "^5.3.1",
     "tslint": "^5.11.0",
     "typescript": "^3.2.2",
