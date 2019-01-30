@@ -1,13 +1,6 @@
 import {
-  AdBreak,
-  AdBreakEvent, AdEvent,
-  ErrorEvent,
-  PlaybackEvent,
-  PlayerAPI,
-  PlayerEvent,
-  PlayerEventBase, SeekEvent,
-  SourceConfig, TimeShiftEvent,
-  VideoQualityChangedEvent,
+  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase, SeekEvent,
+  SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
