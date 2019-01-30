@@ -139,7 +139,7 @@ export class ConvivaAnalytics {
    * If no source was loaded and no assetName was set via updateContentMetadata this method will throw an error.
    */
   public initializeSession(): void {
-    if (this.isValidSession()) {
+    if (this.isSessionActive()) {
       this.logger.consoleLog('There is already a session running.', Conviva.SystemSettings.LogLevel.WARNING);
       return;
     }
@@ -161,7 +161,7 @@ export class ConvivaAnalytics {
    * no longer ensure that the session is managed at the correct time.
    */
   public endSession(): void {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
@@ -186,7 +186,7 @@ export class ConvivaAnalytics {
    */
   public sendCustomPlaybackEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     // Check for active session
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       this.logger.consoleLog('cannot send playback event, no active monitoring session',
         Conviva.SystemSettings.LogLevel.WARNING);
       return;
@@ -208,7 +208,7 @@ export class ConvivaAnalytics {
   public updateContentMetadata(metadataOverrides: Metadata) {
     this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       this.logger.consoleLog(
         '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
         Conviva.SystemSettings.LogLevel.WARNING,
@@ -229,7 +229,7 @@ export class ConvivaAnalytics {
    * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
    */
   reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
@@ -306,7 +306,7 @@ export class ConvivaAnalytics {
     this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // Something went wrong. With stable system interfaces, this should never happen.
       this.logger.consoleLog('Something went wrong, could not obtain session key',
         Conviva.SystemSettings.LogLevel.ERROR);
@@ -352,7 +352,7 @@ export class ConvivaAnalytics {
   }
 
   private updateSession() {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
@@ -388,14 +388,14 @@ export class ConvivaAnalytics {
     this.contentMetadataBuilder.reset();
   };
 
-  private isValidSession(): boolean {
+  private isSessionActive(): boolean {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
     // Do not track playback state changes during ads, (e.g. triggered from IMA)
     // or if there is no active session.
-    if (this.isAd || !this.isValidSession()) {
+    if (this.isAd || !this.isSessionActive()) {
       return;
     }
 
@@ -451,7 +451,7 @@ export class ConvivaAnalytics {
 
   private onSourceLoaded = (event: PlayerEventBase) => {
     // In case the session was created external before loading the source
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
@@ -469,7 +469,7 @@ export class ConvivaAnalytics {
     }
 
     // in case the playback has finished and the user replays the stream create a new session
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       this.internalInitializeSession();
     }
 
@@ -486,7 +486,7 @@ export class ConvivaAnalytics {
   private onPlaybackFinished = (event: PlayerEventBase) => {
     this.debugLog('[ Player Event ] playback finished', event);
 
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
@@ -495,7 +495,7 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       return;
     }
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
@@ -507,7 +507,7 @@ export class ConvivaAnalytics {
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       this.debugLog('skip custom event, no session existing', event);
       return;
     }
@@ -522,7 +522,7 @@ export class ConvivaAnalytics {
 
     const adPosition = this.mapAdPosition(event.adBreak);
 
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
@@ -547,7 +547,7 @@ export class ConvivaAnalytics {
     this.isAd = false;
 
 
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
@@ -564,7 +564,7 @@ export class ConvivaAnalytics {
   };
 
   private onSeek = (event: SeekEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // Handle the case that the User seeks on the UI before play was triggered.
       // This also handles startTime feature. The same applies for onTimeShift.
       return;
@@ -575,7 +575,7 @@ export class ConvivaAnalytics {
   };
 
   private onSeeked = (event: SeekEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
     }
@@ -585,7 +585,7 @@ export class ConvivaAnalytics {
   };
 
   private onTimeShift = (event: TimeShiftEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
     }
@@ -596,7 +596,7 @@ export class ConvivaAnalytics {
   };
 
   private onTimeShifted = (event: TimeShiftEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
     }
@@ -614,7 +614,7 @@ export class ConvivaAnalytics {
   }
 
   private onError = (event: ErrorEvent) => {
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       // initialize Session if not yet initialized to capture Video Start Failures
       this.internalInitializeSession();
     }
@@ -688,7 +688,7 @@ export class ConvivaAnalytics {
     // a to early triggered adBreakStarted event. The initial onPlay event is called after the AdBreakStarted
     // of the pre-roll ad so we won't initialize a session. Therefore we save the adBreakStarted event and
     // trigger it in the initial onPlay event (after initializing the session). (See #onPlaybackStateChanged)
-    if (!this.isValidSession()) {
+    if (!this.isSessionActive()) {
       this.adBreakStartedToFire = event;
     } else {
       this.trackAdBreakStarted(event);
