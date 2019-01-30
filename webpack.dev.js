@@ -7,7 +7,8 @@ module.exports = merge(common, {
   devtool: 'inline-source-map',
   devServer: {
     publicPath: '/dist/',
-    contentBase: path.resolve(__dirname, 'example')
+    contentBase: path.resolve(__dirname, 'example'),
+    watchContentBase: true
   },
   optimization: {
     nodeEnv: 'development',

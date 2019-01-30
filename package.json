@@ -25,12 +25,12 @@
   "devDependencies": {
     "bitmovin-player": "8.2.0-rc2",
     "bitmovin-player-ui": "^3.3.1",
+    "string-replace-loader": "^2.1.1",
     "ts-loader": "^5.3.1",
     "tslint": "^5.11.0",
     "typescript": "^3.2.2",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
-    "webpack-copy-plugin": "0.0.4",
     "webpack-dev-server": "^3.1.10",
     "webpack-merge": "^4.1.5"
   }
