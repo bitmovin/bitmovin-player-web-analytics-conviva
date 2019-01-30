@@ -51,7 +51,6 @@ export class ConvivaAnalytics {
   private readonly handlers: PlayerEventWrapper;
   private config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
-  private sessionDataPopulated: boolean;
 
   private readonly systemFactory: Conviva.SystemFactory;
   private readonly client: Conviva.Client;
@@ -86,8 +85,6 @@ export class ConvivaAnalytics {
       console.error('Bitmovin Conviva integration must be instantiated before calling player.load()');
       return; // Cancel initialization
     }
-
-    this.sessionDataPopulated = false;
 
     this.player = player;
 
@@ -384,7 +381,6 @@ export class ConvivaAnalytics {
     this.client.releasePlayerStateManager(this.playerStateManager);
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.sessionDataPopulated = false;
     this.contentMetadataBuilder.reset();
   };
 
