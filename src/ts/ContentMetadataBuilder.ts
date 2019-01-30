@@ -106,8 +106,8 @@ export class ContentMetadataBuilder {
 
   get custom(): CustomContentMetadata {
     return {
-      ...this.metadata.custom,
       ...this.metadataOverrides.custom,
+      ...this.metadata.custom, // Keep our custom tags in case someone tries to override them
     };
   }
 
