@@ -72,6 +72,10 @@ export class ConvivaAnalytics {
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
   });
 
+  // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
+  private initialPlayback: boolean = true;
+  private adBreakStartedToFire: AdBreakEvent;
+
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error('Conviva script missing, cannot init ConvivaAnalytics. '
@@ -412,6 +416,14 @@ export class ConvivaAnalytics {
         break;
       case this.events.Playing:
         this.stallTrackingTimout.clear();
+
+        // In case of a pre-roll ad we need to fire the trackAdBreakStarted right after we got a onPlay
+        // See onAdBreakStarted for more details.
+        if (this.adBreakStartedToFire) {
+          this.trackAdBreakStarted(this.adBreakStartedToFire);
+          this.adBreakStartedToFire = null;
+        }
+
         playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
         break;
       case this.events.Paused:
@@ -451,6 +463,8 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: PlaybackEvent) => {
     this.debugLog('play', event);
+    this.initialPlayback = false;
+
     if (this.isAd) {
       // Do not track play event during ad (e.g. triggered from IMA)
       return;
@@ -499,7 +513,7 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
-  private onAdBreakStarted = (event: AdBreakEvent) => {
+  private trackAdBreakStarted = (event: AdBreakEvent) => {
     this.isAd = true;
 
     const adPosition = this.mapAdPosition(event.adBreak);
@@ -647,6 +661,40 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
   }
+
+  private onAdBreakStarted = (event: AdBreakEvent) => {
+    // Specific post-roll handling
+    const isPostRollAdBreak = (adBreak: AdBreak) => {
+      return adBreak.scheduleTime === Infinity;
+    };
+
+    if (isPostRollAdBreak(event.adBreak)) {
+      // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
+      this.debugLog('[ Conviva Analytics ] detected post-roll ad ... Ending session');
+      this.onPlaybackFinished({
+          timestamp: Date.now(),
+          type: this.events.PlaybackFinished,
+        },
+      );
+      return;
+    }
+
+    // Specific pre-roll handling
+    // TODO: remove this workaround when event order is correct
+    // Since the event order on initial playback in case of a pre-roll ad is false we need to workaround
+    // a to early triggered adBreakStarted event. The initial onPlay event is called after the AdBreakStarted
+    // of the pre-roll ad so we won't initialize a session. Therefore we save the adBreakStarted event and
+    // trigger it in the initial onPlay event (after initializing the session). (See #onPlaybackStateChanged)
+
+    // TODO: can we use isValidSession here?
+    if (this.initialPlayback) {
+      this.adBreakStartedToFire = event;
+      // TODO: reset to true after replay
+      this.initialPlayback = false;
+    } else {
+      this.trackAdBreakStarted(event);
+    }
+  };
 
   private unregisterPlayerEvents(): void {
     this.handlers.clear();
