@@ -453,7 +453,6 @@ export class ConvivaAnalytics {
 
     if (this.isAd) {
       // Do not track play event during ad (e.g. triggered from IMA)
-      console.log('[log] returning cause of ad (onplay)');
       return;
     }
 
