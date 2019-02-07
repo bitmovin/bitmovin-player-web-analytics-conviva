@@ -229,6 +229,25 @@ export class ConvivaAnalytics {
     }
   }
 
+  pauseTracking(): void {
+    // AdStart is the right way to pause monitoring according to conviva.
+    this.client.adStart(
+      this.sessionKey,
+      Conviva.Client.AdStream.SEPARATE,
+      Conviva.Client.AdPlayer.SEPARATE,
+      Conviva.Client.AdPosition.PREROLL, // TODO: find out if pre-roll is the preferred value also during playback
+    );
+    this.client.detachPlayer(this.sessionKey);
+    this.debugLog('Tracking paused.');
+  }
+
+  resumeTracking(): void {
+    // AdEnd is the right way to resume monitoring according to conviva.
+    this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+    this.client.adEnd(this.sessionKey);
+    this.debugLog('Tracking resumed.');
+  }
+
   public release(): void {
     this.destroy();
   }
