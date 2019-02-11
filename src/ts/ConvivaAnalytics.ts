@@ -235,7 +235,7 @@ export class ConvivaAnalytics {
       this.sessionKey,
       Conviva.Client.AdStream.SEPARATE,
       Conviva.Client.AdPlayer.SEPARATE,
-      Conviva.Client.AdPosition.PREROLL, // TODO: find out if pre-roll is the preferred value also during playback
+      Conviva.Client.AdPosition.PREROLL, // Also stops tracking time for VST so PREROLL seems to be sufficient
     );
     this.client.detachPlayer(this.sessionKey);
     this.debugLog('Tracking paused.');
