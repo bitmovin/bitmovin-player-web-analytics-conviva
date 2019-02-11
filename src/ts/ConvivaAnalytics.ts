@@ -218,7 +218,7 @@ export class ConvivaAnalytics {
    * @param severity One of FATAL or WARNING
    * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
    */
-  reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
+  public reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
     if (!this.isSessionActive()) {
       return;
     }
@@ -229,7 +229,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  pauseTracking(): void {
+  public pauseTracking(): void {
     // AdStart is the right way to pause monitoring according to conviva.
     this.client.adStart(
       this.sessionKey,
@@ -241,7 +241,7 @@ export class ConvivaAnalytics {
     this.debugLog('Tracking paused.');
   }
 
-  resumeTracking(): void {
+  public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
     this.client.adEnd(this.sessionKey);
