@@ -229,6 +229,9 @@ export class ConvivaAnalytics {
     }
   }
 
+  /**
+   * Puts the session state in a notMonitored state.
+   */
   public pauseTracking(): void {
     // AdStart is the right way to pause monitoring according to conviva.
     this.client.adStart(
@@ -241,6 +244,9 @@ export class ConvivaAnalytics {
     this.debugLog('Tracking paused.');
   }
 
+  /**
+   * Puts the session state from a notMonitored state into the last one tracked.
+   */
   public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
