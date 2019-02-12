@@ -24,8 +24,9 @@ import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
-import { AdBreakHelper } from './AdBreakHelper';
+import { ObjectUtils } from './helper/ObjectUtils';
 import { AdTrackingPlugin } from './AdTrackingPlugin';
+import { AdBreakHelper } from './helper/AdBreakHelper';
 
 type Player = PlayerAPI;
 
@@ -548,7 +549,11 @@ export class ConvivaAnalytics {
     }
 
     const eventAttributes = ObjectUtils.flatten(event);
-    this.sendCustomPlaybackEvent(event.type, eventAttributes);
+    if (this.adTrackingModule.isAdSessionActive()) {
+      this.adTrackingModule.reportCustomEvent(event.type, eventAttributes);
+    } else {
+      this.sendCustomPlaybackEvent(event.type, eventAttributes);
+    }
   };
 
   private trackAdBreakStarted = (event: AdBreakEvent) => {
@@ -576,14 +581,6 @@ export class ConvivaAnalytics {
     }
 
     this.adTrackingModule.adBreakFinished();
-  };
-
-  private onAdSkipped = (event: AdEvent) => {
-    this.onCustomEvent(event);
-  };
-
-  private onAdError = (event: AdEvent) => {
-    this.onCustomEvent(event);
   };
 
   private onSeek = (event: SeekEvent) => {
@@ -681,8 +678,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
-    playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
-    playerEvents.add(this.events.AdError, this.onAdError);
+    playerEvents.add(this.events.AdSkipped, this.onCustomEvent);
+    playerEvents.add(this.events.AdClicked, this.onCustomEvent);
+    playerEvents.add(this.events.AdError, this.onCustomEvent);
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
     playerEvents.add(this.events.Destroy, this.onDestroy);
@@ -856,28 +854,6 @@ namespace ArrayUtils {
     } else {
       return null;
     }
-  }
-}
-
-namespace ObjectUtils {
-  export function flatten(object: any, prefix: string = '') {
-    const eventAttributes: EventAttributes = {};
-
-    // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
-    const objectWalker = (object: any, prefix: string) => {
-      for (const key in object) {
-        if (object.hasOwnProperty(key)) {
-          const value = object[key];
-          if (typeof value === 'object') {
-            objectWalker(value, prefix + key + '.');
-          } else {
-            eventAttributes[prefix + key] = String(value);
-          }
-        }
-      }
-    };
-
-    return eventAttributes;
   }
 }
 

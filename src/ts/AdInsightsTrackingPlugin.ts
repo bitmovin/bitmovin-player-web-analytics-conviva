@@ -1,7 +1,7 @@
-import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
-import { AdBreakHelper } from './AdBreakHelper';
-import { AdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
+import { ObjectUtils } from './helper/ObjectUtils';
+import { AdBreak, AdClickedEvent, AdEvent, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
+import { EventAttributes } from './ConvivaAnalytics';
 
 // TODO: Description
 export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
@@ -17,13 +17,6 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
 
   adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
     super.adBreakStarted(adBreak, mappedAdPosition);
-  }
-
-  // TODO: report custom events (AdSkipped / AdClicked) to ad session
-  adError(): void {
-    // TODO: report error
-    // TODO: report to ad session
-    this.endAdSession();
   }
 
   adFinished(): void {
@@ -83,6 +76,14 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
   reportPlayerState(state: Conviva.PlayerStateManager.PlayerState): void {
     super.reportPlayerState(state);
     this.adPlayerStateManager.setPlayerState(state);
+  }
+
+  public reportCustomEvent(eventName: string, eventAttributes: EventAttributes): void {
+    if (!this.isAdSessionActive()) {
+      return;
+    }
+
+    this.client.sendCustomEvent(this.adSessionKey, event.type, eventAttributes);
   }
 
   public isAdSessionActive(): boolean {

@@ -1,4 +1,5 @@
-import { AdBreak, AdStartedEvent } from 'bitmovin-player';
+import { AdBreak, AdClickedEvent, AdEvent, AdStartedEvent, PlayerEventBase } from 'bitmovin-player';
+import { EventAttributes } from './ConvivaAnalytics';
 
 export abstract class AdTrackingPlugin {
   protected client: Conviva.Client;
@@ -19,6 +20,7 @@ export abstract class AdTrackingPlugin {
   public adStarted(event: AdStartedEvent): void { }
   public adFinished(): void { }
   public reportPlayerState(state: Conviva.PlayerStateManager.PlayerState): void { }
+  public reportCustomEvent(eventName: string, eventAttributes: EventAttributes): void { }
 }
 
 export class BasicAdTrackingPlugin extends AdTrackingPlugin {
