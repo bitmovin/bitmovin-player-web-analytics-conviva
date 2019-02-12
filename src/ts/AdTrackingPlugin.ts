@@ -24,7 +24,7 @@ export abstract class AdTrackingPlugin {
 }
 
 export class BasicAdTrackingPlugin extends AdTrackingPlugin {
-  adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
+  public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
     this.client.adStart(
       this.contentSessionKey,
       Conviva.Client.AdStream.SEPARATE,
@@ -33,7 +33,7 @@ export class BasicAdTrackingPlugin extends AdTrackingPlugin {
     );
   }
 
-  adBreakFinished(): void {
+  public adBreakFinished(): void {
     this.client.adEnd(this.contentSessionKey);
   }
 }

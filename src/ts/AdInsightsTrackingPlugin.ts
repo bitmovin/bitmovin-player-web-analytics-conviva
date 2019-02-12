@@ -1,6 +1,5 @@
 import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
-import { ObjectUtils } from './helper/ObjectUtils';
-import { AdBreak, AdClickedEvent, AdEvent, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
+import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 
 // TODO: Description
@@ -11,26 +10,15 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
   private adSessionKey: number;
   private adPlayerStateManager: Conviva.PlayerStateManager;
 
-  adBreakFinished(): void {
-    super.adBreakFinished();
-  }
-
-  adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
+  public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
     super.adBreakStarted(adBreak, mappedAdPosition);
   }
 
-  adFinished(): void {
-    this.endAdSession();
+  public adBreakFinished(): void {
+    super.adBreakFinished();
   }
 
-  private endAdSession() {
-    this.adPlayerStateManager.reset();
-    this.client.detachPlayer(this.adSessionKey);
-    this.client.cleanupSession(this.adSessionKey);
-    this.adSessionKey = Conviva.Client.NO_SESSION_KEY;
-  }
-
-  adStarted(event: AdStartedEvent): void {
+  public adStarted(event: AdStartedEvent): void {
     if (!event.ad.isLinear) {
       return;
     }
@@ -73,7 +61,11 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     this.adPlayerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
   }
 
-  reportPlayerState(state: Conviva.PlayerStateManager.PlayerState): void {
+  public adFinished(): void {
+    this.endAdSession();
+  }
+
+  public reportPlayerState(state: Conviva.PlayerStateManager.PlayerState): void {
     super.reportPlayerState(state);
     this.adPlayerStateManager.setPlayerState(state);
   }
@@ -88,5 +80,12 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
 
   public isAdSessionActive(): boolean {
     return this.adSessionKey !== Conviva.Client.NO_SESSION_KEY;
+  }
+
+  private endAdSession() {
+    this.adPlayerStateManager.reset();
+    this.client.detachPlayer(this.adSessionKey);
+    this.client.cleanupSession(this.adSessionKey);
+    this.adSessionKey = Conviva.Client.NO_SESSION_KEY;
   }
 }

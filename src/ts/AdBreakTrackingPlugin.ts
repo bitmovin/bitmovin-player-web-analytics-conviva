@@ -11,24 +11,7 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
   protected currentAdBreakPosition: Conviva.Client.AdPosition;
   protected currentAdBreak: AdBreak;
 
-  adBreakFinished(): void {
-    super.adBreakFinished();
-
-    // SEND POD END EVENT
-    let podAttr: any = {};
-    // Required
-    podAttr.podPosition = this.currentAdBreakPosition;
-    podAttr.podIndex = String(this.adBreakCount);
-    podAttr.podDuration = this.currentAdBreak.ads.map((ad) => ad.isLinear ? (ad as LinearAd).duration : 0);
-
-    // Optional
-    podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
-
-    this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodEnd', podAttr);
-    this.currentAdBreakPosition = null;
-  }
-
-  adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
+  public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
     super.adBreakStarted(adBreak, mappedAdPosition);
 
     this.adBreakCount++;
@@ -46,5 +29,22 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
     podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
 
     this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodStart', podAttr);
+  }
+
+  public adBreakFinished(): void {
+    super.adBreakFinished();
+
+    // SEND POD END EVENT
+    let podAttr: any = {};
+    // Required
+    podAttr.podPosition = this.currentAdBreakPosition;
+    podAttr.podIndex = String(this.adBreakCount);
+    podAttr.podDuration = this.currentAdBreak.ads.map((ad) => ad.isLinear ? (ad as LinearAd).duration : 0);
+
+    // Optional
+    podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
+
+    this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodEnd', podAttr);
+    this.currentAdBreakPosition = null;
   }
 }
