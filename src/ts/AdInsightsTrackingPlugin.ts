@@ -27,7 +27,6 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     const ad = event.ad as LinearAd;
 
     // Create a new ContentMetadata object for ad.
-    // TODO: Turner: Custom metadata also for ad insights
     let adMetadata = new Conviva.ContentMetadata();
     adMetadata.assetName = adData.adTitle || AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY;
     adMetadata.streamUrl = ad.mediaFileUrl;

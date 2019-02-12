@@ -1,4 +1,4 @@
-import { AdBreak, AdClickedEvent, AdEvent, AdStartedEvent, PlayerEventBase } from 'bitmovin-player';
+import { AdBreak, AdStartedEvent } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 
 export abstract class AdTrackingPlugin {
@@ -10,7 +10,7 @@ export abstract class AdTrackingPlugin {
     this.contentSessionKey = sessionKey;
   }
 
-  // Return if there is a separate ad session is active to distinguish to which session a event should be reporte
+  // Return if there is a separate ad session is active to distinguish to which session a event should be reported
   public isAdSessionActive(): boolean {
     return false;
   }

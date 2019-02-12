@@ -81,12 +81,6 @@ export class ConvivaAnalytics {
 
   private adTrackingModule: AdTrackingPlugin;
 
-  /**
-   * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
-   * This flag is required because player.isAd() is unreliable and not always true between the events.
-   */
-  private isAd: boolean;
-
   // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
   private adBreakStartedToFire: AdBreakEvent;
 
@@ -122,7 +116,6 @@ export class ConvivaAnalytics {
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.isAd = false;
 
     const systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
@@ -424,13 +417,6 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
-    // Do not track playback state changes during ads, (e.g. triggered from IMA)
-    // or if there is no active session.
-    // TODO: evaluate if isAd can be removed
-    if ((this.isAd && !this.adTrackingModule.isAdSessionActive()) || !this.isSessionActive()) {
-      return;
-    }
-
     let playerState;
 
     switch (event.type) {
@@ -479,7 +465,7 @@ export class ConvivaAnalytics {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
       if (this.adTrackingModule.isAdSessionActive()) {
         this.adTrackingModule.reportPlayerState(playerState);
-      } else {
+      } else if (this.isSessionActive()) {
         this.playerStateManager.setPlayerState(playerState);
       }
     }
@@ -497,11 +483,6 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: PlaybackEvent) => {
     this.debugLog('[ Player Event ] play', event);
-
-    if (this.isAd) {
-      // Do not track play event during ad (e.g. triggered from IMA)
-      return;
-    }
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isSessionActive()) {
@@ -558,7 +539,6 @@ export class ConvivaAnalytics {
 
   private trackAdBreakStarted = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak started', event);
-    this.isAd = true;
 
     const adPosition = AdBreakHelper.mapAdPosition(event.adBreak, this.player);
 
@@ -572,8 +552,6 @@ export class ConvivaAnalytics {
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak finished', event);
-    this.isAd = false;
-
 
     if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
@@ -647,12 +625,11 @@ export class ConvivaAnalytics {
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
-    if (this.isAd) {
-      // Ignore sourceUnloaded events during ads
-      return;
+    if (this.adTrackingModule.isAdSessionActive()) {
+      this.adTrackingModule.adFinished();
+    } else {
+      this.internalEndSession(event);
     }
-
-    this.internalEndSession(event);
   };
 
   private onDestroy = (event: any) => {
@@ -690,18 +667,17 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
 
     // Ad tracking events
-    playerEvents.add(this.events.AdStarted, (event: AdStartedEvent) => {
-      // TODO: check if this.isAd can be used
-      this.isAdPlaybackActive = true;
-      console.log('[log] adStarted');
-      this.adTrackingModule.adStarted(event);
-    });
-    playerEvents.add(this.events.AdFinished, (event: AdEvent) => {
-      this.isAdPlaybackActive = false;
-      console.log('[log] adFinished');
-      this.adTrackingModule.adFinished();
-    });
+    playerEvents.add(this.events.AdStarted, this.onAdStarted);
+    playerEvents.add(this.events.AdFinished, this.onAdFinished);
   }
+
+  private onAdStarted = (event: AdEvent) => {
+    this.adTrackingModule.adStarted(event);
+  };
+
+  private onAdFinished = (event: AdEvent) => {
+    this.adTrackingModule.adFinished();
+  };
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
     // Specific post-roll handling
