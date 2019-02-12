@@ -1,6 +1,19 @@
+import { AdInsightsTrackingPlugin } from './AdInsightsTrackingPlugin';
+
 import {
-  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase, SeekEvent,
-  SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
+  AdBreak,
+  AdBreakEvent, AdClickedEvent,
+  AdEvent,
+  AdStartedEvent,
+  ErrorEvent,
+  PlaybackEvent,
+  PlayerAPI,
+  PlayerEvent,
+  PlayerEventBase,
+  SeekEvent,
+  SourceConfig,
+  TimeShiftEvent,
+  VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -10,8 +23,17 @@ import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
+import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
+import { AdBreakHelper } from './AdBreakHelper';
+import { AdTrackingPlugin } from './AdTrackingPlugin';
 
 type Player = PlayerAPI;
+
+export enum AdTrackingMode {
+  Basic,
+  AdBreaks,
+  AdInsights, // AdInsights includes AdBreaks + AdExperience
+}
 
 export interface ConvivaAnalyticsConfiguration {
   /**
@@ -23,6 +45,10 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
+
+  // TODO:
+  // TODO: AdInsights includes AdBreaks + AdExperience
+  adTrackingMode?: AdTrackingMode; // Default: Basic
 }
 
 export interface EventAttributes {
@@ -52,6 +78,8 @@ export class ConvivaAnalytics {
   private readonly logger: Conviva.LoggingInterface;
   private sessionKey: number;
 
+  private adTrackingModule: AdTrackingPlugin;
+
   /**
    * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
    * This flag is required because player.isAd() is unreliable and not always true between the events.
@@ -66,6 +94,7 @@ export class ConvivaAnalytics {
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
   });
+  private isAdPlaybackActive: boolean;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
@@ -294,6 +323,18 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
+
+    // Init ad tracking with current session key
+    switch (this.config.adTrackingMode) {
+      case AdTrackingMode.AdInsights:
+        this.adTrackingModule = new AdInsightsTrackingPlugin(this.client, this.sessionKey);
+        break;
+      case AdTrackingMode.AdBreaks:
+      default:
+        this.adTrackingModule = new AdBreakTrackingPlugin(this.client, this.sessionKey);
+        break;
+    }
+
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
@@ -384,7 +425,8 @@ export class ConvivaAnalytics {
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
     // Do not track playback state changes during ads, (e.g. triggered from IMA)
     // or if there is no active session.
-    if (this.isAd || !this.isSessionActive()) {
+    // TODO: evaluate if isAd can be removed
+    if ((this.isAd && !this.adTrackingModule.isAdSessionActive()) || !this.isSessionActive()) {
       return;
     }
 
@@ -434,7 +476,11 @@ export class ConvivaAnalytics {
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      this.playerStateManager.setPlayerState(playerState);
+      if (this.adTrackingModule.isAdSessionActive()) {
+        this.adTrackingModule.reportPlayerState(playerState);
+      } else {
+        this.playerStateManager.setPlayerState(playerState);
+      }
     }
   };
 
@@ -483,6 +529,7 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
+    console.log('[log] video qual');
     if (!this.isSessionActive()) {
       return;
     }
@@ -508,27 +555,15 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] adbreak started', event);
     this.isAd = true;
 
-    const adPosition = this.mapAdPosition(event.adBreak);
+    const adPosition = AdBreakHelper.mapAdPosition(event.adBreak, this.player);
 
     if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
 
-    this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
+    this.adTrackingModule.adBreakStarted(event.adBreak, adPosition);
   };
-
-  private mapAdPosition(adBreak: AdBreak): Conviva.Client.AdPosition {
-    if (adBreak.scheduleTime <= 0) {
-      return Conviva.Client.AdPosition.PREROLL;
-    }
-
-    if (adBreak.scheduleTime >= this.player.getDuration()) {
-      return Conviva.Client.AdPosition.POSTROLL;
-    }
-
-    return Conviva.Client.AdPosition.MIDROLL;
-  }
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak finished', event);
@@ -540,7 +575,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.client.adEnd(this.sessionKey);
+    this.adTrackingModule.adBreakFinished();
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -591,6 +626,10 @@ export class ConvivaAnalytics {
 
     this.trackSeekEnd();
     this.onPlaybackStateChanged(event);
+  };
+
+  private onAdEvent = (event: AdEvent) => {
+
   };
 
   private trackSeekStart(target: number) {
@@ -651,6 +690,19 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
+
+    // Ad tracking events
+    playerEvents.add(this.events.AdStarted, (event: AdStartedEvent) => {
+      // TODO: check if this.isAd can be used
+      this.isAdPlaybackActive = true;
+      console.log('[log] adStarted');
+      this.adTrackingModule.adStarted(event);
+    });
+    playerEvents.add(this.events.AdFinished, (event: AdEvent) => {
+      this.isAdPlaybackActive = false;
+      console.log('[log] adFinished');
+      this.adTrackingModule.adFinished();
+    });
   }
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
