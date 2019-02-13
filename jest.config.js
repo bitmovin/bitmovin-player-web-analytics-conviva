@@ -15,6 +15,9 @@ module.exports = {
   // A map from regular expressions to paths to transformers
   transform: {
     '^.+\\.tsx?$': 'ts-jest'
-  }
+  },
 
+  globals: {
+    window: true,
+  }
 };
