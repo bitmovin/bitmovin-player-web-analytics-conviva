@@ -1,16 +1,20 @@
+/// <reference path='../src/ts/Conviva.d.ts'/>
+
 import { ConvivaAnalytics } from '../src/ts';
+import { TestHelper } from './TestHelper';
 
-jest.mock('../src/ts/ConvivaAnalytics');
+describe('sendCustomApplicationEvent()', () => {
 
-describe('Test Set', () => {
-  it('pass', () => {
-    let x = new ConvivaAnalytics(undefined, undefined);
-    // x.release();
-    expect(true).toBeTruthy();
+  beforeEach(() => {
+    TestHelper.mockConviva();
   });
 
-  test('fail', () => {
-    expect(true).toBeTruthy();
+  it('sends custom application event', () => {
+    const clientMock = TestHelper.getConvivaClientMock();
+    let convivaAnalytics = new ConvivaAnalytics(TestHelper.getPlayerMock() as any, 'TEST-KEY');
+
+    convivaAnalytics.sendCustomApplicationEvent('Test Event');
+    expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(-2, 'Test Event', {});
   });
 
 });
