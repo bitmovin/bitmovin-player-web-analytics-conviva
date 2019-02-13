@@ -11,7 +11,7 @@ describe('sendCustomApplicationEvent()', () => {
 
   it('sends custom application event', () => {
     const clientMock = TestHelper.getConvivaClientMock();
-    let convivaAnalytics = new ConvivaAnalytics(TestHelper.getPlayerMock() as any, 'TEST-KEY');
+    let convivaAnalytics = new ConvivaAnalytics(TestHelper.getPlayerMock(), 'TEST-KEY');
 
     convivaAnalytics.sendCustomApplicationEvent('Test Event');
     expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(-2, 'Test Event', {});
