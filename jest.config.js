@@ -20,5 +20,6 @@ module.exports = {
   // A set of global variables that need to be available in all test environments.
   globals: {
     window: { },
+    navigator: { }, // TODO: find a way to mock the BrowserUtils
   }
 };
