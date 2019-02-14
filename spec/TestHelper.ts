@@ -31,7 +31,7 @@ export namespace TestHelper {
         createSession,
         attachPlayer: jest.fn(),
       };
-    }).bind(jest);
+    });
 
     global.Conviva.Client.NO_SESSION_KEY = -2;
 
