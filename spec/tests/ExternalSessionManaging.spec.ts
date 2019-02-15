@@ -1,6 +1,8 @@
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 
+jest.mock('../../src/ts/Html5Logging');
+
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
