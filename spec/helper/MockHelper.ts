@@ -1,13 +1,8 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerEvent } from './PlayerEvent';
 import {
-  AdBreak,
-  AdBreakEvent, AdEvent,
-  PlaybackEvent, ErrorEvent,
-  Player,
-  PlayerAPI,
-  PlayerEventBase,
-  PlayerEventCallback, SeekEvent, TimeShiftEvent,
+  AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
+  TimeShiftEvent,
 } from 'bitmovin-player';
 
 declare const global: any;
