@@ -290,7 +290,7 @@ describe('content metadata spec', () => {
             }));
           });
 
-          it('defaultResrouce', () => {
+          it('defaultResource', () => {
             convivaAnalytics.updateContentMetadata({ defaultResource: 'someValue' });
 
             expect(clientMock.updateContentMetadata).toHaveBeenLastCalledWith(0, expect.objectContaining({
