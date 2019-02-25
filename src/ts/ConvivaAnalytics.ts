@@ -10,6 +10,7 @@ import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
+import { BrowserUtils } from './BrowserUtils';
 
 type Player = PlayerAPI;
 
@@ -826,16 +827,6 @@ namespace ObjectUtils {
     };
 
     return eventAttributes;
-  }
-}
-
-class BrowserUtils {
-  public static isMobile(): boolean {
-    const isAndroid: boolean = /Android/i.test(navigator.userAgent);
-    const isIEMobile: boolean = /IEMobile/i.test(navigator.userAgent);
-    const isEdgeMobile: boolean = /Windows Phone 10.0/i.test(navigator.userAgent);
-    const isMobileSafari: boolean = /Safari/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
-    return isAndroid || isIEMobile || isEdgeMobile || isMobileSafari;
   }
 }
 
