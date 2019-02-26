@@ -17,6 +17,7 @@ import { ObjectUtils } from './helper/ObjectUtils';
 import { AdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreakHelper } from './helper/AdBreakHelper';
 import { BrowserUtils } from './helper/BrowserUtils';
+import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 
 type Player = PlayerAPI;
 
@@ -339,8 +340,10 @@ export class ConvivaAnalytics {
         this.adTrackingModule = new AdInsightsTrackingPlugin(this.client, this.sessionKey);
         break;
       case AdTrackingMode.AdBreaks:
-      default:
         this.adTrackingModule = new AdBreakTrackingPlugin(this.client, this.sessionKey);
+        break;
+      default:
+        this.adTrackingModule = new BasicAdTrackingPlugin(this.client, this.sessionKey);
         break;
     }
 
