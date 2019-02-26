@@ -481,7 +481,7 @@ export class ConvivaAnalytics {
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      if (this.adTrackingModule.isAdSessionActive()) {
+      if (this.adTrackingModule && this.adTrackingModule.isAdSessionActive()) {
         this.adTrackingModule.reportPlayerState(playerState);
       } else if (this.isSessionActive()) {
         this.playerStateManager.setPlayerState(playerState);
