@@ -103,8 +103,8 @@ _See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for details about more 
 
 #### Consecutive playback
 
-If you want to use the same player instance for multiple playback call `player.unload()` before loading
-a new source.
+If you want to use the same player instance for multiple playback, you must call `player.unload()` before loading a new source with `player.load(…)`. 
+This allows us to properly close the previous session before starting a new one.
  
 ```js
 player.unload();
