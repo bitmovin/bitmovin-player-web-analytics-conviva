@@ -32,7 +32,9 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
     // Required
     podAttr.podPosition = mappedAdPosition;
     podAttr.podIndex = String(this.adBreakCount); // Should start with 1 so ++ before
-    podAttr.podDuration = adBreak.ads.map((ad) => ad.isLinear ? (ad as LinearAd).duration : 0);
+
+    const adBreakDuration = adBreak.ads.reduce((sum, ad) => sum + (ad.isLinear ? (ad as LinearAd).duration : 0), 0);
+    podAttr.podDuration = String(adBreakDuration);
 
     // Optional
     podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
