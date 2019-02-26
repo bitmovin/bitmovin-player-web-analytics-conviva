@@ -1,19 +1,8 @@
 import { AdInsightsTrackingPlugin } from './AdInsightsTrackingPlugin';
 
 import {
-  AdBreak,
-  AdBreakEvent, AdClickedEvent,
-  AdEvent,
-  AdStartedEvent,
-  ErrorEvent,
-  PlaybackEvent,
-  PlayerAPI,
-  PlayerEvent,
-  PlayerEventBase,
-  SeekEvent,
-  SourceConfig,
-  TimeShiftEvent,
-  VideoQualityChangedEvent,
+  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
+  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -27,6 +16,7 @@ import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { AdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreakHelper } from './helper/AdBreakHelper';
+import { BrowserUtils } from './helper/BrowserUtils';
 
 type Player = PlayerAPI;
 
@@ -241,7 +231,7 @@ export class ConvivaAnalytics {
    * @param severity One of FATAL or WARNING
    * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
    */
-  reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
+  public reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
     if (!this.isSessionActive()) {
       return;
     }
@@ -250,6 +240,31 @@ export class ConvivaAnalytics {
     if (endSession) {
       this.internalEndSession();
     }
+  }
+
+  /**
+   * Puts the session state in a notMonitored state.
+   */
+  public pauseTracking(): void {
+    // AdStart is the right way to pause monitoring according to conviva.
+    this.client.adStart(
+      this.sessionKey,
+      Conviva.Client.AdStream.SEPARATE,
+      Conviva.Client.AdPlayer.SEPARATE,
+      Conviva.Client.AdPosition.PREROLL, // Also stops tracking time for VST so PREROLL seems to be sufficient
+    );
+    this.client.detachPlayer(this.sessionKey);
+    this.debugLog('Tracking paused.');
+  }
+
+  /**
+   * Puts the session state from a notMonitored state into the last one tracked.
+   */
+  public resumeTracking(): void {
+    // AdEnd is the right way to resume monitoring according to conviva.
+    this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+    this.client.adEnd(this.sessionKey);
+    this.debugLog('Tracking resumed.');
   }
 
   public release(): void {
@@ -830,16 +845,6 @@ namespace ArrayUtils {
     } else {
       return null;
     }
-  }
-}
-
-class BrowserUtils {
-  public static isMobile(): boolean {
-    const isAndroid: boolean = /Android/i.test(navigator.userAgent);
-    const isIEMobile: boolean = /IEMobile/i.test(navigator.userAgent);
-    const isEdgeMobile: boolean = /Windows Phone 10.0/i.test(navigator.userAgent);
-    const isMobileSafari: boolean = /Safari/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
-    return isAndroid || isIEMobile || isEdgeMobile || isMobileSafari;
   }
 }
 
