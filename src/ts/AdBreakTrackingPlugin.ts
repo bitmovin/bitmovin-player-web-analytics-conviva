@@ -1,6 +1,13 @@
 import { AdBreak, LinearAd, PlayerAPI } from 'bitmovin-player';
 import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 
+interface PodAttributes {
+  podPosition?: Conviva.Client.AdPosition;
+  podIndex?: string;
+  podDuration?: string;
+  absoluteIndex?: string;
+}
+
 // TODO: Description
 /**
  *
@@ -11,6 +18,8 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
   protected currentAdBreakPosition: Conviva.Client.AdPosition;
   protected currentAdBreak: AdBreak;
 
+  private currentPodAttributes: PodAttributes;
+
   public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
     super.adBreakStarted(adBreak, mappedAdPosition);
 
@@ -19,7 +28,7 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
     this.currentAdBreak = adBreak;
 
     // SEND POD END EVENT
-    let podAttr: any = {};
+    let podAttr: PodAttributes = {};
     // Required
     podAttr.podPosition = mappedAdPosition;
     podAttr.podIndex = String(this.adBreakCount); // Should start with 1 so ++ before
@@ -28,23 +37,14 @@ export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
     // Optional
     podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
 
+    this.currentPodAttributes = podAttr;
     this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodStart', podAttr);
   }
 
   public adBreakFinished(): void {
     super.adBreakFinished();
 
-    // SEND POD END EVENT
-    let podAttr: any = {};
-    // Required
-    podAttr.podPosition = this.currentAdBreakPosition;
-    podAttr.podIndex = String(this.adBreakCount);
-    podAttr.podDuration = this.currentAdBreak.ads.map((ad) => ad.isLinear ? (ad as LinearAd).duration : 0);
-
-    // Optional
-    podAttr.absoluteIndex = String(1); // Always report 1 is sufficient if we can't reliable track it
-
-    this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodEnd', podAttr);
+    this.client.sendCustomEvent(this.contentSessionKey, 'Conviva.PodEnd', this.currentPodAttributes);
     this.currentAdBreakPosition = null;
   }
 }
