@@ -7,7 +7,7 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
 
   private static UNKNOWN_VALUE_KEY = 'NA';
 
-  private adSessionKey: number;
+  private adSessionKey: number = Conviva.Client.NO_SESSION_KEY;
   private adPlayerStateManager: Conviva.PlayerStateManager;
 
   public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
