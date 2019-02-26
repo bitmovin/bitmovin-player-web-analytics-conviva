@@ -2,7 +2,7 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent,
+  TimeShiftEvent, Ad, LinearAd,
 } from 'bitmovin-player';
 
 declare const global: any;
@@ -155,7 +155,7 @@ interface EventEmitter {
 
   fireErrorEvent(): void;
 
-  fireAdBreakStartedEvent(startTime: number): void;
+  fireAdBreakStartedEvent(startTime?: number, ads?: LinearAd[]): void;
 
   fireAdStartedEvent(): void;
 
@@ -211,13 +211,14 @@ class PlayerEventHelper implements EventEmitter {
     });
   }
 
-  fireAdBreakStartedEvent(startTime: number): void {
+  fireAdBreakStartedEvent(startTime: number = 0, ads: LinearAd[] = []): void {
     this.fireEvent<AdBreakEvent>({
       timestamp: Date.now(),
       type: PlayerEvent.AdBreakStarted,
       adBreak: {
         id: 'Break-ID',
         scheduleTime: startTime,
+        ads: ads,
       },
     });
   }
