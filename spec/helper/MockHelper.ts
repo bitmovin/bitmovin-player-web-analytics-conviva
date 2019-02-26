@@ -237,6 +237,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdSkipped,
       ad: {
         isLinear: true,
+        width: null,
+        height: null,
       },
     });
   }
@@ -247,6 +249,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdStarted,
       ad: {
         isLinear: true,
+        width: null,
+        height: null,
       },
     });
   }
