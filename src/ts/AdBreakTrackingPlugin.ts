@@ -1,5 +1,5 @@
-import { AdTrackingPlugin, BasicAdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreak, LinearAd, PlayerAPI } from 'bitmovin-player';
+import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 
 // TODO: Description
 /**

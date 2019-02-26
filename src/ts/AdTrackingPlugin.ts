@@ -22,18 +22,3 @@ export abstract class AdTrackingPlugin {
   public reportPlayerState(state: Conviva.PlayerStateManager.PlayerState): void { }
   public reportCustomEvent(eventName: string, eventAttributes: EventAttributes): void { }
 }
-
-export class BasicAdTrackingPlugin extends AdTrackingPlugin {
-  public adBreakStarted(adBreak: AdBreak, mappedAdPosition: Conviva.Client.AdPosition): void {
-    this.client.adStart(
-      this.contentSessionKey,
-      Conviva.Client.AdStream.SEPARATE,
-      Conviva.Client.AdPlayer.CONTENT,
-      mappedAdPosition,
-    );
-  }
-
-  public adBreakFinished(): void {
-    this.client.adEnd(this.contentSessionKey);
-  }
-}
