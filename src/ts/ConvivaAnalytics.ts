@@ -22,9 +22,9 @@ import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 type Player = PlayerAPI;
 
 export enum AdTrackingMode {
-  Basic,
-  AdBreaks,
-  AdInsights, // AdInsights includes AdBreaks + AdExperience
+  Basic = 'Basic',
+  AdBreaks = 'AdBreaks',
+  AdInsights = 'AdInsights', // AdInsights includes AdBreaks + AdExperience
 }
 
 export interface ConvivaAnalyticsConfiguration {
