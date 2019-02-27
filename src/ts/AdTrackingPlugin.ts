@@ -4,10 +4,12 @@ import { EventAttributes } from './ConvivaAnalytics';
 export abstract class AdTrackingPlugin {
   protected client: Conviva.Client;
   protected contentSessionKey: number;
+  protected logger: Conviva.LoggingInterface;
 
-  constructor(client: Conviva.Client, sessionKey: number) {
+  constructor(client: Conviva.Client, sessionKey: number, logger: Conviva.LoggingInterface) {
     this.client = client;
     this.contentSessionKey = sessionKey;
+    this.logger = logger;
   }
 
   // Return if there is a separate ad session is active to distinguish to which session a event should be reported
