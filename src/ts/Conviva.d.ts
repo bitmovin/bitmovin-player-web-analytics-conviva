@@ -100,7 +100,7 @@ declare namespace Conviva {
   class ContentMetadata {
     public applicationName: string;
     public assetName: string;
-    public custom: {};
+    public custom: { [key: string]: string };
     public defaultResource: string;
     public duration: number;
     public encodedFrameRate: number;

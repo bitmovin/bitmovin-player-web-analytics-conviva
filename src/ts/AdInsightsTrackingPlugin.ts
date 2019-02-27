@@ -36,20 +36,28 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     adMetadata.custom = {
       // Required
       'c3.ad.technology': AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY, // TODO: support server side in case of yospace
-      'c3.ad.id': ad.id,
-      'c3.ad.system': adData && adData.adSystem && adData.adSystem.name,
-      'c3.ad.position': this.currentAdBreakPosition,
+      'c3.ad.id': ad.id || AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY,
+      'c3.ad.system': adData && adData.adSystem && adData.adSystem.name || AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY,
+      'c3.ad.position': String(this.currentAdBreakPosition),
       'c3.ad.type': AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY,
-      'c3.ad.mediaFileApiFramework': adData && adData.apiFramework,
+      'c3.ad.mediaFileApiFramework': adData && adData.apiFramework || AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY,
       'c3.ad.adStitcher': AdInsightsTrackingPlugin.UNKNOWN_VALUE_KEY, // TODO: find a way to export that from the yospace integration
-
-      // Optional
-      'c3.ad.creativeId': adData && adData.creative && adData.creative.adId,
-      'c3.ad.creativeName': adData && adData.creative && adData.creative.universalAdId && adData.creative.universalAdId.value,
-      'c3.ad.breakId': this.currentAdBreak.id,
-      'c3.ad.advertiser': adData && adData.advertiser && adData.advertiser.name,
-      'c3.ad.advertiserId': adData && adData.advertiser && adData.advertiser.id,
     };
+
+    const addValueIfPresent = (key: string, value: string) => {
+      if (value) {
+        adMetadata.custom[key] = value;
+      }
+    };
+
+    addValueIfPresent('c3.ad.creativeId', adData && adData.creative && adData.creative.adId);
+    addValueIfPresent(
+      'c3.ad.creativeName',
+      adData && adData.creative && adData.creative.universalAdId && adData.creative.universalAdId.value,
+    );
+    addValueIfPresent('c3.ad.breakId', this.currentAdBreak.id);
+    addValueIfPresent('c3.ad.advertiser', adData && adData.advertiser && adData.advertiser.name);
+    addValueIfPresent('c3.ad.advertiserId', adData && adData.advertiser && adData.advertiser.id);
 
     this.adSessionKey = this.client.createAdSession(this.contentSessionKey, adMetadata);
     this.adPlayerStateManager = this.client.getPlayerStateManager();
