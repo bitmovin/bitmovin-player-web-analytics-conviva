@@ -1,6 +1,7 @@
 import { AdTrackingMode, ConvivaAnalytics, ConvivaAnalyticsConfiguration } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
-import { LinearAd } from 'bitmovin-player';
+import { AdData, LinearAd, VastAdData } from 'bitmovin-player';
+import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from '../helper/TestsHelper';
 
 describe('ad tracking', () => {
   let convivaAnalytics: ConvivaAnalytics;
@@ -19,6 +20,8 @@ describe('ad tracking', () => {
 
   [AdTrackingMode.Basic, AdTrackingMode.AdBreaks, AdTrackingMode.AdInsights].forEach((adTrackingMode) => {
     describe('core ad tracking for tracking mode: ' + adTrackingMode, () => {
+      let expectedSessionKey: number;
+
       beforeEach(() => {
         let convivaConfig: ConvivaAnalyticsConfiguration = {
           adTrackingMode,
@@ -27,23 +30,36 @@ describe('ad tracking', () => {
 
         playerMock.eventEmitter.firePlayEvent();
         playerMock.eventEmitter.firePlayingEvent();
+
+        expectedSessionKey = adTrackingMode === AdTrackingMode.AdInsights ? AD_SESSION_KEY : CONTENT_SESSION_KEY;
       });
 
       it('track pre-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(0);
         playerMock.eventEmitter.fireAdStartedEvent();
         expect(clientMock.adStart).toHaveBeenCalledTimes(1);
-        expect(clientMock.adStart).toHaveBeenCalledWith(0, 'separate', 'content', Conviva.Client.AdPosition.PREROLL);
+        expect(clientMock.adStart).toHaveBeenCalledWith(
+          CONTENT_SESSION_KEY,
+          'separate',
+          'content',
+          Conviva.Client.AdPosition.PREROLL,
+        );
       });
 
       it('track  mid-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(5);
         playerMock.eventEmitter.fireAdStartedEvent();
         expect(clientMock.adStart).toHaveBeenCalledTimes(1);
-        expect(clientMock.adStart).toHaveBeenCalledWith(0, 'separate', 'content', Conviva.Client.AdPosition.MIDROLL);
+        expect(clientMock.adStart).toHaveBeenCalledWith(
+          CONTENT_SESSION_KEY,
+          'separate',
+          'content',
+          Conviva.Client.AdPosition.MIDROLL,
+        );
       });
 
-      it('end session on post-roll ad', () => {
+      // TODO: track post-roll ads
+      xit('end session on post-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(Infinity);
         playerMock.eventEmitter.fireAdStartedEvent();
         expect(clientMock.adStart).toHaveBeenCalledTimes(0);
@@ -58,16 +74,18 @@ describe('ad tracking', () => {
 
         it('on adError', () => {
           playerMock.eventEmitter.fireAdErrorEvent();
+
+          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(expectedSessionKey, 'aderror', {});
+
           playerMock.eventEmitter.fireAdBreakFinishedEvent();
           expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
-          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'aderror', {});
         });
 
         it('on ad skipped', () => {
           playerMock.eventEmitter.fireAdSkippedEvent();
           playerMock.eventEmitter.fireAdBreakFinishedEvent();
           expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
-          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'adskipped', {});
+          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(expectedSessionKey, 'adskipped', {});
         });
 
         it('on ad end', () => {
@@ -79,6 +97,10 @@ describe('ad tracking', () => {
   });
 
   describe('ad event workarounds', () => {
+    beforeEach(() => {
+      convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
+    });
+
     describe('event order in case of pre-roll ad', () => {
       it('track pre-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(0);
@@ -86,7 +108,12 @@ describe('ad tracking', () => {
         playerMock.eventEmitter.firePlayingEvent();
         playerMock.eventEmitter.fireAdStartedEvent();
 
-        expect(clientMock.adStart).toHaveBeenCalledWith(0, 'separate', 'content', Conviva.Client.AdPosition.PREROLL);
+        expect(clientMock.adStart).toHaveBeenCalledWith(
+          CONTENT_SESSION_KEY,
+          'separate',
+          'content',
+          Conviva.Client.AdPosition.PREROLL,
+        );
       });
     });
   });
@@ -223,7 +250,146 @@ describe('ad tracking', () => {
   });
 
   describe('Ad Insights Tracking', () => {
+    let adData: VastAdData = {};
 
+    beforeEach(() => {
+      let convivaConfig: ConvivaAnalyticsConfiguration = {
+        adTrackingMode: AdTrackingMode.AdInsights,
+      };
+
+      convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY', convivaConfig);
+
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+    });
+
+    describe('session handling', () => {
+      beforeEach(() => {
+        playerMock.eventEmitter.fireAdBreakStartedEvent();
+        playerMock.eventEmitter.fireAdStartedEvent();
+      });
+
+      it('create a session on adStarted', () => {
+        expect(clientMock.createAdSession).toHaveBeenCalledTimes(AD_SESSION_KEY);
+      });
+
+      it('closes an active session on adFinished', () => {
+        playerMock.eventEmitter.fireAdFinishedEvent();
+
+        expect(clientMock.cleanupSession).toHaveBeenCalledWith(AD_SESSION_KEY);
+      });
+
+      describe('report to ad session', () => {
+        it('playback changes', () => {
+          playerMock.eventEmitter.firePauseEvent();
+
+          // TODO: test explicitly against playerStateManager of ad session
+          expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.PAUSED);
+        });
+
+        it('custom events', () => {
+          playerMock.eventEmitter.fireAdSkippedEvent();
+
+          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(AD_SESSION_KEY, 'adskipped', expect.anything());
+        });
+      });
+    });
+
+    describe('adMetadata handling', () => {
+      beforeEach(() => {
+        playerMock.eventEmitter.fireAdBreakStartedEvent();
+      });
+
+      describe('assetName', () => {
+        it('is taken from adData', () => {
+          adData = {
+            adTitle: 'MyAdAssetName',
+          };
+
+          playerMock.eventEmitter.fireAdStartedEvent({}, adData); // TODO: extract with lazy adData object initialization
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            assetName: 'MyAdAssetName',
+          }));
+        });
+
+        it('is NA if not present', () => {
+          playerMock.eventEmitter.fireAdStartedEvent();
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            assetName: 'NA',
+          }));
+        });
+      });
+
+      describe('streamUrl', () => {
+        it('is taken from then ad', () => {
+          playerMock.eventEmitter.fireAdStartedEvent({
+            mediaFileUrl: 'http://my.url',
+          });
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            streamUrl: 'http://my.url',
+          }));
+        });
+      });
+
+      describe('duration', () => {
+        it('is taken from the ad', () => {
+          playerMock.eventEmitter.fireAdStartedEvent({
+            duration: 5,
+          });
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            duration: 5,
+          }));
+        });
+      });
+
+      describe('custom', () => {
+        it('does not include empty values', () => {
+          playerMock.eventEmitter.fireAdStartedEvent();
+
+          const lastCallAttributes = (clientMock.createAdSession as jest.Mock).mock.calls.pop();
+          const contentMetadata = lastCallAttributes[1] as Conviva.ContentMetadata;
+
+          const customValues = Object.keys(contentMetadata.custom).map((key) => (contentMetadata as any).custom[key]);
+
+          expect(customValues).toEqual(expect.not.arrayContaining([undefined]));
+        });
+
+        it('collects data from adData object', () => {
+          playerMock.eventEmitter.fireAdStartedEvent({}, {
+            adSystem: {
+              name: 'AdSystem Name',
+            },
+            apiFramework: 'APIFramework',
+            creative: {
+              adId: 'myId',
+              universalAdId: {
+                value: 'AwesomeCreativeName',
+                idRegistry: null,
+              },
+            },
+            advertiser: {
+              name: 'MyAdvertiser',
+              id: 'AdvertiserID',
+            },
+          });
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            custom: expect.objectContaining({
+              'c3.ad.system': 'AdSystem Name',
+              'c3.ad.mediaFileApiFramework': 'APIFramework',
+              'c3.ad.creativeId': 'myId',
+              'c3.ad.creativeName': 'AwesomeCreativeName',
+              'c3.ad.advertiser': 'MyAdvertiser',
+              'c3.ad.advertiserId': 'AdvertiserID',
+            }),
+          }));
+        });
+      });
+    });
   });
 });
 
