@@ -74,7 +74,7 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
       return;
     }
 
-    this.client.sendCustomEvent(this.adSessionKey, event.type, eventAttributes);
+    this.client.sendCustomEvent(this.adSessionKey, eventName, eventAttributes);
   }
 
   public isAdSessionActive(): boolean {
