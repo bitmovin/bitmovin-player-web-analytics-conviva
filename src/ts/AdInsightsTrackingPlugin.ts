@@ -28,7 +28,7 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
 
     // Create a new ContentMetadata object for ad.
     let adMetadata = new Conviva.ContentMetadata();
-    adMetadata.assetName = adData.adTitle || AdInsightsTrackingPlugin.UNKNOWN_VALUE;
+    adMetadata.assetName = adData && adData.adTitle || AdInsightsTrackingPlugin.UNKNOWN_VALUE;
     adMetadata.streamUrl = ad.mediaFileUrl;
     adMetadata.duration = ad.duration; // Ad Duration In seconds
 
