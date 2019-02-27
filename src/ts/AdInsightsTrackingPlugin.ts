@@ -26,6 +26,13 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     const adData = event.data as VastAdData;
     const ad = event.ad as LinearAd;
 
+    if (!adData) {
+      this.logger.consoleLog(
+        'For proper adInsights tracking please use player version >= \'8.3.0\'.',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
+    }
+
     // Create a new ContentMetadata object for ad.
     let adMetadata = new Conviva.ContentMetadata();
     adMetadata.assetName = adData && adData.adTitle || AdInsightsTrackingPlugin.UNKNOWN_VALUE;
