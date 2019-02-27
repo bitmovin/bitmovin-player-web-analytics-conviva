@@ -2,8 +2,9 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, Ad, LinearAd,
+  TimeShiftEvent, Ad, LinearAd, AdData, AdStartedEvent, VastAdData,
 } from 'bitmovin-player';
+import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from './TestsHelper';
 
 declare const global: any;
 export namespace MockHelper {
@@ -26,7 +27,7 @@ export namespace MockHelper {
   }
 
   export function getConvivaClientMock(): Conviva.Client {
-    const createSession = jest.fn(() => 0);
+    const createSession = jest.fn(() => CONTENT_SESSION_KEY);
     const cleanupSession = jest.fn();
     const sendCustomEvent = jest.fn();
     const updateContentMetadata = jest.fn();
@@ -34,6 +35,7 @@ export namespace MockHelper {
     const adEnd = jest.fn();
     const reportError = jest.fn();
     const releasePlayerStateManager = jest.fn();
+    const createAdSession = jest.fn(() => AD_SESSION_KEY);
 
     const playerStateMock = getPlayerStateManagerMock();
 
@@ -50,6 +52,7 @@ export namespace MockHelper {
         adStart,
         adEnd,
         reportError,
+        createAdSession,
       };
     });
 
@@ -76,6 +79,7 @@ export namespace MockHelper {
     const setPlayerState = jest.fn();
     const setPlayerSeekStart = jest.fn();
     const setPlayerSeekEnd = jest.fn();
+    const reset = jest.fn();
 
     const PlayerStateManagerClass = jest.fn().mockImplementation(() => ({
       setPlayerType: jest.fn(),
@@ -83,6 +87,7 @@ export namespace MockHelper {
       setPlayerState,
       setPlayerSeekStart,
       setPlayerSeekEnd,
+      reset,
     }));
 
     global.Conviva.PlayerStateManager = PlayerStateManagerClass;
@@ -157,7 +162,9 @@ interface EventEmitter {
 
   fireAdBreakStartedEvent(startTime?: number, ads?: LinearAd[]): void;
 
-  fireAdStartedEvent(): void;
+  fireAdStartedEvent(adData?: object, data?: VastAdData): void;
+
+  fireAdFinishedEvent(): void;
 
   fireAdBreakFinishedEvent(): void;
 
@@ -244,15 +251,17 @@ class PlayerEventHelper implements EventEmitter {
     });
   }
 
-  fireAdStartedEvent(): void {
-    this.fireEvent<AdEvent>({
+  fireAdStartedEvent(adData: object = {}, data: VastAdData = {}): void {
+    this.fireEvent<AdStartedEvent>({
       timestamp: Date.now(),
       type: PlayerEvent.AdStarted,
       ad: {
         isLinear: true,
         width: null,
         height: null,
+        ...adData,
       },
+      data: data,
     });
   }
 
@@ -330,6 +339,18 @@ class PlayerEventHelper implements EventEmitter {
     this.fireEvent<PlayerEventBase>({
       timestamp: Date.now(),
       type: PlayerEvent.TimeShifted,
+    });
+  }
+
+  fireAdFinishedEvent(): void {
+    this.fireEvent<AdEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.AdFinished,
+      ad: {
+        isLinear: true,
+        width: null,
+        height: null,
+      },
     });
   }
 }
