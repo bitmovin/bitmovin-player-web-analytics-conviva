@@ -337,13 +337,13 @@ export class ConvivaAnalytics {
     // Init ad tracking with current session key
     switch (this.config.adTrackingMode) {
       case AdTrackingMode.AdInsights:
-        this.adTrackingModule = new AdInsightsTrackingPlugin(this.client, this.sessionKey, this.logger);
+        this.adTrackingModule = new AdInsightsTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
       case AdTrackingMode.AdBreaks:
-        this.adTrackingModule = new AdBreakTrackingPlugin(this.client, this.sessionKey, this.logger);
+        this.adTrackingModule = new AdBreakTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
       default:
-        this.adTrackingModule = new BasicAdTrackingPlugin(this.client, this.sessionKey, this.logger);
+        this.adTrackingModule = new BasicAdTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
     }
 

@@ -71,6 +71,10 @@ export namespace MockHelper {
     global.Conviva.Client.ErrorSeverity = {
       FATAL: 'fatal',
     };
+    global.Conviva.Client.AdTechnology = {
+      CLIENT_SIDE: 'Client Side',
+      SERVER_SIDE: 'Server Side',
+    };
 
     return new global.Conviva.Client();
   }
@@ -106,6 +110,7 @@ export namespace MockHelper {
 
     const PlayerMockClass: jest.Mock<TestingPlayerAPI> = jest.fn().mockImplementation(() => {
       return {
+        ads: jest.fn(),
         getSource: jest.fn(),
         exports: { PlayerEvent },
         getDuration: jest.fn(),

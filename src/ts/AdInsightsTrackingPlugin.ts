@@ -39,16 +39,21 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     adMetadata.streamUrl = ad.mediaFileUrl;
     adMetadata.duration = ad.duration; // Ad Duration In seconds
 
+    const isYospaceUsed = this.player.ads.getModuleInfo().name.includes('yospace');
+    const adTechnology = isYospaceUsed ?
+      Conviva.Client.AdTechnology.SERVER_SIDE :
+      Conviva.Client.AdTechnology.CLIENT_SIDE;
+
     // custom takes a javascript object as an argument
     adMetadata.custom = {
       // Required
-      'c3.ad.technology': AdInsightsTrackingPlugin.UNKNOWN_VALUE, // TODO: support server side in case of yospace
+      'c3.ad.technology': String(adTechnology),
       'c3.ad.id': ad.id || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.system': adData && adData.adSystem && adData.adSystem.name || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.position': String(this.currentAdBreakPosition),
       'c3.ad.type': AdInsightsTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.mediaFileApiFramework': adData && adData.apiFramework || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
-      'c3.ad.adStitcher': AdInsightsTrackingPlugin.UNKNOWN_VALUE, // TODO: find a way to export that from the yospace integration
+      'c3.ad.adStitcher': isYospaceUsed ? 'Yospace' : AdInsightsTrackingPlugin.UNKNOWN_VALUE,
     };
 
     const addValueIfPresent = (key: string, value: string) => {

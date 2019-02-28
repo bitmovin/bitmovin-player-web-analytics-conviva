@@ -13,6 +13,12 @@ describe('ad tracking', () => {
     MockHelper.mockConviva();
 
     playerMock = MockHelper.getPlayerMock();
+
+    playerMock.ads.getModuleInfo = jest.fn(() => ({
+      name: 'bitmovin-advertising',
+      version: 'x.y.z',
+    }));
+
     clientMock = MockHelper.getConvivaClientMock();
     playerStateMock = clientMock.getPlayerStateManager();
     jest.spyOn(playerMock, 'getDuration').mockReturnValue(10);
@@ -385,6 +391,22 @@ describe('ad tracking', () => {
               'c3.ad.creativeName': 'AwesomeCreativeName',
               'c3.ad.advertiser': 'MyAdvertiser',
               'c3.ad.advertiserId': 'AdvertiserID',
+            }),
+          }));
+        });
+
+        it('respects the yospace integration', () => {
+          playerMock.ads.getModuleInfo = jest.fn(() => ({
+            name: 'something-with-yospace-in-the-name',
+            version: 'x.y.z',
+          }));
+
+          playerMock.eventEmitter.fireAdStartedEvent();
+
+          expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+            custom: expect.objectContaining({
+              'c3.ad.technology': 'Server Side',
+              'c3.ad.adStitcher': 'Yospace',
             }),
           }));
         });

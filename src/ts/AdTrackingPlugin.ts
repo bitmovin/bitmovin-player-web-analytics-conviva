@@ -1,15 +1,17 @@
-import { AdBreak, AdStartedEvent } from 'bitmovin-player';
+import { AdBreak, AdStartedEvent, PlayerAPI } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 
 export abstract class AdTrackingPlugin {
   protected client: Conviva.Client;
   protected contentSessionKey: number;
   protected logger: Conviva.LoggingInterface;
+  protected player: PlayerAPI;
 
-  constructor(client: Conviva.Client, sessionKey: number, logger: Conviva.LoggingInterface) {
+  constructor(player: PlayerAPI, client: Conviva.Client, sessionKey: number, logger: Conviva.LoggingInterface) {
     this.client = client;
     this.contentSessionKey = sessionKey;
     this.logger = logger;
+    this.player = player;
   }
 
   // Return if there is a separate ad session is active to distinguish to which session a event should be reported
