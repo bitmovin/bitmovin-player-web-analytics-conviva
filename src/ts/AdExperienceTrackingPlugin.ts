@@ -3,7 +3,9 @@ import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 
 /**
+ * Creates a new ad session for each ad and track ad related events to the ad session.
  *
+ * Inherits from AdBreakTrackingPlugin so it will include all functionality from the AdBreak mode as well.
  */
 export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
 

@@ -38,9 +38,19 @@ export interface ConvivaAnalyticsConfiguration {
    */
   gatewayUrl?: string;
 
-  // TODO:
-  // TODO: AdInsights includes AdBreaks + AdExperience
-  adTrackingMode?: AdTrackingMode; // Default: Basic
+  /**
+   * Switch between different adTrackingModes.
+   *
+   * Available modes:
+   * - Basic: (Default)
+   * Stops all tracking to the content session during adBreaks.
+   * - AdBreaks:
+   * Reports more details about the adBreak to the current session. (Also includes behaviour of Basic mode)
+   * - AdExperience:
+   * Creates a new ad session for each ad and track ad related events to the ad session.
+   * (Also includes behaviour of AdBreaks mode).
+   */
+  adTrackingMode?: AdTrackingMode;
 }
 
 export interface EventAttributes {

@@ -8,9 +8,10 @@ interface PodAttributes {
   absoluteIndex?: string;
 }
 
-// TODO: Description
 /**
+ * Reports more details about the adBreak to the current session.
  *
+ * Inherits from BasicAdTrackingPlugin so it will include all functionality from the Basic mode as well.
  */
 export class AdBreakTrackingPlugin extends BasicAdTrackingPlugin {
   // Counter variable for adBreaks
