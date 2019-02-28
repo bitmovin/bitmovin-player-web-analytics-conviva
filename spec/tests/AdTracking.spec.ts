@@ -52,7 +52,7 @@ describe('ad tracking', () => {
         );
       });
 
-      it('track  mid-roll ad', () => {
+      it('track mid-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(5);
         playerMock.eventEmitter.fireAdStartedEvent();
         expect(clientMock.adStart).toHaveBeenCalledTimes(1);
@@ -64,12 +64,16 @@ describe('ad tracking', () => {
         );
       });
 
-      // TODO: track post-roll ads
-      xit('end session on post-roll ad', () => {
+      it('track post-roll ad', () => {
         playerMock.eventEmitter.fireAdBreakStartedEvent(Infinity);
         playerMock.eventEmitter.fireAdStartedEvent();
-        expect(clientMock.adStart).toHaveBeenCalledTimes(0);
-        expect(clientMock.cleanupSession).toHaveBeenCalledTimes(1);
+        expect(clientMock.adStart).toHaveBeenCalledTimes(1);
+        expect(clientMock.adStart).toHaveBeenCalledWith(
+          CONTENT_SESSION_KEY,
+          'separate',
+          'content',
+          Conviva.Client.AdPosition.POSTROLL,
+        );
       });
 
       describe('track ad end', () => {

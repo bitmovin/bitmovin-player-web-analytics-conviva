@@ -698,22 +698,6 @@ export class ConvivaAnalytics {
   };
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
-    // Specific post-roll handling
-    const isPostRollAdBreak = (adBreak: AdBreak) => {
-      return adBreak.scheduleTime === Infinity;
-    };
-
-    if (isPostRollAdBreak(event.adBreak)) {
-      // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
-      this.debugLog('[ ConvivaAnalytics ] detected post-roll ad ... Ending session');
-      this.onPlaybackFinished({
-          timestamp: Date.now(),
-          type: this.events.PlaybackFinished,
-        },
-      );
-      return;
-    }
-
     // Specific pre-roll handling
     // TODO: remove this workaround when event order is correct
     // Since the event order on initial playback in case of a pre-roll ad is false we need to workaround
