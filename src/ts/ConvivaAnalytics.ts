@@ -1,4 +1,4 @@
-import { AdInsightsTrackingPlugin } from './AdInsightsTrackingPlugin';
+import { AdExperienceTrackingPlugin } from './AdExperienceTrackingPlugin';
 
 import {
   AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
@@ -24,7 +24,7 @@ type Player = PlayerAPI;
 export enum AdTrackingMode {
   Basic = 'Basic',
   AdBreaks = 'AdBreaks',
-  AdInsights = 'AdInsights', // AdInsights includes AdBreaks + AdExperience
+  AdExperience = 'AdExperience', // AdInsights includes AdBreaks + AdExperience
 }
 
 export interface ConvivaAnalyticsConfiguration {
@@ -336,8 +336,8 @@ export class ConvivaAnalytics {
 
     // Init ad tracking with current session key
     switch (this.config.adTrackingMode) {
-      case AdTrackingMode.AdInsights:
-        this.adTrackingModule = new AdInsightsTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
+      case AdTrackingMode.AdExperience:
+        this.adTrackingModule = new AdExperienceTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
       case AdTrackingMode.AdBreaks:
         this.adTrackingModule = new AdBreakTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);

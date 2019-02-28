@@ -2,8 +2,10 @@ import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
 import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 
-// TODO: Description
-export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
+/**
+ *
+ */
+export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
 
   private static UNKNOWN_VALUE = 'NA';
 
@@ -28,14 +30,14 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
 
     if (!adData) {
       this.logger.consoleLog(
-        'For proper adInsights tracking please use player version >= \'8.3.0\'.',
+        'For proper adExperience tracking please use player version >= \'8.3.0\'.',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
     }
 
     // Create a new ContentMetadata object for ad.
     let adMetadata = new Conviva.ContentMetadata();
-    adMetadata.assetName = adData && adData.adTitle || AdInsightsTrackingPlugin.UNKNOWN_VALUE;
+    adMetadata.assetName = adData && adData.adTitle || AdExperienceTrackingPlugin.UNKNOWN_VALUE;
     adMetadata.streamUrl = ad.mediaFileUrl;
     adMetadata.duration = ad.duration; // Ad Duration In seconds
 
@@ -48,12 +50,12 @@ export class AdInsightsTrackingPlugin extends AdBreakTrackingPlugin {
     adMetadata.custom = {
       // Required
       'c3.ad.technology': String(adTechnology),
-      'c3.ad.id': ad.id || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
-      'c3.ad.system': adData && adData.adSystem && adData.adSystem.name || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.id': ad.id || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.system': adData && adData.adSystem && adData.adSystem.name || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.position': String(this.currentAdBreakPosition),
-      'c3.ad.type': AdInsightsTrackingPlugin.UNKNOWN_VALUE,
-      'c3.ad.mediaFileApiFramework': adData && adData.apiFramework || AdInsightsTrackingPlugin.UNKNOWN_VALUE,
-      'c3.ad.adStitcher': isYospaceUsed ? 'Yospace' : AdInsightsTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.type': AdExperienceTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.mediaFileApiFramework': adData && adData.apiFramework || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.adStitcher': isYospaceUsed ? 'Yospace' : AdExperienceTrackingPlugin.UNKNOWN_VALUE,
     };
 
     const addValueIfPresent = (key: string, value: string) => {

@@ -24,7 +24,7 @@ describe('ad tracking', () => {
     jest.spyOn(playerMock, 'getDuration').mockReturnValue(10);
   });
 
-  [AdTrackingMode.Basic, AdTrackingMode.AdBreaks, AdTrackingMode.AdInsights].forEach((adTrackingMode) => {
+  [AdTrackingMode.Basic, AdTrackingMode.AdBreaks, AdTrackingMode.AdExperience].forEach((adTrackingMode) => {
     describe('core ad tracking for tracking mode: ' + adTrackingMode, () => {
       let expectedSessionKey: number;
 
@@ -37,7 +37,7 @@ describe('ad tracking', () => {
         playerMock.eventEmitter.firePlayEvent();
         playerMock.eventEmitter.firePlayingEvent();
 
-        expectedSessionKey = adTrackingMode === AdTrackingMode.AdInsights ? AD_SESSION_KEY : CONTENT_SESSION_KEY;
+        expectedSessionKey = adTrackingMode === AdTrackingMode.AdExperience ? AD_SESSION_KEY : CONTENT_SESSION_KEY;
       });
 
       it('track pre-roll ad', () => {
@@ -259,12 +259,12 @@ describe('ad tracking', () => {
     });
   });
 
-  describe('Ad Insights Tracking', () => {
+  describe('Ad Experience Tracking', () => {
     let adData: VastAdData = {};
 
     beforeEach(() => {
       let convivaConfig: ConvivaAnalyticsConfiguration = {
-        adTrackingMode: AdTrackingMode.AdInsights,
+        adTrackingMode: AdTrackingMode.AdExperience,
       };
 
       convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY', convivaConfig);
