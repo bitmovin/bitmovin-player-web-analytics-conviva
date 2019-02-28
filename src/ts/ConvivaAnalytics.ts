@@ -631,10 +631,6 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged(event);
   };
 
-  private onAdEvent = (event: AdEvent) => {
-
-  };
-
   private trackSeekStart(target: number) {
     this.playerStateManager.setPlayerSeekStart(target);
   }
