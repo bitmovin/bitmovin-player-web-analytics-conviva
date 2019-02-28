@@ -289,6 +289,18 @@ describe('ad tracking', () => {
         expect(clientMock.cleanupSession).toHaveBeenCalledWith(AD_SESSION_KEY);
       });
 
+      it('closes an session on adSkipped', () => {
+        playerMock.eventEmitter.fireAdSkippedEvent();
+
+        expect(clientMock.cleanupSession).toHaveBeenCalledWith(AD_SESSION_KEY);
+      });
+
+      it('closes an session on adError', () => {
+        playerMock.eventEmitter.fireAdErrorEvent();
+
+        expect(clientMock.cleanupSession).toHaveBeenCalledWith(AD_SESSION_KEY);
+      });
+
       describe('report to ad session', () => {
         it('playback changes', () => {
           playerMock.eventEmitter.firePauseEvent();
