@@ -683,9 +683,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
-    playerEvents.add(this.events.AdSkipped, this.onCustomEvent);
+    playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
     playerEvents.add(this.events.AdClicked, this.onCustomEvent);
-    playerEvents.add(this.events.AdError, this.onCustomEvent);
+    playerEvents.add(this.events.AdError, this.onAdError);
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
     playerEvents.add(this.events.Destroy, this.onDestroy);
@@ -719,6 +719,18 @@ export class ConvivaAnalytics {
     } else {
       this.trackAdBreakStarted(event);
     }
+  };
+
+  private onAdSkipped = (event: AdEvent) => {
+    this.onCustomEvent(event);
+    // Track adFinished after skipping
+    this.onAdFinished(event);
+  };
+
+  private onAdError = (event: AdEvent) => {
+    this.onCustomEvent(event);
+    // Track adFinished after error
+    this.onAdFinished(event);
   };
 
   private unregisterPlayerEvents(): void {
