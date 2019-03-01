@@ -75,3 +75,37 @@ conviva.reportPlaybackDeficiency('Some Error Message', Conviva.Client.ErrorSever
 _See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for parameter details._
 
 Conviva suggests an timeout of about ~10 seconds and before reporting an error to conviva and providing feedback the user.
+
+#### Content Metadata handling
+
+If you want to override some content metadata attributes you can do so by adding the following:
+
+```js
+let metadataOverrides = {
+  applicationName: 'App Name',
+  custom: {
+    customTag: 'customValue',
+  },
+  encodedFrameRate: 24,
+  // … 
+};
+
+// …
+// Initialize ConvivaAnalytics
+// …
+
+conviva.updateContentMetadata(metadataOverrides);
+```
+
+Those values will be cleaned up after the session is closed.
+
+_See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for details about more attributes._
+
+#### Consecutive playback
+
+If you want to use the same player instance for multiple playback, just load a new source with `player.load(…)`.
+The integration will close the active session.
+ 
+```js
+player.load({…});
+```
