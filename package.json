@@ -1,6 +1,6 @@
 {
   "name": "bitmovin-player-analytics-conviva",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^24.0.1",
-    "bitmovin-player": "8.2.0-rc2",
+    "bitmovin-player": "8.2.0",
     "bitmovin-player-ui": "^3.3.1",
     "jest": "^24.1.0",
     "string-replace-loader": "^2.1.1",
