@@ -62,6 +62,10 @@ export class ConvivaAnalytics {
   // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
   private adBreakStartedToFire: AdBreakEvent;
 
+  // Needed to workaround wrong event order in case of a video-playback-quality-change event. (See
+  // #onVideoQualityChanged for more info)
+  private lastSeenBitrate: number;
+
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
@@ -330,6 +334,10 @@ export class ConvivaAnalytics {
 
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+
+    if (this.lastSeenBitrate) {
+      this.playerStateManager.setBitrateKbps(this.lastSeenBitrate);
+    }
   }
 
   /**
@@ -401,6 +409,8 @@ export class ConvivaAnalytics {
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.contentMetadataBuilder.reset();
+
+    this.lastSeenBitrate = null;
   };
 
   private isSessionActive(): boolean {
@@ -509,14 +519,19 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
-    if (!this.isSessionActive()) {
-      return;
-    }
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
     const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
-    console.warn('go video quality changed ', this.sessionKey, bitrateKbps);
 
+    if (!this.isSessionActive()) {
+      // Since the first videoPlaybackQualityChanged event comes before playback ever started we need to store the
+      // value and use it for tracking when initializing the session.
+      // TODO: remove this workaround when the player event order is fixed
+      this.lastSeenBitrate = bitrateKbps;
+      return;
+    }
+
+    this.lastSeenBitrate = null;
     this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
 

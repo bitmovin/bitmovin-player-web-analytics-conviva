@@ -2,7 +2,7 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent,
+  TimeShiftEvent, VideoPlaybackQualityChangedEvent,
 } from 'bitmovin-player';
 
 declare const global: any;
@@ -76,6 +76,7 @@ export namespace MockHelper {
     const setPlayerState = jest.fn();
     const setPlayerSeekStart = jest.fn();
     const setPlayerSeekEnd = jest.fn();
+    const setBitrateKbps = jest.fn();
 
     const PlayerStateManagerClass = jest.fn().mockImplementation(() => ({
       setPlayerType: jest.fn(),
@@ -83,6 +84,7 @@ export namespace MockHelper {
       setPlayerState,
       setPlayerSeekStart,
       setPlayerSeekEnd,
+      setBitrateKbps,
     }));
 
     global.Conviva.PlayerStateManager = PlayerStateManagerClass;
@@ -164,6 +166,8 @@ interface EventEmitter {
   fireAdSkippedEvent(): void;
 
   fireAdErrorEvent(): void;
+
+  fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
@@ -325,6 +329,25 @@ class PlayerEventHelper implements EventEmitter {
     this.fireEvent<PlayerEventBase>({
       timestamp: Date.now(),
       type: PlayerEvent.TimeShifted,
+    });
+  }
+
+  fireVideoPlaybackQualityChangedEvent(bitrate: number): void {
+    this.fireEvent<VideoPlaybackQualityChangedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.VideoPlaybackQualityChanged,
+      sourceQuality: {
+        id: '1',
+        bitrate: 250_000,
+        width: null,
+        height: null,
+      },
+      targetQuality: {
+        id: '2',
+        bitrate: bitrate,
+        width: null,
+        height: null,
+      },
     });
   }
 }

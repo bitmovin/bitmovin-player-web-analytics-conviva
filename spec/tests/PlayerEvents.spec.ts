@@ -292,6 +292,26 @@ describe('player event tests', () => {
     });
   });
 
+  describe('bitrate tracking', () => {
+    it('report bitrate on event', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireVideoPlaybackQualityChangedEvent(2_400_000);
+
+      expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(2_400);
+    });
+
+    describe('event order workaround', () => {
+      it('track current bitrate on session initialization', () => {
+        playerMock.eventEmitter.fireVideoPlaybackQualityChangedEvent(4_800_000);
+        playerMock.eventEmitter.firePlayEvent();
+        playerMock.eventEmitter.firePlayingEvent();
+
+        expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(4_800);
+      });
+    });
+  });
+
   describe('ad event workarounds', () => {
     describe('event order in case of pre-roll ad', () => {
       it('track pre-roll ad', () => {
