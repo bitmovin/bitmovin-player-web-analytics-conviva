@@ -30,11 +30,6 @@ export interface EventAttributes {
   [key: string]: string;
 }
 
-export interface ConvivaSourceConfig extends SourceConfig {
-  viewerId?: string;
-  contentId?: string;
-}
-
 export class ConvivaAnalytics {
 
   private static readonly VERSION: string = '{{VERSION}}';
@@ -272,7 +267,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private getUrlFromSource(source: ConvivaSourceConfig): string {
+  private getUrlFromSource(source: SourceConfig): string {
     switch (this.player.getStreamType()) {
       case 'dash':
         return source.dash;
@@ -346,7 +341,7 @@ export class ConvivaAnalytics {
       integrationVersion: ConvivaAnalytics.VERSION,
     };
 
-    const source = this.player.getSource() as ConvivaSourceConfig;
+    const source = this.player.getSource();
 
     // This could be called before we got a source
     if (source) {
@@ -354,9 +349,9 @@ export class ConvivaAnalytics {
     }
   }
 
-  private buildSourceRelatedMetadata(source: ConvivaSourceConfig) {
+  private buildSourceRelatedMetadata(source: SourceConfig) {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
-    this.contentMetadataBuilder.viewerId = source.viewerId || this.contentMetadataBuilder.viewerId;
+    this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
     this.contentMetadataBuilder.custom = {
       ...this.contentMetadataBuilder.custom,
       playerType: this.player.getPlayerType(),
@@ -375,21 +370,16 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadataBuilder.build());
   }
 
-  private getAssetNameFromSource(source: ConvivaSourceConfig): string {
+  private getAssetNameFromSource(source: SourceConfig): string {
     let assetName;
 
-    const assetId = source.contentId ? `[${source.contentId}]` : undefined;
     const assetTitle = source.title;
-
-    if (assetId && assetTitle) {
-      assetName = `${assetId} ${assetTitle}`;
-    } else if (assetId && !assetTitle) {
-      assetName = assetId;
-    } else if (assetTitle && !assetId) {
+    if (assetTitle) {
       assetName = assetTitle;
     } else {
-      assetName = 'Untitled (no source.title/source.contentId set)';
+      assetName = 'Untitled (no source.title set)';
     }
+
     return assetName;
   }
 

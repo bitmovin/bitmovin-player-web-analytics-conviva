@@ -51,9 +51,12 @@
     var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
       debugLoggingEnabled: true,
       gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+    });
+
+    conviva.updateContentMetadata({
       applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
       viewerId: 'uniqueViewerId',
-      customTags: {
+      custom: {
         appVersion: '1.0',
         contentId: 'someContentId',
         playerVendor: 'bitmovin',
