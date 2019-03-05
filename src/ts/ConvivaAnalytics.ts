@@ -59,11 +59,16 @@ export class ConvivaAnalytics {
    */
   private isAd: boolean;
 
-  // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
+  /**
+   * Attributes needed to workaround wrong event order in case of a pre-roll ad.
+   * See {@link onAdBreakStarted} for more info
+   */
   private adBreakStartedToFire: AdBreakEvent;
 
-  // Needed to workaround wrong event order in case of a video-playback-quality-change event. (See
-  // #onVideoQualityChanged for more info)
+  /**
+   * Needed to workaround wrong event order in case of a video-playback-quality-change event.
+   * See {@link onVideoQualityChanged} for more info
+   */
   private lastSeenBitrate: number;
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
