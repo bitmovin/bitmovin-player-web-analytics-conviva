@@ -102,17 +102,14 @@ describe('player event tests', () => {
 
           it('delayed after seek', () => {
             playerMock.eventEmitter.fireSeekEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           it('delayed after timeshift', () => {
             playerMock.eventEmitter.fireTimeShiftEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           it('right after stall started', () => {
             playerMock.eventEmitter.fireStallStartedEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           afterEach((done: any) => {
@@ -205,7 +202,7 @@ describe('player event tests', () => {
 
       describe('track seek start', () => {
         it('on seek', () => {
-          playerMock.eventEmitter.fireSeekEvent(50);
+          playerMock.eventEmitter.fireSeekEvent(50.145);
           expect(playerStateMock.setPlayerSeekStart).toHaveBeenCalledTimes(1);
           expect(playerStateMock.setPlayerSeekStart).toHaveBeenCalledWith(50);
         });

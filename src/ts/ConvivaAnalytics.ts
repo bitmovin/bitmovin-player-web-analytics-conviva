@@ -635,7 +635,7 @@ export class ConvivaAnalytics {
   };
 
   private trackSeekStart(target: number) {
-    this.playerStateManager.setPlayerSeekStart(target);
+    this.playerStateManager.setPlayerSeekStart(Math.round(target));
   }
 
   private trackSeekEnd() {
