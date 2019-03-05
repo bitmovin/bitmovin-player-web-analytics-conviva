@@ -47,19 +47,7 @@ The recommended version of the Conviva SDK is 2.146.0.36444.** See [CHANGELOG](C
     });
     ```
 
-4. Add optional properties to the player's source configuration object to improve analytics data:
-    ```js
-    {
-      title: 'Art of Motion',
-      dash: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-
-      // Conviva Analytics properties
-      viewerId: 'uniqueViewerIdThatOverridesTheConvivaAnalyticsConfig',
-      contentId: 'uniqueContentId',
-    }
-    ```
-
-5. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
+4. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
  
 ### Advanced Usage
 
@@ -83,6 +71,7 @@ If you want to override some content metadata attributes you can do so by adding
 ```js
 let metadataOverrides = {
   applicationName: 'App Name',
+  viewerId: 'uniqueViewerId',
   custom: {
     customTag: 'customValue',
   },
