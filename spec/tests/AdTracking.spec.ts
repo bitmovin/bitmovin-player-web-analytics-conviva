@@ -368,6 +368,28 @@ describe('ad tracking', () => {
         });
       });
 
+      describe('bitrate', () => {
+        it('is reported in kbps if unit is bps', () => {
+          adData = {
+            bitrate: 8_200_000,
+          };
+
+          playerMock.eventEmitter.fireAdStartedEvent({}, adData);
+
+          expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(8_200);
+        });
+
+        it('is reported in kbps if unit is kbps', () => {
+          adData = {
+            bitrate: 8_200,
+          };
+
+          playerMock.eventEmitter.fireAdStartedEvent({}, adData);
+
+          expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(8_200);
+        });
+      });
+
       describe('custom', () => {
         it('does not include empty values', () => {
           playerMock.eventEmitter.fireAdStartedEvent();

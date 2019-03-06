@@ -18,6 +18,8 @@ import { AdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreakHelper } from './helper/AdBreakHelper';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
+import { AdSkipButton } from 'bitmovin-player-ui';
+import { BitrateHelper } from './helper/BitrateHelper';
 
 type Player = PlayerAPI;
 
@@ -539,16 +541,12 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
-    console.log('[log] video qual');
     if (!this.isSessionActive()) {
+      // TODO: Save the bitrate in and set after session creation (Event comes prior playback start)
       return;
     }
-    // We calculate the bitrate with a divisor of 1000 so the values look nicer
-    // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
-    const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
-    console.warn('go video quality changed ', this.sessionKey, bitrateKbps);
 
-    this.playerStateManager.setBitrateKbps(bitrateKbps);
+    this.playerStateManager.setBitrateKbps(BitrateHelper.calculateKbps(event.targetQuality.bitrate));
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {

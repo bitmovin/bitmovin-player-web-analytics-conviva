@@ -84,6 +84,7 @@ export namespace MockHelper {
     const setPlayerSeekStart = jest.fn();
     const setPlayerSeekEnd = jest.fn();
     const reset = jest.fn();
+    const setBitrateKbps = jest.fn();
 
     const PlayerStateManagerClass = jest.fn().mockImplementation(() => ({
       setPlayerType: jest.fn(),
@@ -92,6 +93,7 @@ export namespace MockHelper {
       setPlayerSeekStart,
       setPlayerSeekEnd,
       reset,
+      setBitrateKbps,
     }));
 
     global.Conviva.PlayerStateManager = PlayerStateManagerClass;

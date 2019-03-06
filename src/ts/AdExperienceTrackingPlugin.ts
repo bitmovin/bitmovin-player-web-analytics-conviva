@@ -1,6 +1,7 @@
 import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
 import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
+import { BitrateHelper } from './helper/BitrateHelper';
 
 /**
  * Creates a new ad session for each ad and track ad related events to the ad session.
@@ -82,6 +83,23 @@ export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
     this.client.attachPlayer(this.adSessionKey, this.adPlayerStateManager);
 
     this.adPlayerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+
+    const adBitrate = adData && adData.bitrate;
+    this.reportBitrate(adBitrate);
+  }
+
+  private reportBitrate(bitrate: number) {
+    if (!bitrate) {
+      return;
+    }
+
+    let kbpsBitrate = bitrate;
+    // Since the unit isn't defined for adData.bitrate (neither in the Vast Manifest) we assume that values greater
+    // than 10_000 are in bps and convert them to kbps
+    if (bitrate >= 10_000) {
+      kbpsBitrate = BitrateHelper.calculateKbps(bitrate);
+    }
+    this.adPlayerStateManager.setBitrateKbps(kbpsBitrate);
   }
 
   public adFinished(): void {
