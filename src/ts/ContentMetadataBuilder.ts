@@ -15,7 +15,7 @@ export interface Metadata {
   streamUrl?: string;
 }
 
-interface CustomContentMetadata {
+export interface CustomContentMetadata {
   [key: string]: string;
 }
 
