@@ -864,5 +864,3 @@ namespace ObjectUtils {
     return eventAttributes;
   }
 }
-
-export default ConvivaAnalytics;
