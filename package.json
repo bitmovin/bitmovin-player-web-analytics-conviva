@@ -18,7 +18,7 @@
     "build:esm": "./node_modules/.bin/tsc --module es6 --outDir ./dist/lib-esm --declaration",
     "build:bundle": "./node_modules/.bin/webpack --config webpack.prod.js",
     "test": "./node_modules/.bin/jest",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "author": "Bitmovin",
   "license": "ISC",
