@@ -1,25 +1,24 @@
 {
-  "name": "bitmovin-player-analytics-conviva",
+  "name": "@bitmovin/player-integration-conviva",
   "version": "3.0.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "repository": {
     "type": "git",
     "url": "https://github.com/bitmovin/bitmovin-player-analytics-conviva.git"
   },
-  "main": "bitmovinplayer-analytics-conviva.js",
-  "module": "lib/index.js",
-  "es2015": "lib-esm/index.js",
+  "main": "./dist/bitmovin-player-analytics-conviva.js",
+  "types": "./dist/bitmovin-player-analytics-conviva.d.ts",
   "scripts": {
     "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
     "start": "./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
     "clean": "rm -rf ./dist",
-    "copy": "cp ./package.json ./dist/package.json",
-    "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:esm && npm run build:bundle && npm run copy",
+    "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:bundle",
     "build:describe": "echo \"Building Player Integration...\"",
     "build:lib": "./node_modules/.bin/tsc --module commonjs --outDir ./dist/lib --declaration",
     "build:esm": "./node_modules/.bin/tsc --module es6 --outDir ./dist/lib-esm --declaration",
     "build:bundle": "./node_modules/.bin/webpack --config webpack.prod.js",
-    "test": "./node_modules/.bin/jest"
+    "test": "./node_modules/.bin/jest",
+    "prepublishOnly": "npm run build"
   },
   "author": "Bitmovin",
   "license": "ISC",
@@ -27,6 +26,7 @@
     "@types/jest": "^24.0.1",
     "bitmovin-player": "8.2.0",
     "bitmovin-player-ui": "^3.3.1",
+    "create-file-webpack": "^1.0.2",
     "jest": "^24.1.0",
     "string-replace-loader": "^2.1.1",
     "ts-jest": "^23.10.5",
