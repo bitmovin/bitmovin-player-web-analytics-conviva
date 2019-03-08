@@ -12,8 +12,6 @@
     "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
     "start": "./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
     "clean": "rm -rf ./dist",
-    "copy": "cp ./package.json ./dist/package.json",
-    "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:bundle && npm run copy",
     "build:describe": "echo \"Building Player Integration...\"",
     "build:lib": "./node_modules/.bin/tsc --module commonjs --outDir ./dist/lib --declaration",
     "build:esm": "./node_modules/.bin/tsc --module es6 --outDir ./dist/lib-esm --declaration",
