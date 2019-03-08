@@ -1,5 +1,5 @@
 {
-  "name": "bitmovin-player-analytics-conviva",
+  "name": "@bitmovin/player-integration-conviva",
   "version": "3.0.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "repository": {
