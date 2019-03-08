@@ -1,0 +1,7 @@
+!dist
+.idea
+spec
+jest.config.js
+example
+.travis.yml
+webpack.*.js
