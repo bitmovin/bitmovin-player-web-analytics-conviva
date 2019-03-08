@@ -44,7 +44,7 @@ module.exports = {
       // file name
       fileName: 'bitmovin-player-analytics-conviva.d.ts',
       // content of the file
-      content: 'export * from \'./lib/index\''
+      content: 'export * from \'./lib/index\';'
     }),
   ],
 };
