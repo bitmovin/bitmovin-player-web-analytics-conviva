@@ -1,3 +1,4 @@
+const CreateFileWebpack = require('create-file-webpack');
 const npmPackage = require('./package.json');
 const path = require('path');
 
@@ -25,7 +26,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js']
   },
   output: {
-    filename: 'bitmovinplayer-analytics-conviva.js',
+    filename: 'bitmovin-player-analytics-conviva.js',
     umdNamedDefine: true,
     path: path.resolve(__dirname, 'dist'),
     library: {
@@ -36,4 +37,14 @@ module.exports = {
     libraryTarget: 'umd'
   },
   devtool: 'source-map',
+  plugins: [
+    new CreateFileWebpack({
+      // path to folder in which the file will be created
+      path: './dist',
+      // file name
+      fileName: 'bitmovin-player-analytics-conviva.d.ts',
+      // content of the file
+      content: 'export * from \'./lib/index\''
+    }),
+  ],
 };
