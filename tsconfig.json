@@ -1,4 +1,7 @@
 {
+  "files": [
+    "src/ts/index.ts"
+  ],
   "compilerOptions": {
     "outDir": "./dist",
     "target": "es5",

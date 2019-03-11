@@ -1,4 +1,4 @@
-import { AdTrackingMode, ConvivaAnalytics, ConvivaAnalyticsConfiguration } from '../../src/ts';
+import { AdTrackingMode, ConvivaAnalytics, ConvivaAnalyticsConfiguration } from '../../src/ts/ConvivaAnalytics';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 import { AdData, LinearAd, VastAdData } from 'bitmovin-player';
 import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from '../helper/TestsHelper';

@@ -2,7 +2,7 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, Ad, LinearAd, AdData, VastAdData,
+  TimeShiftEvent, Ad, LinearAd, AdData, VastAdData, VideoPlaybackQualityChangedEvent,
 } from 'bitmovin-player';
 import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from './TestsHelper';
 
@@ -178,6 +178,8 @@ interface EventEmitter {
   fireAdSkippedEvent(): void;
 
   fireAdErrorEvent(): void;
+
+  fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
@@ -354,6 +356,25 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdFinished,
       ad: {
         isLinear: true,
+        width: null,
+        height: null,
+      }
+    });
+  }
+
+  fireVideoPlaybackQualityChangedEvent(bitrate: number): void {
+    this.fireEvent<VideoPlaybackQualityChangedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.VideoPlaybackQualityChanged,
+      sourceQuality: {
+        id: '1',
+        bitrate: 250_000,
+        width: null,
+        height: null,
+      },
+      targetQuality: {
+        id: '2',
+        bitrate: bitrate,
         width: null,
         height: null,
       },

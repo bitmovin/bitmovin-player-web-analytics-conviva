@@ -102,17 +102,14 @@ describe('player event tests', () => {
 
           it('delayed after seek', () => {
             playerMock.eventEmitter.fireSeekEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           it('delayed after timeshift', () => {
             playerMock.eventEmitter.fireTimeShiftEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           it('right after stall started', () => {
             playerMock.eventEmitter.fireStallStartedEvent();
-            // expect(playerStateMock.setPlayerState).toHaveBeenCalledWith(Conviva.PlayerStateManager.PlayerState.BUFFERING);
           });
 
           afterEach((done: any) => {
@@ -205,7 +202,7 @@ describe('player event tests', () => {
 
       describe('track seek start', () => {
         it('on seek', () => {
-          playerMock.eventEmitter.fireSeekEvent(50);
+          playerMock.eventEmitter.fireSeekEvent(50.145);
           expect(playerStateMock.setPlayerSeekStart).toHaveBeenCalledTimes(1);
           expect(playerStateMock.setPlayerSeekStart).toHaveBeenCalledWith(50);
         });
@@ -232,6 +229,26 @@ describe('player event tests', () => {
     it('does not track seek if play never happened', () => {
       playerMock.eventEmitter.fireSeekEvent();
       expect(playerStateMock.setPlayerSeekStart).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('bitrate tracking', () => {
+    it('report bitrate on event', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireVideoPlaybackQualityChangedEvent(2_400_000);
+
+      expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(2_400);
+    });
+
+    describe('event order workaround', () => {
+      it('track current bitrate on session initialization', () => {
+        playerMock.eventEmitter.fireVideoPlaybackQualityChangedEvent(4_800_000);
+        playerMock.eventEmitter.firePlayEvent();
+        playerMock.eventEmitter.firePlayingEvent();
+
+        expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(4_800);
+      });
     });
   });
 });

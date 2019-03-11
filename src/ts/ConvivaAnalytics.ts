@@ -59,11 +59,6 @@ export interface EventAttributes {
   [key: string]: string;
 }
 
-export interface ConvivaSourceConfig extends SourceConfig {
-  viewerId?: string;
-  contentId?: string;
-}
-
 export class ConvivaAnalytics {
 
   private static readonly VERSION: string = '{{VERSION}}';
@@ -84,8 +79,17 @@ export class ConvivaAnalytics {
 
   private adTrackingModule: AdTrackingPlugin;
 
-  // Attributes needed to workaround wrong event order in case of a pre-roll ad. (See #onAdBreakStarted for more info)
+  /**
+   * Attributes needed to workaround wrong event order in case of a pre-roll ad.
+   * See {@link onAdBreakStarted} for more info
+   */
   private adBreakStartedToFire: AdBreakEvent;
+
+  /**
+   * Needed to workaround wrong event order in case of a video-playback-quality-change event.
+   * See {@link onVideoQualityChanged} for more info
+   */
+  private lastSeenBitrate: number;
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
@@ -297,7 +301,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private getUrlFromSource(source: ConvivaSourceConfig): string {
+  private getUrlFromSource(source: SourceConfig): string {
     switch (this.player.getStreamType()) {
       case 'dash':
         return source.dash;
@@ -369,6 +373,10 @@ export class ConvivaAnalytics {
 
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+
+    if (this.lastSeenBitrate) {
+      this.playerStateManager.setBitrateKbps(this.lastSeenBitrate);
+    }
   }
 
   /**
@@ -385,7 +393,7 @@ export class ConvivaAnalytics {
       integrationVersion: ConvivaAnalytics.VERSION,
     };
 
-    const source = this.player.getSource() as ConvivaSourceConfig;
+    const source = this.player.getSource();
 
     // This could be called before we got a source
     if (source) {
@@ -393,9 +401,9 @@ export class ConvivaAnalytics {
     }
   }
 
-  private buildSourceRelatedMetadata(source: ConvivaSourceConfig) {
+  private buildSourceRelatedMetadata(source: SourceConfig) {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
-    this.contentMetadataBuilder.viewerId = source.viewerId || this.contentMetadataBuilder.viewerId;
+    this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
     this.contentMetadataBuilder.custom = {
       ...this.contentMetadataBuilder.custom,
       playerType: this.player.getPlayerType(),
@@ -414,21 +422,16 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadataBuilder.build());
   }
 
-  private getAssetNameFromSource(source: ConvivaSourceConfig): string {
+  private getAssetNameFromSource(source: SourceConfig): string {
     let assetName;
 
-    const assetId = source.contentId ? `[${source.contentId}]` : undefined;
     const assetTitle = source.title;
-
-    if (assetId && assetTitle) {
-      assetName = `${assetId} ${assetTitle}`;
-    } else if (assetId && !assetTitle) {
-      assetName = assetId;
-    } else if (assetTitle && !assetId) {
+    if (assetTitle) {
       assetName = assetTitle;
     } else {
-      assetName = 'Untitled (no source.title/source.contentId set)';
+      assetName = 'Untitled (no source.title set)';
     }
+
     return assetName;
   }
 
@@ -440,6 +443,8 @@ export class ConvivaAnalytics {
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.contentMetadataBuilder.reset();
+
+    this.lastSeenBitrate = null;
   };
 
   private isSessionActive(): boolean {
@@ -541,12 +546,20 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
+    // We calculate the bitrate with a divisor of 1000 so the values look nicer
+    // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
+    const bitrateKbps = BitrateHelper.calculateKbps(event.targetQuality.bitrate);
+
     if (!this.isSessionActive()) {
-      // TODO: Save the bitrate in and set after session creation (Event comes prior playback start)
+      // Since the first videoPlaybackQualityChanged event comes before playback ever started we need to store the
+      // value and use it for tracking when initializing the session.
+      // TODO: remove this workaround when the player event order is fixed
+      this.lastSeenBitrate = bitrateKbps;
       return;
     }
 
-    this.playerStateManager.setBitrateKbps(BitrateHelper.calculateKbps(event.targetQuality.bitrate));
+    this.lastSeenBitrate = null;
+    this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {
@@ -630,7 +643,7 @@ export class ConvivaAnalytics {
   };
 
   private trackSeekStart(target: number) {
-    this.playerStateManager.setPlayerSeekStart(target);
+    this.playerStateManager.setPlayerSeekStart(Math.round(target));
   }
 
   private trackSeekEnd() {
@@ -850,5 +863,3 @@ namespace ArrayUtils {
     }
   }
 }
-
-export default ConvivaAnalytics;
