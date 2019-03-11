@@ -260,7 +260,7 @@ describe('ad tracking', () => {
   });
 
   describe('Ad Experience Tracking', () => {
-    let adData: VastAdData = {};
+    let adData: object = {};
 
     beforeEach(() => {
       let convivaConfig: ConvivaAnalyticsConfiguration = {
@@ -325,10 +325,12 @@ describe('ad tracking', () => {
       describe('assetName', () => {
         it('is taken from adData', () => {
           adData = {
-            adTitle: 'MyAdAssetName',
+            data: {
+              adTitle: 'MyAdAssetName',
+            },
           };
 
-          playerMock.eventEmitter.fireAdStartedEvent({}, adData); // TODO: extract with lazy adData object initialization
+          playerMock.eventEmitter.fireAdStartedEvent(adData); // TODO: extract with lazy adData object initialization
 
           expect(clientMock.createAdSession).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
             assetName: 'MyAdAssetName',
@@ -371,20 +373,24 @@ describe('ad tracking', () => {
       describe('bitrate', () => {
         it('is reported in kbps if unit is bps', () => {
           adData = {
-            bitrate: 8_200_000,
+            data: {
+              bitrate: 8_200_000,
+            },
           };
 
-          playerMock.eventEmitter.fireAdStartedEvent({}, adData);
+          playerMock.eventEmitter.fireAdStartedEvent(adData);
 
           expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(8_200);
         });
 
         it('is reported in kbps if unit is kbps', () => {
           adData = {
-            bitrate: 8_200,
+            data: {
+              bitrate: 8_200,
+            },
           };
 
-          playerMock.eventEmitter.fireAdStartedEvent({}, adData);
+          playerMock.eventEmitter.fireAdStartedEvent(adData);
 
           expect(playerStateMock.setBitrateKbps).toHaveBeenCalledWith(8_200);
         });
@@ -403,21 +409,23 @@ describe('ad tracking', () => {
         });
 
         it('collects data from adData object', () => {
-          playerMock.eventEmitter.fireAdStartedEvent({}, {
-            adSystem: {
-              name: 'AdSystem Name',
-            },
-            apiFramework: 'APIFramework',
-            creative: {
-              adId: 'myId',
-              universalAdId: {
-                value: 'AwesomeCreativeName',
-                idRegistry: null,
+          playerMock.eventEmitter.fireAdStartedEvent({
+            data: {
+              adSystem: {
+                name: 'AdSystem Name',
               },
-            },
-            advertiser: {
-              name: 'MyAdvertiser',
-              id: 'AdvertiserID',
+              apiFramework: 'APIFramework',
+              creative: {
+                adId: 'myId',
+                universalAdId: {
+                  value: 'AwesomeCreativeName',
+                  idRegistry: null,
+                },
+              },
+              advertiser: {
+                name: 'MyAdvertiser',
+                id: 'AdvertiserID',
+              },
             },
           });
 

@@ -1,5 +1,5 @@
 import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
-import { AdBreak, AdStartedEvent, LinearAd, VastAdData } from 'bitmovin-player';
+import { AdBreak, AdEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import { EventAttributes } from './ConvivaAnalytics';
 import { BitrateHelper } from './helper/BitrateHelper';
 
@@ -23,12 +23,12 @@ export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
     super.adBreakFinished();
   }
 
-  public adStarted(event: AdStartedEvent): void {
+  public adStarted(event: AdEvent): void {
     if (!event.ad.isLinear) {
       return;
     }
 
-    const adData = event.data as VastAdData;
+    const adData = event.ad.data as VastAdData;
     const ad = event.ad as LinearAd;
 
     if (!adData) {

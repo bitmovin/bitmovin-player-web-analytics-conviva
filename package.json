@@ -25,7 +25,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^24.0.1",
-    "bitmovin-player": "../bitdash/release/dist",
+    "bitmovin-player": "^8.3.0-rc2",
     "bitmovin-player-ui": "^3.3.1",
     "jest": "^24.1.0",
     "string-replace-loader": "^2.1.1",

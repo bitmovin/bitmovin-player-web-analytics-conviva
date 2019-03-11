@@ -2,7 +2,7 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, Ad, LinearAd, AdData, AdStartedEvent, VastAdData,
+  TimeShiftEvent, Ad, LinearAd, AdData, VastAdData,
 } from 'bitmovin-player';
 import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from './TestsHelper';
 
@@ -169,7 +169,7 @@ interface EventEmitter {
 
   fireAdBreakStartedEvent(startTime?: number, ads?: LinearAd[]): void;
 
-  fireAdStartedEvent(adData?: object, data?: VastAdData): void;
+  fireAdStartedEvent(adData?: object): void;
 
   fireAdFinishedEvent(): void;
 
@@ -258,8 +258,8 @@ class PlayerEventHelper implements EventEmitter {
     });
   }
 
-  fireAdStartedEvent(adData: object = {}, data: VastAdData = {}): void {
-    this.fireEvent<AdStartedEvent>({
+  fireAdStartedEvent(adData: object = {}): void {
+    this.fireEvent<AdEvent>({
       timestamp: Date.now(),
       type: PlayerEvent.AdStarted,
       ad: {
@@ -268,7 +268,6 @@ class PlayerEventHelper implements EventEmitter {
         height: null,
         ...adData,
       },
-      data: data,
     });
   }
 
