@@ -85,7 +85,16 @@ describe('ad tracking', () => {
         it('on adError', () => {
           playerMock.eventEmitter.fireAdErrorEvent();
 
-          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(expectedSessionKey, 'aderror', {});
+          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(
+            expectedSessionKey,
+            'aderror',
+            expect.objectContaining({
+              code: '1001',
+              name: 'AdErrorEvent',
+              timestamp: expect.anything(),
+              type: 'aderror',
+            }),
+          );
 
           playerMock.eventEmitter.fireAdBreakFinishedEvent();
           expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
@@ -95,7 +104,15 @@ describe('ad tracking', () => {
           playerMock.eventEmitter.fireAdSkippedEvent();
           playerMock.eventEmitter.fireAdBreakFinishedEvent();
           expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
-          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(expectedSessionKey, 'adskipped', {});
+          expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(
+            expectedSessionKey,
+            'adskipped',
+            expect.objectContaining({
+              'ad.isLinear': 'true',
+              timestamp: expect.anything(),
+              type: 'adskipped',
+            }),
+          );
         });
 
         it('on ad end', () => {
