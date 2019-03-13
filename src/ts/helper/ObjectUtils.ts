@@ -18,6 +18,8 @@ export namespace ObjectUtils {
       }
     };
 
+    objectWalker(object, prefix);
+
     return eventAttributes;
   }
 }
