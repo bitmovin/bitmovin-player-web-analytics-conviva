@@ -56,7 +56,7 @@ export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
       'c3.ad.id': ad.id || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.system': adData && adData.adSystem && adData.adSystem.name || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.position': String(this.currentAdBreakPosition),
-      'c3.ad.type': AdExperienceTrackingPlugin.UNKNOWN_VALUE,
+      'c3.ad.isSlate': AdExperienceTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.mediaFileApiFramework': adData && adData.apiFramework || AdExperienceTrackingPlugin.UNKNOWN_VALUE,
       'c3.ad.adStitcher': isYospaceUsed ? 'Yospace' : AdExperienceTrackingPlugin.UNKNOWN_VALUE,
     };
