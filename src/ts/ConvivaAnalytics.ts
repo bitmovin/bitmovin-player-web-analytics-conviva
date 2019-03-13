@@ -77,7 +77,7 @@ export class ConvivaAnalytics {
   private readonly logger: Conviva.LoggingInterface;
   private sessionKey: number;
 
-  private adTrackingModule: AdTrackingPlugin;
+  private adTrackingPlugin: AdTrackingPlugin;
 
   /**
    * Attributes needed to workaround wrong event order in case of a pre-roll ad.
@@ -353,13 +353,13 @@ export class ConvivaAnalytics {
     // Init ad tracking with current session key
     switch (this.config.adTrackingMode) {
       case AdTrackingMode.AdExperience:
-        this.adTrackingModule = new AdExperienceTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
+        this.adTrackingPlugin = new AdExperienceTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
       case AdTrackingMode.AdBreaks:
-        this.adTrackingModule = new AdBreakTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
+        this.adTrackingPlugin = new AdBreakTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
       default:
-        this.adTrackingModule = new BasicAdTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
+        this.adTrackingPlugin = new BasicAdTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
         break;
     }
 
@@ -498,8 +498,8 @@ export class ConvivaAnalytics {
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      if (this.adTrackingModule && this.adTrackingModule.isAdSessionActive()) {
-        this.adTrackingModule.reportPlayerState(playerState);
+      if (this.adTrackingPlugin && this.adTrackingPlugin.isAdSessionActive()) {
+        this.adTrackingPlugin.reportPlayerState(playerState);
       } else if (this.isSessionActive()) {
         this.playerStateManager.setPlayerState(playerState);
       }
@@ -569,8 +569,8 @@ export class ConvivaAnalytics {
     }
 
     const eventAttributes = ObjectUtils.flatten(event);
-    if (this.adTrackingModule.isAdSessionActive()) {
-      this.adTrackingModule.reportCustomEvent(event.type, eventAttributes);
+    if (this.adTrackingPlugin.isAdSessionActive()) {
+      this.adTrackingPlugin.reportCustomEvent(event.type, eventAttributes);
     } else {
       this.sendCustomPlaybackEvent(event.type, eventAttributes);
     }
@@ -586,7 +586,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.adTrackingModule.adBreakStarted(event.adBreak, adPosition);
+    this.adTrackingPlugin.adBreakStarted(event.adBreak, adPosition);
   };
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
@@ -597,7 +597,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.adTrackingModule.adBreakFinished();
+    this.adTrackingPlugin.adBreakFinished();
   };
 
   private onSeek = (event: SeekEvent) => {
@@ -660,8 +660,8 @@ export class ConvivaAnalytics {
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
-    if (this.adTrackingModule.isAdSessionActive()) {
-      this.adTrackingModule.adFinished();
+    if (this.adTrackingPlugin.isAdSessionActive()) {
+      this.adTrackingPlugin.adFinished();
     } else {
       this.internalEndSession(event);
     }
@@ -707,11 +707,11 @@ export class ConvivaAnalytics {
   }
 
   private onAdStarted = (event: AdEvent) => {
-    this.adTrackingModule.adStarted(event);
+    this.adTrackingPlugin.adStarted(event);
   };
 
   private onAdFinished = (event: AdEvent) => {
-    this.adTrackingModule.adFinished();
+    this.adTrackingPlugin.adFinished();
   };
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
