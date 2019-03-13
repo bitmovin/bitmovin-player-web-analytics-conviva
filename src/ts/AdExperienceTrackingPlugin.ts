@@ -67,14 +67,16 @@ export class AdExperienceTrackingPlugin extends AdBreakTrackingPlugin {
       }
     };
 
-    addValueIfPresent('c3.ad.creativeId', adData && adData.creative && adData.creative.adId);
-    addValueIfPresent(
-      'c3.ad.creativeName',
-      adData && adData.creative && adData.creative.universalAdId && adData.creative.universalAdId.value,
-    );
-    addValueIfPresent('c3.ad.breakId', this.currentAdBreak.id);
-    addValueIfPresent('c3.ad.advertiser', adData && adData.advertiser && adData.advertiser.name);
-    addValueIfPresent('c3.ad.advertiserId', adData && adData.advertiser && adData.advertiser.id);
+    if (adData) {
+      addValueIfPresent('c3.ad.creativeId', adData.creative && adData.creative.adId);
+      addValueIfPresent(
+        'c3.ad.creativeName',
+        adData.creative && adData.creative.universalAdId && adData.creative.universalAdId.value,
+      );
+      addValueIfPresent('c3.ad.breakId', this.currentAdBreak.id);
+      addValueIfPresent('c3.ad.advertiser', adData.advertiser && adData.advertiser.name);
+      addValueIfPresent('c3.ad.advertiserId', adData.advertiser && adData.advertiser.id);
+    }
 
     this.adSessionKey = this.client.createAdSession(this.contentSessionKey, adMetadata);
     this.adPlayerStateManager = this.client.getPlayerStateManager();
