@@ -1,19 +1,12 @@
-///<reference path="../ts/Conviva.d.ts"/>
-/*! (C) 2016 Conviva, Inc. All rights reserved. Confidential and proprietary. */
-/*! This is sample code meant to illustrate proper Conviva integration in video applications. */
-/*! This file should not be included in video applications as part of integrating Conviva. */
-
-// Implements Conviva.LoggingInterface for Chrome.
-
 import SystemSettings = Conviva.SystemSettings;
 
 export class Html5Logging implements Conviva.LoggingInterface {
 
-  consoleLog(message: string, logLevel: SystemSettings.LogLevel): void {
+  public consoleLog(message: string, logLevel: SystemSettings.LogLevel): void {
       if (typeof console === 'undefined') {
           return;
       }
-    if (console.log && logLevel === Conviva.SystemSettings.LogLevel.DEBUG ||
+      if (console.log && logLevel === Conviva.SystemSettings.LogLevel.DEBUG ||
       logLevel === Conviva.SystemSettings.LogLevel.INFO) {
       console.log(message);
     } else if (console.warn && logLevel === Conviva.SystemSettings.LogLevel.WARNING) {
@@ -23,9 +16,8 @@ export class Html5Logging implements Conviva.LoggingInterface {
     }
   }
 
-  release(): void {
+  public release(): void {
     // nothing to release
   }
 
 }
-

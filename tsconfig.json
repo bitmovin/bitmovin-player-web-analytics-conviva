@@ -1,11 +1,18 @@
 {
   "files": [
-    "src/ts/main.ts"
+    "src/ts/index.ts"
   ],
   "compilerOptions": {
-    "noImplicitAny": true,
+    "outDir": "./dist",
     "target": "es5",
-    "declaration": true,
-    "outDir": "dist/js/framework"
-  }
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["es2015", "dom"],
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "removeComments": false
+  },
+  "include": [
+    "./src"
+  ]
 }
