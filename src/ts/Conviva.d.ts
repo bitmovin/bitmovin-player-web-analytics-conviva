@@ -32,6 +32,11 @@ declare namespace Conviva {
       WARNING,
     }
 
+    enum AdTechnology {
+      CLIENT_SIDE,
+      SERVER_SIDE,
+    }
+
     const NO_SESSION_KEY: number;
 
     const version: string;
@@ -72,6 +77,8 @@ declare namespace Conviva {
     public sendCustomEvent(sessionKey: number, eventName: string, eventAttributes: {}): void;
 
     public updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
+
+    public createAdSession(contentSessionKey: number, adMetadata: ContentMetadata): number;
   }
 
   class ClientSettings {
@@ -93,7 +100,7 @@ declare namespace Conviva {
   class ContentMetadata {
     public applicationName: string;
     public assetName: string;
-    public custom: {};
+    public custom: { [key: string]: string };
     public defaultResource: string;
     public duration: number;
     public encodedFrameRate: number;
