@@ -1,7 +1,7 @@
 import { AdExperienceTrackingPlugin } from './AdExperienceTrackingPlugin';
 
 import {
-  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
+  AdBreakEvent, AdEvent, CastStartedEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
   SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
@@ -18,7 +18,6 @@ import { AdTrackingPlugin } from './AdTrackingPlugin';
 import { AdBreakHelper } from './helper/AdBreakHelper';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
-import { AdSkipButton } from 'bitmovin-player-ui';
 import { BitrateHelper } from './helper/BitrateHelper';
 
 type Player = PlayerAPI;
@@ -436,6 +435,10 @@ export class ConvivaAnalytics {
   }
 
   private internalEndSession = (event?: PlayerEventBase) => {
+    if (!this.isSessionActive()) {
+      return;
+    }
+
     this.debugLog('[ ConvivaAnalytics ] end session', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
@@ -684,8 +687,8 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Muted, this.onCustomEvent);
     playerEvents.add(this.events.Unmuted, this.onCustomEvent);
     playerEvents.add(this.events.ViewModeChanged, this.onCustomEvent);
-    playerEvents.add(this.events.CastStarted, this.onCustomEvent);
-    playerEvents.add(this.events.CastStopped, this.onCustomEvent);
+    playerEvents.add(this.events.CastStarted, this.onCastStarted);
+    playerEvents.add(this.events.CastStopped, this.onCastStopped);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
@@ -736,6 +739,27 @@ export class ConvivaAnalytics {
     this.onCustomEvent(event);
     // Track adFinished after error
     this.onAdFinished(event);
+  };
+
+  private onCastStarted = (event: CastStartedEvent) => {
+    this.onCustomEvent(event);
+    this.internalEndSession(event);
+
+    // We don't want to receive events from the receiver as they could screw up the session handling on the sender App,
+    // so we unsubscribe from all events except from the CastStopped.
+    this.unregisterPlayerEvents();
+    this.handlers.add(this.events.CastStopped, this.onCastStopped);
+  };
+
+  private onCastStopped = () => {
+    // After casting we want all events again so subscribe again to all.
+    this.unregisterPlayerEvents();
+    this.registerPlayerEvents();
+
+    if (this.player.isPlaying() && !this.isSessionActive()) {
+      this.internalInitializeSession();
+      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+    }
   };
 
   private unregisterPlayerEvents(): void {
