@@ -2,9 +2,10 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, Ad, LinearAd, AdData, VastAdData, VideoPlaybackQualityChangedEvent,
+  TimeShiftEvent, Ad, LinearAd, AdData, VastAdData, VideoPlaybackQualityChangedEvent, CastStartedEvent,
 } from 'bitmovin-player';
 import { AD_SESSION_KEY, CONTENT_SESSION_KEY } from './TestsHelper';
+import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
 declare const global: any;
 export namespace MockHelper {
@@ -128,6 +129,7 @@ export namespace MockHelper {
         // Event faker
         eventEmitter: eventHelper,
         on: eventHelper.on.bind(eventHelper),
+        off: eventHelper.off.bind(eventHelper),
       };
     });
 
@@ -180,6 +182,10 @@ interface EventEmitter {
   fireAdErrorEvent(): void;
 
   fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
+
+  fireCastStartedEvent(resuming?: boolean): void;
+
+  fireCastStoppedEvent(): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
@@ -191,6 +197,12 @@ class PlayerEventHelper implements EventEmitter {
     }
 
     this.eventHandlers[eventType].push(callback);
+  }
+
+  public off(eventType: PlayerEvent, callback: PlayerEventCallback) {
+    if (this.eventHandlers[eventType]) {
+      ArrayUtils.remove(this.eventHandlers[eventType], callback);
+    }
   }
 
   public fireEvent<E extends PlayerEventBase>(event: E) {
@@ -358,7 +370,7 @@ class PlayerEventHelper implements EventEmitter {
         isLinear: true,
         width: null,
         height: null,
-      }
+      },
     });
   }
 
@@ -378,6 +390,22 @@ class PlayerEventHelper implements EventEmitter {
         width: null,
         height: null,
       },
+    });
+  }
+
+  fireCastStartedEvent(resuming: boolean = false): void {
+    this.fireEvent<CastStartedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastStarted,
+      deviceName: 'Awesome Device',
+      resuming: resuming,
+    });
+  }
+
+  fireCastStoppedEvent(): void {
+    this.fireEvent<PlayerEventBase>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastStopped,
     });
   }
 }
