@@ -20,6 +20,8 @@ import { BrowserUtils } from './helper/BrowserUtils';
 import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 import { BitrateHelper } from './helper/BitrateHelper';
 
+import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
+
 type Player = PlayerAPI;
 
 export enum AdTrackingMode {
@@ -861,27 +863,6 @@ class PlayerEventWrapper {
       for (const callback of this.eventHandlers[eventType]) {
         this.remove(eventType as PlayerEvent, callback);
       }
-    }
-  }
-}
-
-/**
- * Extracted from bitmovin-player-ui
- */
-namespace ArrayUtils {
-  /**
-   * Removes an item from an array.
-   * @param array the array that may contain the item to remove
-   * @param item the item to remove from the array
-   * @returns {any} the removed item or null if it wasn't part of the array
-   */
-  export function remove<T>(array: T[], item: T): T | null {
-    const index = array.indexOf(item);
-
-    if (index > -1) {
-      return array.splice(index, 1)[0];
-    } else {
-      return null;
     }
   }
 }
