@@ -19,7 +19,7 @@ describe('casting', () => {
   });
 
   describe('when player is casting initial', () => {
-    it('it doens\'t create a session', () => {
+    it('it doesn\'t create a session', () => {
       playerMock.eventEmitter.fireCastStartedEvent(true);
       playerMock.eventEmitter.firePlayingEvent();
 
