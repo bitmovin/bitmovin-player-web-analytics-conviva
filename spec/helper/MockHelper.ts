@@ -123,6 +123,7 @@ export namespace MockHelper {
         }),
         isPlaying: jest.fn(),
         isPaused: jest.fn(),
+        isCasting: jest.fn(),
         getPlayerType: jest.fn(),
         getStreamType: jest.fn(() => 'hls'),
 
@@ -184,6 +185,8 @@ interface EventEmitter {
   fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
 
   fireCastStartedEvent(resuming?: boolean): void;
+
+  fireCastWaitingForDevice(resuming?: boolean): void;
 
   fireCastStoppedEvent(): void;
 }
@@ -406,6 +409,15 @@ class PlayerEventHelper implements EventEmitter {
     this.fireEvent<PlayerEventBase>({
       timestamp: Date.now(),
       type: PlayerEvent.CastStopped,
+    });
+  }
+
+  fireCastWaitingForDevice(resuming: boolean = false): void {
+    this.fireEvent<CastStartedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastWaitingForDevice,
+      deviceName: 'MyCastDevice',
+      resuming: false,
     });
   }
 }
