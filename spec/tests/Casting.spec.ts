@@ -35,7 +35,7 @@ describe('casting', () => {
 
     describe('when cast started', () => {
       it('session gets closed', () => {
-        playerMock.eventEmitter.fireCastStartedEvent();
+        playerMock.eventEmitter.fireCastWaitingForDevice();
 
         expect(clientMock.cleanupSession).toHaveBeenCalledTimes(1);
       });
@@ -44,7 +44,7 @@ describe('casting', () => {
     describe('when cast stopped', () => {
       beforeEach(() => {
         (clientMock.createSession as jest.Mock).mockClear();
-        playerMock.eventEmitter.fireCastStartedEvent();
+        playerMock.eventEmitter.fireCastWaitingForDevice();
       });
 
       describe('and the player is playing', () => {
