@@ -689,7 +689,8 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Muted, this.onCustomEvent);
     playerEvents.add(this.events.Unmuted, this.onCustomEvent);
     playerEvents.add(this.events.ViewModeChanged, this.onCustomEvent);
-    playerEvents.add(this.events.CastStarted, this.onCastStarted);
+    // We need to wait until the user chose a device for closing the session on the sender app
+    playerEvents.add(this.events.CastWaitingForDevice, this.onCastInitiated);
     playerEvents.add(this.events.CastStopped, this.onCastStopped);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
@@ -743,7 +744,7 @@ export class ConvivaAnalytics {
     this.onAdFinished(event);
   };
 
-  private onCastStarted = (event: CastStartedEvent) => {
+  private onCastInitiated = (event: CastStartedEvent) => {
     this.onCustomEvent(event);
     this.internalEndSession(event);
 
