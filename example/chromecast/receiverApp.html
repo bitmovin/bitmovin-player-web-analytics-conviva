@@ -139,10 +139,10 @@
       console.log('[log] stopped on receiver');
     });
 
-    // Handler that takes properties from the remotecontrol.customReceiverConfig configuration for use within the receiver
     require(['src/remotecontrol/GoogleCastRemoteControlReceiver'], (gcr) => {
       const googleCastRemoteControlReceiver = new gcr.GoogleCastRemoteControlReceiver(player);
 
+      // Handler that takes properties from the remotecontrol.customReceiverConfig configuration for use within the receiver
       googleCastRemoteControlReceiver.setCastMetadataListener((metadata) => {
         switch (metadata.type) {
           case 'customReceiverConfig':
