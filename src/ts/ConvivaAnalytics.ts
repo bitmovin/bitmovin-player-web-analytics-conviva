@@ -65,6 +65,7 @@ export class ConvivaAnalytics {
   private static readonly VERSION: string = '{{VERSION}}';
 
   private static STALL_TRACKING_DELAY_MS = 100;
+  private static CAST_METADATA_TYPE = 'updateContentMetadata';
   private readonly player: Player;
   private events: typeof PlayerEvent;
   private readonly handlers: PlayerEventWrapper;
@@ -187,6 +188,7 @@ export class ConvivaAnalytics {
     }
 
     this.internalEndSession();
+    this.resetContentMetadata();
   }
 
   /**
@@ -227,18 +229,11 @@ export class ConvivaAnalytics {
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadataOverrides: Metadata) {
-    this.contentMetadataBuilder.setOverrides(metadataOverrides);
-
-    if (!this.isSessionActive()) {
-      this.logger.consoleLog(
-        '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
-        Conviva.SystemSettings.LogLevel.WARNING,
-      );
-      return;
+    if (this.player.isCasting()) {
+      this.propagateOverridesToReceiver(metadataOverrides);
     }
 
-    this.buildContentMetadata();
-    this.updateSession();
+    this.internalSetOverrides(metadataOverrides);
   }
 
   /**
@@ -257,6 +252,7 @@ export class ConvivaAnalytics {
     this.client.reportError(this.sessionKey, message, severity);
     if (endSession) {
       this.internalEndSession();
+      this.resetContentMetadata();
     }
   }
 
@@ -283,6 +279,18 @@ export class ConvivaAnalytics {
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
     this.client.adEnd(this.sessionKey);
     this.debugLog('Tracking resumed.');
+  }
+
+  /**
+   * Use this method if you are using the conviva integration on a custom receiver app.
+   *
+   * See README.md for more information on how to use
+   * @param metadata
+   */
+  public handleCastMetadataEvent(metadata: any): void {
+    if (metadata.type === ConvivaAnalytics.CAST_METADATA_TYPE) {
+      this.internalSetOverrides(metadata.metadata);
+    }
   }
 
   public release(): void {
@@ -317,6 +325,21 @@ export class ConvivaAnalytics {
           return source.progressive;
         }
     }
+  }
+
+  private internalSetOverrides(metadataOverrides: Metadata) {
+    this.contentMetadataBuilder.setOverrides(metadataOverrides);
+
+    if (!this.isSessionActive()) {
+      this.logger.consoleLog(
+        '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
+      return;
+    }
+
+    this.buildContentMetadata();
+    this.updateSession();
   }
 
   /**
@@ -423,6 +446,20 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadataBuilder.build());
   }
 
+  // This will propagate content metadata overrides to the conviva instance of the receiver app
+  private propagateOverridesToReceiver(metadataOverrides?: Metadata) {
+    metadataOverrides = metadataOverrides ? metadataOverrides : this.contentMetadataBuilder.getOverrides();
+
+    const metadataObject = {
+      type: ConvivaAnalytics.CAST_METADATA_TYPE,
+      metadata: metadataOverrides,
+    };
+
+    // The PlayerExports type does not contain the MetadataType but it is actually there so we need the as any cast.
+    const metadataType = (this.player.exports as any).MetadataType.CAST;
+    this.player.addMetadata(metadataType, metadataObject);
+  }
+
   private getAssetNameFromSource(source: SourceConfig): string {
     let assetName;
 
@@ -447,10 +484,19 @@ export class ConvivaAnalytics {
     this.client.releasePlayerStateManager(this.playerStateManager);
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.contentMetadataBuilder.reset();
-
     this.lastSeenBitrate = null;
+
+    // As the session could be continued after casting we can't reset the contentMetadataBuilder here as we would loose
+    // content metadata attributes.
   };
+
+  // Do not reset if the session gets closed due to casting. Only reset content metadata on:
+  // - PlaybackFinished
+  // - SourceUnloaded
+  // - Error
+  private resetContentMetadata(): void {
+    this.contentMetadataBuilder.reset();
+  }
 
   private isSessionActive(): boolean {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
@@ -548,6 +594,7 @@ export class ConvivaAnalytics {
 
     this.onPlaybackStateChanged(event);
     this.internalEndSession(event);
+    this.resetContentMetadata();
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
@@ -667,6 +714,7 @@ export class ConvivaAnalytics {
       this.adTrackingPlugin.adFinished();
     } else {
       this.internalEndSession(event);
+      this.resetContentMetadata();
     }
   };
 
@@ -689,9 +737,6 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Muted, this.onCustomEvent);
     playerEvents.add(this.events.Unmuted, this.onCustomEvent);
     playerEvents.add(this.events.ViewModeChanged, this.onCustomEvent);
-    // We need to wait until the user chose a device for closing the session on the sender app
-    playerEvents.add(this.events.CastWaitingForDevice, this.onCastInitiated);
-    playerEvents.add(this.events.CastStopped, this.onCastStopped);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
@@ -708,7 +753,16 @@ export class ConvivaAnalytics {
     // Ad tracking events
     playerEvents.add(this.events.AdStarted, this.onAdStarted);
     playerEvents.add(this.events.AdFinished, this.onAdFinished);
+
+    // We need to wait until the user chose a device for closing the session on the sender app
+    playerEvents.add(this.events.CastWaitingForDevice, this.onCastInitiated);
+    playerEvents.add(this.events.CastStarted, this.onCastStarted);
+    playerEvents.add(this.events.CastStopped, this.onCastStopped);
   }
+
+  private onCastStarted = () => {
+    this.propagateOverridesToReceiver();
+  };
 
   private onAdStarted = (event: AdEvent) => {
     this.adTrackingPlugin.adStarted(event);
