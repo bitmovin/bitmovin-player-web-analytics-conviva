@@ -486,7 +486,7 @@ export class ConvivaAnalytics {
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.lastSeenBitrate = null;
 
-    // As the session could be continued after casting we can't reset the contentMetadataBuilder here as we would loose
+    // As the session could be continued after casting we can't reset the contentMetadataBuilder here as we would lose
     // content metadata attributes.
   };
 
