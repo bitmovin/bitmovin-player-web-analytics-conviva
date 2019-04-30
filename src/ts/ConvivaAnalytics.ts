@@ -448,7 +448,7 @@ export class ConvivaAnalytics {
 
   // This will propagate content metadata overrides to the conviva instance of the receiver app
   private propagateOverridesToReceiver(metadataOverrides?: Metadata) {
-    metadataOverrides = metadataOverrides ? metadataOverrides : this.contentMetadataBuilder.getOverrides();
+    metadataOverrides = metadataOverrides || this.contentMetadataBuilder.getOverrides();
 
     const metadataObject = {
       type: ConvivaAnalytics.CAST_METADATA_TYPE,
