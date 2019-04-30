@@ -233,7 +233,7 @@ export class ConvivaAnalytics {
       this.propagateOverridesToReceiver(metadataOverrides);
     }
 
-    this.internalSetOverrides(metadataOverrides);
+    this.internalUpdateContentMetadata(metadataOverrides);
   }
 
   /**
@@ -289,7 +289,7 @@ export class ConvivaAnalytics {
    */
   public handleCastMetadataEvent(metadata: any): void {
     if (metadata.type === ConvivaAnalytics.CAST_METADATA_TYPE) {
-      this.internalSetOverrides(metadata.metadata);
+      this.internalUpdateContentMetadata(metadata.metadata);
     }
   }
 
@@ -327,7 +327,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private internalSetOverrides(metadataOverrides: Metadata) {
+  private internalUpdateContentMetadata(metadataOverrides: Metadata) {
     this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
     if (!this.isSessionActive()) {
