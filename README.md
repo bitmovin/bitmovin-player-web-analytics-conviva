@@ -57,9 +57,9 @@ _If you are not familiar with how to add chromecast support we suggest to look a
 
 If you would like to add the conviva integration to your chromecast you can have a look at our [custom receiver app example](./example/chromecast/receiverApp.html) with conviva integration.
 
-As the player itself does not notify listeners on the receiver app itself if the session will be stopped you need to add a listener to the `onShutdown` and end the session manually.
+As the player does not notify listeners on the receiver app itself if the session will be stopped you need to add a listener to the `onShutdown` and end the session manually.
 
-For doing so you need to add following lines:
+In order to do so you need to add following lines:
 
 ```js
 cast.receiver.CastReceiverManager.getInstance().onShutdown = () => {
@@ -67,14 +67,14 @@ cast.receiver.CastReceiverManager.getInstance().onShutdown = () => {
 }
 ```
 
-If you are using the content metadata overriding feature you will have to add following line within the `CastMetadataListener` callback:
+If you are using the content metadata overriding feature you will have to add the following line within the `CastMetadataListener` callback:
 
 ```js
 convivaAnalytics.handleCastMetadataEvent(metadata);
 ```
 
 This will ensure that all your content metadata attributes are also present in the session of the receiver app.
-It will also enable that you can use `updateContentMetadata` on the sender and it will be propagated to the receiver app.
+It will also enable you to use `updateContentMetadata` on the sender and it will be propagated to the receiver app.
 
 
 #### VPF tracking
