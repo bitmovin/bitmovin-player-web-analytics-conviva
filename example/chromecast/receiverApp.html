@@ -144,6 +144,11 @@
 
       // Handler that takes properties from the remotecontrol.customReceiverConfig configuration for use within the receiver
       googleCastRemoteControlReceiver.setCastMetadataListener((metadata) => {
+        // This will handle the communication between the instance of conviva analytics on the sender and the receiver
+        // app. The Player itself doesn't provide a communication out of the box so we need to handle this inside the
+        // setCastMetadataListener here. (The type and the data of the metadata object is handled within the integration)
+        convivaAnalytics.handleCastMetadataEvent(metadata);
+
         switch (metadata.type) {
           case 'customReceiverConfig':
             const customReceiverConfig = metadata.data;
