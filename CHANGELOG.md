@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Chromecast support 
 - Update content metadata attributes on the receiver directly via the sender instance of the integration
+- Changelog entry about NPM usage
 
 ## [3.0.0]
 

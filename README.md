@@ -6,6 +6,20 @@ The recommended version of the Conviva SDK is 2.146.0.36444.** See [CHANGELOG](C
 
 ## Getting Started
 
+### Installation
+
+#### Using NPM
+Install the npm package:
+```
+npm i @bitmovin/player-integration-conviva --save-dev
+```
+
+#### Use custom build
+
+Build the file script by running `npm run build`
+
+### Developing
+
 1. Clone Git repository
 2. Install node.js
 3. Install required npm packages: [`npm install`](https://www.npmjs.com/)
@@ -16,38 +30,71 @@ The recommended version of the Conviva SDK is 2.146.0.36444.** See [CHANGELOG](C
 
 ## Usage
 
-1. Build the script by running `npm run build`
+1. Include `conviva-core-sdk.min.js` **first of all** in your HTML document
 
-2. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
+1. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
 
-3. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
-    ```js
-    var playerConfig = {
-      key: 'YOUR-PLAYER-KEY',
-      // ...
-    };
+    1. Using NPM import:
+        1. Import ConvivaAnalytics:
+            ```typescript
+            import { ConvivaAnalytics } from '@bitmovin/player-integration-conviva';
+            ```
 
-    var container = document.getElementById('player');
-    var player = new bitmovin.player.Player(container, playerConfig);
+        2. Usage
+            ```typescript
+            const playerConfig = {
+              key: 'YOUR-PLAYER-KEY',
+              // ...
+            };
+
+            const player = new Player(document.getElementById('player'), playerConfig);
+            const conviva = new ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+              debugLoggingEnabled: true, // optional
+              gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
+            });
+            
+            var sourceConfig = {
+              // ...
+            };
+                        
+            player.load(sourceConfig).then(function() {
+              console.log('player loaded');
+            }, function(reason) {
+              console.error('player setup failed', reason);
+            });
+            ```
     
-    // A ConvivaAnalytics instance is always tied to one player instance
-    var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
-      debugLoggingEnabled: true, // optional
-      gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
-    });
-    
-    var sourceConfig = {
-      // ...
-    };
-    
-    player.load(sourceConfig).then(function() {
-      console.log('player loaded');
-    }, function(reason) {
-      console.error('player setup failed', reason);
-    });
-    ```
+    1. Using custom Build:
+        1. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
 
-4. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
+        2. Usage
+            ```js
+            var playerConfig = {
+              key: 'YOUR-PLAYER-KEY',
+              // ...
+            };
+        
+            var container = document.getElementById('player');
+            var player = new bitmovin.player.Player(container, playerConfig);
+            
+            // A ConvivaAnalytics instance is always tied to one player instance
+            var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+              debugLoggingEnabled: true, // optional
+              gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
+            });
+            
+            var sourceConfig = {
+              // ...
+            };
+            
+            player.load(sourceConfig).then(function() {
+              console.log('player loaded');
+            }, function(reason) {
+              console.error('player setup failed', reason);
+            });
+            ```
+
+1. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
  
 ### Advanced Usage
 
