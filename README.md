@@ -40,7 +40,7 @@ Build the file script by running `npm run build`
             import { ConvivaAnalytics } from '@bitmovin/player-integration-conviva';
             ```
 
-        2. Usage
+        1. Usage
             ```typescript
             const playerConfig = {
               key: 'YOUR-PLAYER-KEY',
@@ -67,7 +67,7 @@ Build the file script by running `npm run build`
     1. Using custom Build:
         1. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
 
-        2. Usage
+        1. Usage
             ```js
             var playerConfig = {
               key: 'YOUR-PLAYER-KEY',
