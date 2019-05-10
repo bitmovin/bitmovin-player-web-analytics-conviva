@@ -11,8 +11,8 @@ Install the npm package:
 npm i @bitmovin/player-integration-conviva --save-dev
 ```
 
-#### Use custom build
-Build the file script by running `npm run build`
+#### Using custom build
+Build the JS file by running `npm run build`
 
 ### Developing
 1. Clone Git repository
