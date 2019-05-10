@@ -24,7 +24,7 @@ Build the JS file by running `npm run build`
   * `npm run start` to open test page in browser, build and reload changed files automatically
 
 ## Usage
-1. Include `conviva-core-sdk.min.js` **first of all** in your HTML document
+1. Include `conviva-core-sdk.min.js` as **first** of all scripts in your HTML document
 
 1. Create an instance of `ConvivaAnalytics` **before** calling `player.load(...)` and pass in your Conviva `CUSTOMER_KEY` and optional configuration properties:
 
