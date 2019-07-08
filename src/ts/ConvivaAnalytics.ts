@@ -186,7 +186,9 @@ export class ConvivaAnalytics {
    * Ends the current conviva tracking session.
    * Results in a no-opt if there is no active session.
    *
-   * Warning: The integration can only be validated without external session managing. So when using this method we can
+   * Warning: Sessions will no longer be created automatically after this method has been called.
+   *
+   * The integration can only be validated without external session managing. So when using this method we can
    * no longer ensure that the session is managed at the correct time.
    */
   public endSession(): void {
