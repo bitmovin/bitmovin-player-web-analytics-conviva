@@ -100,6 +100,12 @@ export class ConvivaAnalytics {
   });
   private isAdPlaybackActive: boolean;
 
+  /**
+   * Boolean to track whether a session was ended by an upstream caller instead of within internal session management.
+   * If this is true, we should avoid initializing a new session internally if a session is not active
+   */
+  private sessionEndedExternally = false;
+
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error('Conviva script missing, cannot init ConvivaAnalytics. '
@@ -173,13 +179,16 @@ export class ConvivaAnalytics {
     }
 
     this.internalInitializeSession();
+    this.sessionEndedExternally = false;
   }
 
   /**
    * Ends the current conviva tracking session.
    * Results in a no-opt if there is no active session.
    *
-   * Warning: The integration can only be validated without external session managing. So when using this method we can
+   * Warning: Sessions will no longer be created automatically after this method has been called.
+   *
+   * The integration can only be validated without external session managing. So when using this method we can
    * no longer ensure that the session is managed at the correct time.
    */
   public endSession(): void {
@@ -189,6 +198,7 @@ export class ConvivaAnalytics {
 
     this.internalEndSession();
     this.resetContentMetadata();
+    this.sessionEndedExternally = true;
   }
 
   /**
@@ -571,7 +581,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ Player Event ] play', event);
 
     // in case the playback has finished and the user replays the stream create a new session
-    if (!this.isSessionActive()) {
+    if (!this.isSessionActive() && !this.sessionEndedExternally) {
       this.internalInitializeSession();
     }
 
@@ -701,7 +711,7 @@ export class ConvivaAnalytics {
   }
 
   private onError = (event: ErrorEvent) => {
-    if (!this.isSessionActive()) {
+    if (!this.isSessionActive() && !this.sessionEndedExternally) {
       // initialize Session if not yet initialized to capture Video Start Failures
       this.internalInitializeSession();
     }
@@ -813,7 +823,7 @@ export class ConvivaAnalytics {
     this.unregisterPlayerEvents();
     this.registerPlayerEvents();
 
-    if (this.player.isPlaying() && !this.isSessionActive()) {
+    if (this.player.isPlaying() && !this.isSessionActive() && !this.sessionEndedExternally) {
       this.internalInitializeSession();
       this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
     }
