@@ -342,8 +342,8 @@ export class ConvivaAnalytics {
 
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
-        '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
-        Conviva.SystemSettings.LogLevel.WARNING,
+        '[ ConvivaAnalytics ] no active session. Content metadata will be propagated to Conviva on session initialization.',
+        Conviva.SystemSettings.LogLevel.DEBUG,
       );
       return;
     }
