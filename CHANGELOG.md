@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Chromecast support 
 - Update content metadata attributes on the receiver directly via the sender instance of the integration
 - Changelog entry about NPM usage
+- Change loglevel of message when `updateContentMetadata` is invoke before a session has been started
+- `endSession` will now prevent a new session from being initialized via internal event handling
 
 ## [3.0.0]
 
