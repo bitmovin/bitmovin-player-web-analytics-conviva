@@ -74,4 +74,20 @@ describe('externally session managing', () => {
       expect((clientMock.createSession as jest.Mock).mock.calls[0][0].assetName).toEqual('MyTitle');
     });
   });
+
+  describe('external endsession is called', () => {
+      it('should not initialize session when player events fire after being ended externally', () => {
+          playerMock.eventEmitter.firePlayEvent();
+
+          expect(clientMock.createSession).toHaveBeenCalled();
+
+          convivaAnalytics.endSession();
+
+          expect(clientMock.cleanupSession).toHaveBeenCalled();
+
+          playerMock.eventEmitter.firePlayEvent();
+
+          expect(clientMock.createSession).toHaveBeenCalledTimes(1);
+      });
+  });
 });

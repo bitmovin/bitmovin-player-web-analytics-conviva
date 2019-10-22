@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.2]
+
+- `endSession` will now prevent a new session from being initialized via internal event handling
+
 ## [3.0.1]
 
 ### Added
@@ -42,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[3.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.1...f2e538f13579478ed3c590bbf657bb78fdc326a5
 [3.0.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/95c526a7306cef98061f8f65e3dec3023df501af...v3.0.0
 [95c526]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/commit/95c526a7306cef98061f8f65e3dec3023df501af
