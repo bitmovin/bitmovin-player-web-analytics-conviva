@@ -27,6 +27,25 @@ declare namespace Conviva {
       UNKNOWN,
     }
 
+    enum DeviceCategory {
+      ANDROID_DEVICE,
+      APPLE_DEVICE,
+      CHROMECAST,
+      DESKTOP_APP,
+      DEVICE_SIMULATOR,
+      LG_TV,
+      NINTENDO,
+      PLAYSTATION,
+      ROKU,
+      SAMSUNG_TV,
+      SET_TOP_BOX,
+      SMART_TV,
+      TIVO,
+      WEB,
+      WINDOWS_DEVICE,
+      XBOX,
+    }
+
     enum ErrorSeverity {
       FATAL,
       WARNING,
@@ -154,6 +173,8 @@ declare namespace Conviva {
     getOperatingSystemName(): string | null;
 
     getOperatingSystemVersion(): string | null;
+
+    getDeviceCategory(): Conviva.Client.DeviceCategory | null;
 
     release(): void;
   }

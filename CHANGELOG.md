@@ -11,7 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update content metadata attributes on the receiver directly via the sender instance of the integration
 - Changelog entry about NPM usage
 - Change loglevel of message when `updateContentMetadata` is invoke before a session has been started
+
+## [3.0.2]
+
+### Added
 - `endSession` will now prevent a new session from being initialized via internal event handling
+
+## [3.0.1]
+
+### Added
+- Support for Conviva-SDK 2.151.0.36981
 
 ## [3.0.0]
 
@@ -46,4 +55,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[3.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.1...v3.0.2
+[3.0.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.0...v3.0.1
+[3.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/95c526a7306cef98061f8f65e3dec3023df501af...v3.0.0
 [95c526]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/commit/95c526a7306cef98061f8f65e3dec3023df501af
