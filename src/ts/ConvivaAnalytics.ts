@@ -409,6 +409,7 @@ export class ConvivaAnalytics {
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
 
     if (this.lastSeenBitrate) {
+      this.debugLog('### [ ConvivaAnalytics ] internalInitializeSession, set setBitrateKbps: ', this.lastSeenBitrate);
       this.playerStateManager.setBitrateKbps(this.lastSeenBitrate);
     }
   }
@@ -494,7 +495,8 @@ export class ConvivaAnalytics {
     this.client.releasePlayerStateManager(this.playerStateManager);
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.lastSeenBitrate = null;
+    // this.lastSeenBitrate = null;
+    // this.debugLog('### [ ConvivaAnalytics ] end session with last bitrate: ', this.lastSeenBitrate);
 
     // As the session could be continued after casting we can't reset the contentMetadataBuilder here as we would lose
     // content metadata attributes.
@@ -615,11 +617,14 @@ export class ConvivaAnalytics {
       // value and use it for tracking when initializing the session.
       // TODO: remove this workaround when the player event order is fixed
       this.lastSeenBitrate = bitrateKbps;
+      // this.debugLog('### [ ConvivaAnalytics ] onVideoQualityChanged, !isSessionActive, set last bitrate: ', this.lastSeenBitrate);
       return;
     }
-
-    this.lastSeenBitrate = null;
+    this.lastSeenBitrate = bitrateKbps;
+    // this.lastSeenBitrate = null;
+    // this.debugLog('### [ ConvivaAnalytics ] onVideoQualityChanged, set last bitrate to NULL: ', this.lastSeenBitrate);
     this.playerStateManager.setBitrateKbps(bitrateKbps);
+    this.debugLog('### [ ConvivaAnalytics ] onVideoQualityChanged, set setBitrateKbps: ',  bitrateKbps);
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {
