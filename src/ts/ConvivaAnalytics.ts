@@ -56,7 +56,7 @@ export interface ConvivaAnalyticsConfiguration {
   adTrackingMode?: AdTrackingMode;
 
   /**
-   * Option to set the Conviva Device Category, which is used to assist with  
+   * Option to set the Conviva Device Category, which is used to assist with
    * user agent string parsing by the Conviva SDK. (default: WEB)
    */
   deviceCategory?: Conviva.Client.DeviceCategory;
