@@ -64,7 +64,7 @@ export class Html5Metadata implements Conviva.MetadataInterface {
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   getDeviceCategory(): Conviva.Client.DeviceCategory {
-    return this.deviceCategory;
+    return this.deviceCategory || Conviva.Client.DeviceCategory.WEB;
   }
 
   public release(): void {
