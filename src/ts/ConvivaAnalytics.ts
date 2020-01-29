@@ -134,6 +134,7 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
+    this.config.deviceCategory = this.config.deviceCategory || Conviva.Client.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
