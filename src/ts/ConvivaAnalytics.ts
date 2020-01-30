@@ -21,6 +21,7 @@ import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 import { BitrateHelper } from './helper/BitrateHelper';
 
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
+import { DeviceMetadata } from './DeviceMetadata';
 
 type Player = PlayerAPI;
 
@@ -139,12 +140,16 @@ export class ConvivaAnalytics {
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
 
+    const deviceMetadata: DeviceMetadata = {
+      deviceCategory: this.config.deviceCategory,
+    };
+
     const systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
       new Html5Timer(),
       new Html5Http(),
       new Html5Storage(),
-      new Html5Metadata(this.config.deviceCategory),
+      new Html5Metadata(deviceMetadata),
       this.logger,
     );
 
