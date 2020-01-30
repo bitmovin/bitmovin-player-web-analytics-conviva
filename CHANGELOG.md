@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update content metadata attributes on the receiver directly via the sender instance of the integration
 - Changelog entry about NPM usage
 - Change loglevel of message when `updateContentMetadata` is invoke before a session has been started
+- Added a configuration option to set the Conviva Device Category. 
 
 ## [3.0.2]
 
