@@ -1,10 +1,13 @@
 import Client = Conviva.Client;
-import { DeviceMetadata } from './DeviceMetadata';
+
+export interface DeviceMetadata {
+  deviceCategory: Conviva.Client.DeviceCategory;
+}
 
 export class Html5Metadata implements Conviva.MetadataInterface {
-  metadata?: DeviceMetadata;
+  metadata: DeviceMetadata;
 
-  constructor(metadata?: DeviceMetadata) {
+  constructor(metadata: DeviceMetadata) {
     this.metadata = metadata;
   }
 

@@ -21,7 +21,7 @@ import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 import { BitrateHelper } from './helper/BitrateHelper';
 
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
-import { DeviceMetadata } from './DeviceMetadata';
+import { DeviceMetadata } from './Html5Metadata';
 
 type Player = PlayerAPI;
 
