@@ -11,6 +11,7 @@ import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { BrowserUtils } from './BrowserUtils';
+import { DeviceMetadata } from './Html5Metadata';
 
 type Player = PlayerAPI;
 
@@ -24,6 +25,11 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
+    /**
+   * Option to set the Conviva Device Category, which is used to assist with
+   * user agent string parsing by the Conviva SDK. (default: WEB)
+   */
+  deviceCategory?: Conviva.Client.DeviceCategory;
 }
 
 export interface EventAttributes {
@@ -100,17 +106,22 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
+    this.config.deviceCategory = this.config.deviceCategory || Conviva.Client.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.isAd = false;
+
+    const deviceMetadata: DeviceMetadata = {
+      deviceCategory: this.config.deviceCategory,
+    };
 
     const systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
       new Html5Timer(),
       new Html5Http(),
       new Html5Storage(),
-      new Html5Metadata(),
+      new Html5Metadata(deviceMetadata),
       this.logger,
     );
 

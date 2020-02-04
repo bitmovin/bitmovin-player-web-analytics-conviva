@@ -69,6 +69,10 @@ export namespace MockHelper {
       FATAL: 'fatal',
     };
 
+    global.Conviva.Client.DeviceCategory = {
+      WEB: 'WEB'
+    }
+
     return new global.Conviva.Client();
   }
 
