@@ -93,6 +93,10 @@ export namespace MockHelper {
       SERVER_SIDE: 'Server Side',
     };
 
+    global.Conviva.Client.DeviceCategory = {
+      WEB: 'WEB'
+    }
+
     return new global.Conviva.Client();
   }
 

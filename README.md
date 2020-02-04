@@ -45,6 +45,7 @@ Build the JS file by running `npm run build`
             const conviva = new ConvivaAnalytics(player, 'CUSTOMER_KEY', {
               debugLoggingEnabled: true, // optional
               gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
+              deviceCategory: Conviva.Client.DeviceCategory.WEB // optional, (default: WEB)
             });
             
             var sourceConfig = {

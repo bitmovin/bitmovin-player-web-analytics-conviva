@@ -21,6 +21,7 @@ import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
 import { BitrateHelper } from './helper/BitrateHelper';
 
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
+import { DeviceMetadata } from './Html5Metadata';
 
 type Player = PlayerAPI;
 
@@ -54,6 +55,12 @@ export interface ConvivaAnalyticsConfiguration {
    * (Also includes behaviour of AdBreaks mode).
    */
   adTrackingMode?: AdTrackingMode;
+
+  /**
+   * Option to set the Conviva Device Category, which is used to assist with
+   * user agent string parsing by the Conviva SDK. (default: WEB)
+   */
+  deviceCategory?: Conviva.Client.DeviceCategory;
 }
 
 export interface EventAttributes {
@@ -128,16 +135,21 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
+    this.config.deviceCategory = this.config.deviceCategory || Conviva.Client.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+
+    const deviceMetadata: DeviceMetadata = {
+      deviceCategory: this.config.deviceCategory,
+    };
 
     const systemInterface = new Conviva.SystemInterface(
       new Html5Time(),
       new Html5Timer(),
       new Html5Http(),
       new Html5Storage(),
-      new Html5Metadata(),
+      new Html5Metadata(deviceMetadata),
       this.logger,
     );
 
