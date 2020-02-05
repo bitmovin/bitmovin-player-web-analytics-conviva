@@ -1,6 +1,15 @@
 import Client = Conviva.Client;
 
+export interface DeviceMetadata {
+  deviceCategory: Conviva.Client.DeviceCategory;
+}
+
 export class Html5Metadata implements Conviva.MetadataInterface {
+  metadata: DeviceMetadata;
+
+  constructor(metadata: DeviceMetadata) {
+    this.metadata = metadata;
+  }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getBrowserName(): string | null {
@@ -59,7 +68,7 @@ export class Html5Metadata implements Conviva.MetadataInterface {
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   getDeviceCategory(): Conviva.Client.DeviceCategory {
-    return null;
+    return this.metadata.deviceCategory;
   }
 
   public release(): void {

@@ -34,6 +34,7 @@ The recommended and tested version of the Conviva SDK is 2.151.0.36981.** See [C
     var conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
       debugLoggingEnabled: true, // optional
       gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
+      deviceCategory: Conviva.Client.DeviceCategory.WEB // optional, (default: WEB)
     });
     
     var sourceConfig = {
