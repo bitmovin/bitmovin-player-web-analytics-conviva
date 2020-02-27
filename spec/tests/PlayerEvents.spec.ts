@@ -271,7 +271,7 @@ describe('player event tests', () => {
         playerMock.eventEmitter.fireAdBreakFinishedEvent();
         expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
         expect(clientMock.sendCustomEvent).toHaveBeenCalledTimes(1);
-        expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'aderror', {});
+        expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'aderror', expect.anything());
       });
 
       it('on ad skipped', () => {
@@ -279,7 +279,7 @@ describe('player event tests', () => {
         playerMock.eventEmitter.fireAdBreakFinishedEvent();
         expect(clientMock.adEnd).toHaveBeenCalledTimes(1);
         expect(clientMock.sendCustomEvent).toHaveBeenCalledTimes(1);
-        expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'adskipped', {});
+        expect(clientMock.sendCustomEvent).toHaveBeenCalledWith(0, 'adskipped', expect.anything());
       });
 
       it('on ad end', () => {
