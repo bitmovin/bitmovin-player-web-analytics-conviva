@@ -1,6 +1,5 @@
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
-import { CONTENT_SESSION_KEY } from '../helper/TestsHelper';
 
 declare const global: any;
 
@@ -116,7 +115,7 @@ describe('casting', () => {
 
         expect(receiverConvivaAnalyticsClientMock.updateContentMetadata).toHaveBeenNthCalledWith(
           1,
-          CONTENT_SESSION_KEY,
+          0,
           expect.objectContaining({
             custom: expect.objectContaining({
               customTagForCastTest: 'With Value',
@@ -134,7 +133,7 @@ describe('casting', () => {
         convivaAnalytics.updateContentMetadata({ encodedFrameRate: 260 });
         expect(receiverConvivaAnalyticsClientMock.updateContentMetadata).toHaveBeenNthCalledWith(
           1,
-          CONTENT_SESSION_KEY,
+          0,
           expect.objectContaining({
             encodedFrameRate: 260,
           }),

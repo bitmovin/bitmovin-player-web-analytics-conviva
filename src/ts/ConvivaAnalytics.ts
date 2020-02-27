@@ -1,7 +1,5 @@
-import { AdExperienceTrackingPlugin } from './AdExperienceTrackingPlugin';
-
 import {
-  AdBreakEvent, AdEvent, CastStartedEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
+  AdBreak, AdBreakEvent, AdEvent, CastStartedEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
   SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
@@ -12,24 +10,13 @@ import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
-import { AdBreakTrackingPlugin } from './AdBreakTrackingPlugin';
 import { ObjectUtils } from './helper/ObjectUtils';
-import { AdTrackingPlugin } from './AdTrackingPlugin';
-import { AdBreakHelper } from './helper/AdBreakHelper';
 import { BrowserUtils } from './helper/BrowserUtils';
-import { BasicAdTrackingPlugin } from './BasicAdTrackingPlugin';
-import { BitrateHelper } from './helper/BitrateHelper';
-
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 import { DeviceMetadata } from './Html5Metadata';
+import { AdBreakHelper } from './helper/AdBreakHelper';
 
 type Player = PlayerAPI;
-
-export enum AdTrackingMode {
-  Basic = 'Basic',
-  AdBreaks = 'AdBreaks',
-  AdExperience = 'AdExperience', // AdInsights includes AdBreaks + AdExperience
-}
 
 export interface ConvivaAnalyticsConfiguration {
   /**
@@ -41,20 +28,6 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
-
-  /**
-   * Switch between different adTrackingModes.
-   *
-   * Available modes:
-   * - Basic: (Default)
-   * Stops all tracking to the content session during adBreaks.
-   * - AdBreaks:
-   * Reports more details about the adBreak to the current session. (Also includes behaviour of Basic mode)
-   * - AdExperience:
-   * Creates a new ad session for each ad and track ad related events to the ad session.
-   * (Also includes behaviour of AdBreaks mode).
-   */
-  adTrackingMode?: AdTrackingMode;
 
   /**
    * Option to set the Conviva Device Category, which is used to assist with
@@ -86,7 +59,11 @@ export class ConvivaAnalytics {
   private readonly logger: Conviva.LoggingInterface;
   private sessionKey: number;
 
-  private adTrackingPlugin: AdTrackingPlugin;
+  /**
+   * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
+   * This flag is required because player.isAd() is unreliable and not always true between the events.
+   */
+  private isAd: boolean;
 
   /**
    * Attributes needed to workaround wrong event order in case of a pre-roll ad.
@@ -105,7 +82,6 @@ export class ConvivaAnalytics {
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
     this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
   });
-  private isAdPlaybackActive: boolean;
 
   /**
    * Boolean to track whether a session was ended by an upstream caller instead of within internal session management.
@@ -139,6 +115,7 @@ export class ConvivaAnalytics {
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+    this.isAd = false;
 
     const deviceMetadata: DeviceMetadata = {
       deviceCategory: this.config.deviceCategory,
@@ -395,20 +372,6 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
-
-    // Init ad tracking with current session key
-    switch (this.config.adTrackingMode) {
-      case AdTrackingMode.AdExperience:
-        this.adTrackingPlugin = new AdExperienceTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
-        break;
-      case AdTrackingMode.AdBreaks:
-        this.adTrackingPlugin = new AdBreakTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
-        break;
-      default:
-        this.adTrackingPlugin = new BasicAdTrackingPlugin(this.player, this.client, this.sessionKey, this.logger);
-        break;
-    }
-
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
@@ -525,6 +488,12 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
+    // Do not track playback state changes during ads, (e.g. triggered from IMA)
+    // or if there is no active session.
+    if (this.isAd || !this.isSessionActive()) {
+      return;
+    }
+
     let playerState;
 
     switch (event.type) {
@@ -571,11 +540,7 @@ export class ConvivaAnalytics {
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      if (this.adTrackingPlugin && this.adTrackingPlugin.isAdSessionActive()) {
-        this.adTrackingPlugin.reportPlayerState(playerState);
-      } else if (this.isSessionActive()) {
-        this.playerStateManager.setPlayerState(playerState);
-      }
+      this.playerStateManager.setPlayerState(playerState);
     }
   };
 
@@ -591,6 +556,11 @@ export class ConvivaAnalytics {
 
   private onPlay = (event: PlaybackEvent) => {
     this.debugLog('[ Player Event ] play', event);
+
+    if (this.isAd) {
+      // Do not track play event during ad (e.g. triggered from IMA)
+      return;
+    }
 
     // in case the playback has finished and the user replays the stream create a new session
     if (!this.isSessionActive() && !this.sessionEndedExternally) {
@@ -620,7 +590,9 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
-    const bitrateKbps = BitrateHelper.calculateKbps(event.targetQuality.bitrate);
+    // We calculate the bitrate with a divisor of 1000 so the values look nicer
+    // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
+    const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
 
     if (!this.isSessionActive()) {
       // Since the first videoPlaybackQualityChanged event comes before playback ever started we need to store the
@@ -641,15 +613,12 @@ export class ConvivaAnalytics {
     }
 
     const eventAttributes = ObjectUtils.flatten(event);
-    if (this.adTrackingPlugin.isAdSessionActive()) {
-      this.adTrackingPlugin.reportCustomEvent(event.type, eventAttributes);
-    } else {
-      this.sendCustomPlaybackEvent(event.type, eventAttributes);
-    }
+    this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
   private trackAdBreakStarted = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak started', event);
+    this.isAd = true;
 
     const adPosition = AdBreakHelper.mapAdPosition(event.adBreak, this.player);
 
@@ -658,18 +627,27 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.adTrackingPlugin.adBreakStarted(event.adBreak, adPosition);
+    this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
   };
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak finished', event);
+    this.isAd = false;
 
     if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
       return;
     }
 
-    this.adTrackingPlugin.adBreakFinished();
+    this.client.adEnd(this.sessionKey);
+  };
+
+  private onAdSkipped = (event: AdEvent) => {
+    this.onCustomEvent(event);
+  };
+
+  private onAdError = (event: AdEvent) => {
+    this.onCustomEvent(event);
   };
 
   private onSeek = (event: SeekEvent) => {
@@ -732,8 +710,9 @@ export class ConvivaAnalytics {
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
-    if (this.adTrackingPlugin.isAdSessionActive()) {
-      this.adTrackingPlugin.adFinished();
+    if (this.isAd) {
+      // Ignore sourceUnloaded events during ads
+      return;
     } else {
       this.internalEndSession(event);
       this.resetContentMetadata();
@@ -762,7 +741,6 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
-    playerEvents.add(this.events.AdClicked, this.onCustomEvent);
     playerEvents.add(this.events.AdError, this.onAdError);
     playerEvents.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     playerEvents.add(this.events.Error, this.onError);
@@ -771,10 +749,6 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
-
-    // Ad tracking events
-    playerEvents.add(this.events.AdStarted, this.onAdStarted);
-    playerEvents.add(this.events.AdFinished, this.onAdFinished);
 
     // We need to wait until the user chose a device for closing the session on the sender app
     playerEvents.add(this.events.CastWaitingForDevice, this.onCastInitiated);
@@ -786,15 +760,23 @@ export class ConvivaAnalytics {
     this.propagateOverridesToReceiver();
   };
 
-  private onAdStarted = (event: AdEvent) => {
-    this.adTrackingPlugin.adStarted(event);
-  };
-
-  private onAdFinished = (event: AdEvent) => {
-    this.adTrackingPlugin.adFinished();
-  };
-
   private onAdBreakStarted = (event: AdBreakEvent) => {
+    // Specific post-roll handling
+    const isPostRollAdBreak = (adBreak: AdBreak) => {
+      return adBreak.scheduleTime === Infinity;
+    };
+
+    if (isPostRollAdBreak(event.adBreak)) {
+      // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
+      this.debugLog('[ ConvivaAnalytics ] detected post-roll ad ... Ending session');
+      this.onPlaybackFinished({
+          timestamp: Date.now(),
+          type: this.events.PlaybackFinished,
+        },
+      );
+      return;
+    }
+
     // Specific pre-roll handling
     // TODO: remove this workaround when event order is correct
     // Since the event order on initial playback in case of a pre-roll ad is false we need to workaround
@@ -806,18 +788,6 @@ export class ConvivaAnalytics {
     } else {
       this.trackAdBreakStarted(event);
     }
-  };
-
-  private onAdSkipped = (event: AdEvent) => {
-    this.onCustomEvent(event);
-    // Track adFinished after skipping
-    this.onAdFinished(event);
-  };
-
-  private onAdError = (event: AdEvent) => {
-    this.onCustomEvent(event);
-    // Track adFinished after error
-    this.onAdFinished(event);
   };
 
   private onCastInitiated = (event: CastStartedEvent) => {
