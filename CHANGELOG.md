@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [develop]
 
 ### Added
-- Chromecast support 
-- Update content metadata attributes on the receiver directly via the sender instance of the integration
-- Changelog entry about NPM usage
+- Readme entry about NPM usage
 - Change loglevel of message when `updateContentMetadata` is invoke before a session has been started
 - Added a configuration option to set the Conviva Device Category. 
 
