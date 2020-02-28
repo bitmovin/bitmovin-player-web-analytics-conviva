@@ -129,20 +129,6 @@ _See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for parameter details._
 
 Conviva suggests an timeout of about ~10 seconds and before reporting an error to conviva and providing feedback the user.
 
-#### Ad Insights (AdBreak & AdExperience)
-Conviva provides multiple ways to track details about ad playback.  
-Set the `adTrackingMode` in the [ConvivaAnalyticsConfiguration](./src/ts/ConvivaAnalytics.ts) to select the ad tracking mode.
-
-```js
-let convivaConfiguration = {
-  …
-  adTrackingMode: 'AdBreaks',
-  …
-}
-```
-
-_See [ConvivaAnalytics.ts](./src/ts/ConvivaAnalytics.ts) for more details about the different modes._
- 
 #### Content Metadata handling
 If you want to override some content metadata attributes you can do so by adding the following:
 
