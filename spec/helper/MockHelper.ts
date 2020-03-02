@@ -2,8 +2,9 @@
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, VideoPlaybackQualityChangedEvent,
+  TimeShiftEvent, VideoPlaybackQualityChangedEvent, CastStartedEvent,
 } from 'bitmovin-player';
+import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
 declare const global: any;
 export namespace MockHelper {
@@ -25,6 +26,22 @@ export namespace MockHelper {
     };
   }
 
+  // Custom cast SDK implementation
+  export function mockCastPlayerModule(): void {
+    global.gcr = {};
+    global.gcr.GoogleCastRemoteControlReceiver = jest.fn().mockImplementation(() => {
+      return {
+        setCastMetadataListener: jest.fn((callback) => {
+          global.gcr.castMetadataListenerCallback = callback;
+        }),
+      };
+    });
+  }
+
+  // TODO: find a way to handle multiple instances
+  // Currently this will always reference the latest instantiated client mock. This could lead to inconsistent
+  // mock / spy results in expectations.
+  // This works until we test multiple client mock instances e.g. for casting
   export function getConvivaClientMock(): Conviva.Client {
     const createSession = jest.fn(() => 0);
     const cleanupSession = jest.fn();
@@ -70,8 +87,8 @@ export namespace MockHelper {
     };
 
     global.Conviva.Client.DeviceCategory = {
-      WEB: 'WEB'
-    }
+      WEB: 'WEB',
+    };
 
     return new global.Conviva.Client();
   }
@@ -108,7 +125,12 @@ export namespace MockHelper {
     const PlayerMockClass: jest.Mock<TestingPlayerAPI> = jest.fn().mockImplementation(() => {
       return {
         getSource: jest.fn(),
-        exports: { PlayerEvent },
+        exports: {
+          PlayerEvent,
+          MetadataType: {
+            CAST: 'CAST',
+          },
+        },
         getDuration: jest.fn(),
         isLive: jest.fn(),
         getConfig: jest.fn(() => {
@@ -116,12 +138,20 @@ export namespace MockHelper {
         }),
         isPlaying: jest.fn(),
         isPaused: jest.fn(),
+        isCasting: jest.fn(),
         getPlayerType: jest.fn(),
         getStreamType: jest.fn(() => 'hls'),
+        addMetadata: jest.fn((_, metadata) => {
+          // Calling metadata listener
+          if (global.gcr && global.gcr.castMetadataListenerCallback) {
+            global.gcr.castMetadataListenerCallback(metadata);
+          }
+        }),
 
         // Event faker
         eventEmitter: eventHelper,
         on: eventHelper.on.bind(eventHelper),
+        off: eventHelper.off.bind(eventHelper),
       };
     });
 
@@ -172,6 +202,12 @@ interface EventEmitter {
   fireAdErrorEvent(): void;
 
   fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
+
+  fireCastStartedEvent(resuming?: boolean): void;
+
+  fireCastWaitingForDevice(resuming?: boolean): void;
+
+  fireCastStoppedEvent(): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
@@ -183,6 +219,12 @@ class PlayerEventHelper implements EventEmitter {
     }
 
     this.eventHandlers[eventType].push(callback);
+  }
+
+  public off(eventType: PlayerEvent, callback: PlayerEventCallback) {
+    if (this.eventHandlers[eventType]) {
+      ArrayUtils.remove(this.eventHandlers[eventType], callback);
+    }
   }
 
   public fireEvent<E extends PlayerEventBase>(event: E) {
@@ -245,6 +287,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdSkipped,
       ad: {
         isLinear: true,
+        width: null,
+        height: null,
       },
     });
   }
@@ -255,6 +299,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdStarted,
       ad: {
         isLinear: true,
+        width: null,
+        height: null,
       },
     });
   }
@@ -352,6 +398,31 @@ class PlayerEventHelper implements EventEmitter {
         width: null,
         height: null,
       },
+    });
+  }
+
+  fireCastStartedEvent(resuming: boolean = false): void {
+    this.fireEvent<CastStartedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastStarted,
+      deviceName: 'Awesome Device',
+      resuming: resuming,
+    });
+  }
+
+  fireCastStoppedEvent(): void {
+    this.fireEvent<PlayerEventBase>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastStopped,
+    });
+  }
+
+  fireCastWaitingForDevice(resuming: boolean = false): void {
+    this.fireEvent<CastStartedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.CastWaitingForDevice,
+      deviceName: 'MyCastDevice',
+      resuming: false,
     });
   }
 }

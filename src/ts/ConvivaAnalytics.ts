@@ -1,6 +1,6 @@
 import {
-  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase, SeekEvent,
-  SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
+  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
+  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -10,8 +10,11 @@ import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
-import { BrowserUtils } from './BrowserUtils';
+import { ObjectUtils } from './helper/ObjectUtils';
+import { BrowserUtils } from './helper/BrowserUtils';
+import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 import { DeviceMetadata } from './Html5Metadata';
+import { AdBreakHelper } from './helper/AdBreakHelper';
 
 type Player = PlayerAPI;
 
@@ -25,7 +28,8 @@ export interface ConvivaAnalyticsConfiguration {
    * production or automated testing.
    */
   gatewayUrl?: string;
-    /**
+
+  /**
    * Option to set the Conviva Device Category, which is used to assist with
    * user agent string parsing by the Conviva SDK. (default: WEB)
    */
@@ -181,6 +185,7 @@ export class ConvivaAnalytics {
     }
 
     this.internalEndSession();
+    this.resetContentMetadata();
     this.sessionEndedExternally = true;
   }
 
@@ -222,18 +227,7 @@ export class ConvivaAnalytics {
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadataOverrides: Metadata) {
-    this.contentMetadataBuilder.setOverrides(metadataOverrides);
-
-    if (!this.isSessionActive()) {
-      this.logger.consoleLog(
-        '[ ConvivaAnalytics ] no active session; Don\'t propagate content metadata to conviva.',
-        Conviva.SystemSettings.LogLevel.WARNING,
-      );
-      return;
-    }
-
-    this.buildContentMetadata();
-    this.updateSession();
+    this.internalUpdateContentMetadata(metadataOverrides);
   }
 
   /**
@@ -252,6 +246,7 @@ export class ConvivaAnalytics {
     this.client.reportError(this.sessionKey, message, severity);
     if (endSession) {
       this.internalEndSession();
+      this.resetContentMetadata();
     }
   }
 
@@ -312,6 +307,21 @@ export class ConvivaAnalytics {
           return source.progressive;
         }
     }
+  }
+
+  private internalUpdateContentMetadata(metadataOverrides: Metadata) {
+    this.contentMetadataBuilder.setOverrides(metadataOverrides);
+
+    if (!this.isSessionActive()) {
+      this.logger.consoleLog(
+        '[ ConvivaAnalytics ] no active session. Content metadata will be propagated to Conviva on session initialization.',
+        Conviva.SystemSettings.LogLevel.DEBUG,
+      );
+      return;
+    }
+
+    this.buildContentMetadata();
+    this.updateSession();
   }
 
   /**
@@ -418,16 +428,22 @@ export class ConvivaAnalytics {
   }
 
   private internalEndSession = (event?: PlayerEventBase) => {
+    if (!this.isSessionActive()) {
+      return;
+    }
+
     this.debugLog('[ ConvivaAnalytics ] end session', this.sessionKey, event);
     this.client.detachPlayer(this.sessionKey);
     this.client.cleanupSession(this.sessionKey);
     this.client.releasePlayerStateManager(this.playerStateManager);
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.contentMetadataBuilder.reset();
-
     this.lastSeenBitrate = null;
   };
+
+  private resetContentMetadata(): void {
+    this.contentMetadataBuilder.reset();
+  }
 
   private isSessionActive(): boolean {
     return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
@@ -532,6 +548,7 @@ export class ConvivaAnalytics {
 
     this.onPlaybackStateChanged(event);
     this.internalEndSession(event);
+    this.resetContentMetadata();
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
@@ -565,7 +582,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] adbreak started', event);
     this.isAd = true;
 
-    const adPosition = this.mapAdPosition(event.adBreak);
+    const adPosition = AdBreakHelper.mapAdPosition(event.adBreak, this.player);
 
     if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
@@ -575,22 +592,9 @@ export class ConvivaAnalytics {
     this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
   };
 
-  private mapAdPosition(adBreak: AdBreak): Conviva.Client.AdPosition {
-    if (adBreak.scheduleTime <= 0) {
-      return Conviva.Client.AdPosition.PREROLL;
-    }
-
-    if (adBreak.scheduleTime >= this.player.getDuration()) {
-      return Conviva.Client.AdPosition.POSTROLL;
-    }
-
-    return Conviva.Client.AdPosition.MIDROLL;
-  }
-
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
     this.debugLog('[ ConvivaAnalytics ] adbreak finished', event);
     this.isAd = false;
-
 
     if (!this.isSessionActive()) {
       // Don't report without a valid session (e.g., in case of a pre-roll, or post-roll ad)
@@ -671,9 +675,10 @@ export class ConvivaAnalytics {
     if (this.isAd) {
       // Ignore sourceUnloaded events during ads
       return;
+    } else {
+      this.internalEndSession(event);
+      this.resetContentMetadata();
     }
-
-    this.internalEndSession(event);
   };
 
   private onDestroy = (event: any) => {
@@ -695,8 +700,6 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Muted, this.onCustomEvent);
     playerEvents.add(this.events.Unmuted, this.onCustomEvent);
     playerEvents.add(this.events.ViewModeChanged, this.onCustomEvent);
-    playerEvents.add(this.events.CastStarted, this.onCustomEvent);
-    playerEvents.add(this.events.CastStopped, this.onCustomEvent);
     playerEvents.add(this.events.AdBreakStarted, this.onAdBreakStarted);
     playerEvents.add(this.events.AdBreakFinished, this.onAdBreakFinished);
     playerEvents.add(this.events.AdSkipped, this.onAdSkipped);
@@ -708,6 +711,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
+
+    playerEvents.add(this.events.CastStarted, this.onCustomEvent);
+    playerEvents.add(this.events.CastStopped, this.onCustomEvent);
   }
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
@@ -840,48 +846,5 @@ class PlayerEventWrapper {
         this.remove(eventType as PlayerEvent, callback);
       }
     }
-  }
-}
-
-/**
- * Extracted from bitmovin-player-ui
- */
-namespace ArrayUtils {
-  /**
-   * Removes an item from an array.
-   * @param array the array that may contain the item to remove
-   * @param item the item to remove from the array
-   * @returns {any} the removed item or null if it wasn't part of the array
-   */
-  export function remove<T>(array: T[], item: T): T | null {
-    const index = array.indexOf(item);
-
-    if (index > -1) {
-      return array.splice(index, 1)[0];
-    } else {
-      return null;
-    }
-  }
-}
-
-namespace ObjectUtils {
-  export function flatten(object: any, prefix: string = '') {
-    const eventAttributes: EventAttributes = {};
-
-    // Flatten the event object into a string-to-string dictionary with the object property hierarchy in dot notation
-    const objectWalker = (object: any, prefix: string) => {
-      for (const key in object) {
-        if (object.hasOwnProperty(key)) {
-          const value = object[key];
-          if (typeof value === 'object') {
-            objectWalker(value, prefix + key + '.');
-          } else {
-            eventAttributes[prefix + key] = String(value);
-          }
-        }
-      }
-    };
-
-    return eventAttributes;
   }
 }

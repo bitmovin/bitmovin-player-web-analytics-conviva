@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [3.0.2]
 
+### Added
 - `endSession` will now prevent a new session from being initialized via internal event handling
 
 ## [3.0.1]

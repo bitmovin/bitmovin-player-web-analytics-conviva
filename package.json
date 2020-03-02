@@ -24,7 +24,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^24.0.1",
-    "bitmovin-player": "8.2.0",
+    "bitmovin-player": "8.6.0",
     "bitmovin-player-ui": "^3.3.1",
     "create-file-webpack": "^1.0.2",
     "jest": "^24.1.0",

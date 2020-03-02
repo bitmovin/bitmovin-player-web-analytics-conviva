@@ -46,7 +46,11 @@ export class ContentMetadataBuilder {
       );
     }
 
-    this.metadataOverrides = newValue;
+    this.metadataOverrides = { ...this.metadataOverrides, ...newValue };
+  }
+
+  getOverrides(): Metadata {
+    return this.metadataOverrides;
   }
 
   setPlaybackStarted(value: boolean) {
