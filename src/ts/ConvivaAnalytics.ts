@@ -1,5 +1,5 @@
 import {
-  AdBreak, AdBreakEvent, AdEvent, CastStartedEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
+  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
   SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
@@ -45,7 +45,6 @@ export class ConvivaAnalytics {
   private static readonly VERSION: string = '{{VERSION}}';
 
   private static STALL_TRACKING_DELAY_MS = 100;
-  private static CAST_METADATA_TYPE = 'updateContentMetadata';
   private readonly player: Player;
   private events: typeof PlayerEvent;
   private readonly handlers: PlayerEventWrapper;
@@ -228,10 +227,6 @@ export class ConvivaAnalytics {
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadataOverrides: Metadata) {
-    if (this.player.isCasting()) {
-      this.propagateOverridesToReceiver(metadataOverrides);
-    }
-
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
@@ -278,18 +273,6 @@ export class ConvivaAnalytics {
     this.client.attachPlayer(this.sessionKey, this.playerStateManager);
     this.client.adEnd(this.sessionKey);
     this.debugLog('Tracking resumed.');
-  }
-
-  /**
-   * Use this method if you are using the conviva integration on a custom receiver app.
-   *
-   * See README.md for more information on how to use
-   * @param metadata
-   */
-  public handleCastMetadataEvent(metadata: any): void {
-    if (metadata.type === ConvivaAnalytics.CAST_METADATA_TYPE) {
-      this.internalUpdateContentMetadata(metadata.metadata);
-    }
   }
 
   public release(): void {
@@ -431,20 +414,6 @@ export class ConvivaAnalytics {
     this.client.updateContentMetadata(this.sessionKey, this.contentMetadataBuilder.build());
   }
 
-  // This will propagate content metadata overrides to the conviva instance of the receiver app
-  private propagateOverridesToReceiver(metadataOverrides?: Metadata) {
-    metadataOverrides = metadataOverrides || this.contentMetadataBuilder.getOverrides();
-
-    const metadataObject = {
-      type: ConvivaAnalytics.CAST_METADATA_TYPE,
-      metadata: metadataOverrides,
-    };
-
-    // The PlayerExports type does not contain the MetadataType but it is actually there so we need the as any cast.
-    const metadataType = (this.player.exports as any).MetadataType.CAST;
-    this.player.addMetadata(metadataType, metadataObject);
-  }
-
   private getAssetNameFromSource(source: SourceConfig): string {
     let assetName;
 
@@ -470,15 +439,8 @@ export class ConvivaAnalytics {
 
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
     this.lastSeenBitrate = null;
-
-    // As the session could be continued after casting we can't reset the contentMetadataBuilder here as we would lose
-    // content metadata attributes.
   };
 
-  // Do not reset if the session gets closed due to casting. Only reset content metadata on:
-  // - PlaybackFinished
-  // - SourceUnloaded
-  // - Error
   private resetContentMetadata(): void {
     this.contentMetadataBuilder.reset();
   }
@@ -750,15 +712,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
 
-    // We need to wait until the user chose a device for closing the session on the sender app
-    playerEvents.add(this.events.CastWaitingForDevice, this.onCastInitiated);
-    playerEvents.add(this.events.CastStarted, this.onCastStarted);
-    playerEvents.add(this.events.CastStopped, this.onCastStopped);
+    playerEvents.add(this.events.CastStarted, this.onCustomEvent);
+    playerEvents.add(this.events.CastStopped, this.onCustomEvent);
   }
-
-  private onCastStarted = () => {
-    this.propagateOverridesToReceiver();
-  };
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
     // Specific post-roll handling
@@ -787,27 +743,6 @@ export class ConvivaAnalytics {
       this.adBreakStartedToFire = event;
     } else {
       this.trackAdBreakStarted(event);
-    }
-  };
-
-  private onCastInitiated = (event: CastStartedEvent) => {
-    this.onCustomEvent(event);
-    this.internalEndSession(event);
-
-    // We don't want to receive events from the receiver as they could screw up the session handling on the sender App,
-    // so we unsubscribe from all events except from the CastStopped.
-    this.unregisterPlayerEvents();
-    this.handlers.add(this.events.CastStopped, this.onCastStopped);
-  };
-
-  private onCastStopped = () => {
-    // After casting we want all events again so subscribe again to all.
-    this.unregisterPlayerEvents();
-    this.registerPlayerEvents();
-
-    if (this.player.isPlaying() && !this.isSessionActive() && !this.sessionEndedExternally) {
-      this.internalInitializeSession();
-      this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
     }
   };
 

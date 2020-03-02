@@ -92,31 +92,6 @@ Build the JS file by running `npm run build`
 1. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
  
 ### Advanced Usage
-#### Chromecast support
-_If you are not familiar with how to add chromecast support we suggest to look at our [public sample](https://github.com/bitmovin/bitmovin-player-web-samples/tree/master/castReceiver) first._
-
-If you would like to add the conviva integration to your chromecast you can have a look at our [custom receiver app example](./example/chromecast/receiverApp.html) with conviva integration.
-
-As the player does not notify listeners on the receiver app itself if the session will be stopped you need to add a listener to the `onShutdown` and end the session manually.
-
-In order to do so you need to add following lines:
-
-```js
-cast.receiver.CastReceiverManager.getInstance().onShutdown = () => {
-  convivaAnalytics.endSession();
-}
-```
-
-If you are using the content metadata overriding feature you will have to add the following line within the `CastMetadataListener` callback:
-
-```js
-convivaAnalytics.handleCastMetadataEvent(metadata);
-```
-
-This will ensure that all your content metadata attributes are also present in the session of the receiver app.
-It will also enable you to use `updateContentMetadata` on the sender and it will be propagated to the receiver app.
-
-
 #### VPF tracking
 If you would like to track custom VPF (Video Playback Failures) events when no actual player error happens (e.g. 
 the server closes the connection and return `net::ERR_EMPTY_RESPONSE` or after a certain time of stalling)
