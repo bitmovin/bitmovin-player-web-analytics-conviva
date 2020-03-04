@@ -4,8 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Develop
+
+### Fixed
+- Send playing event after an ad break has finished.
+
 ## [3.0.3]
 
+### Added
 - Added a configuration option to set the Conviva Device Category. 
 
 ## [3.0.2]
