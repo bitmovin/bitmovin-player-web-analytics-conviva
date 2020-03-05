@@ -1,6 +1,6 @@
 {
   "name": "@bitmovin/player-integration-conviva",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "repository": {
     "type": "git",

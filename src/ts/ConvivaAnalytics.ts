@@ -602,6 +602,7 @@ export class ConvivaAnalytics {
     }
 
     this.client.adEnd(this.sessionKey);
+    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
   };
 
   private onAdSkipped = (event: AdEvent) => {
