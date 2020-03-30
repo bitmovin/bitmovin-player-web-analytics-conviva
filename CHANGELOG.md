@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.5]
+
+### Fixed
+- Updated `webpack-dev-server` to the latest version, to resolve console errors when running locally via `npm run start`.
+
 ## [3.0.4]
 
 ### Fixed
@@ -57,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[3.0.5]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.4...v3.0.5
 [3.0.4]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.1...v3.0.2
