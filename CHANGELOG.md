@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Develop
+## [3.0.6]
 
 ### Fixed
 - Prefer `window.setInterval()` in `Html5Timer.ts` instead of the NodeJS definition.
@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[3.0.6]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.5...v3.0.6
 [3.0.5]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.4...v3.0.5
 [3.0.4]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.3...v3.0.4
 [3.0.3]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.2...v3.0.3
