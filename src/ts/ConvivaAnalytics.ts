@@ -34,6 +34,14 @@ export interface ConvivaAnalyticsConfiguration {
    * user agent string parsing by the Conviva SDK. (default: WEB)
    */
   deviceCategory?: Conviva.Client.DeviceCategory;
+
+  deviceBrand?: string,
+  deviceManufacturer?: string;
+  deviceModel?: string;
+  deviceType?: Conviva.Client.DeviceType;
+  deviceVersion?: string;
+  operatingSystemName?: string;
+  operatingSystemVersion?: string;
 }
 
 export interface EventAttributes {
@@ -111,6 +119,13 @@ export class ConvivaAnalytics {
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
     this.config.deviceCategory = this.config.deviceCategory || Conviva.Client.DeviceCategory.WEB;
+    this.config.deviceBrand = this.config.deviceBrand || null;
+    this.config.deviceManufacturer = this.config.deviceManufacturer || null;
+    this.config.deviceModel = this.config.deviceModel || null;
+    this.config.deviceType = this.config.deviceType || null;
+    this.config.deviceVersion = this.config.deviceVersion || null;
+    this.config.operatingSystemName = this.config.operatingSystemName || null;
+    this.config.operatingSystemVersion = this.config.operatingSystemVersion || null;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Client.NO_SESSION_KEY;
@@ -118,6 +133,14 @@ export class ConvivaAnalytics {
 
     const deviceMetadata: DeviceMetadata = {
       deviceCategory: this.config.deviceCategory,
+      deviceBrand: this.config.deviceBrand,
+      deviceManufacturer: this.config.deviceManufacturer,
+      deviceModel: this.config.deviceModel,
+      deviceType: this.config.deviceType,
+      deviceVersion: this.config.deviceVersion,
+      operatingSystemName: this.config.operatingSystemName,
+      operatingSystemVersion: this.config.operatingSystemVersion,
+      
     };
 
     const systemInterface = new Conviva.SystemInterface(

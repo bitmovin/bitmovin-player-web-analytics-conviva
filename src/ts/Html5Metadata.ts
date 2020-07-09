@@ -2,6 +2,13 @@ import Client = Conviva.Client;
 
 export interface DeviceMetadata {
   deviceCategory: Conviva.Client.DeviceCategory;
+  deviceBrand: string | null,
+  deviceManufacturer: string | null;
+  deviceModel: string | null;
+  deviceType: Conviva.Client.DeviceType | null;
+  deviceVersion: string | null;
+  operatingSystemName: string | null;
+  operatingSystemVersion: string | null;
 }
 
 export class Html5Metadata implements Conviva.MetadataInterface {
@@ -23,27 +30,27 @@ export class Html5Metadata implements Conviva.MetadataInterface {
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getDeviceBrand(): string | null {
-    return null;
+    return this.metadata.deviceBrand;
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getDeviceManufacturer(): string | null {
-    return null;
+    return this.metadata.deviceManufacturer;
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getDeviceModel(): string | null {
-    return null;
+    return this.metadata.deviceModel;
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getDeviceType(): Client.DeviceType {
-    return null;
+    return this.metadata.deviceType;
   }
 
   // There is no value we can access that qualifies as the device version.
   public getDeviceVersion(): string | null {
-    return null;
+    return this.metadata.deviceVersion;
   }
 
   // HTML5 can qualify as an application framework of sorts.
@@ -58,12 +65,12 @@ export class Html5Metadata implements Conviva.MetadataInterface {
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getOperatingSystemName(): string | null {
-    return null;
+    return this.metadata.operatingSystemName;
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
   public getOperatingSystemVersion(): string | null {
-    return null;
+    return this.metadata.operatingSystemVersion;
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
