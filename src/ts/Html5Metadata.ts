@@ -2,7 +2,7 @@ import Client = Conviva.Client;
 
 export interface DeviceMetadata {
   deviceCategory: Conviva.Client.DeviceCategory;
-  deviceBrand: string | null,
+  deviceBrand: string | null;
   deviceManufacturer: string | null;
   deviceModel: string | null;
   deviceType: Conviva.Client.DeviceType | null;

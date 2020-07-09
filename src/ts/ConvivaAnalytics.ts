@@ -35,7 +35,7 @@ export interface ConvivaAnalyticsConfiguration {
    */
   deviceCategory?: Conviva.Client.DeviceCategory;
 
-  deviceBrand?: string,
+  deviceBrand?: string;
   deviceManufacturer?: string;
   deviceModel?: string;
   deviceType?: Conviva.Client.DeviceType;
@@ -140,7 +140,6 @@ export class ConvivaAnalytics {
       deviceVersion: this.config.deviceVersion,
       operatingSystemName: this.config.operatingSystemName,
       operatingSystemVersion: this.config.operatingSystemVersion,
-      
     };
 
     const systemInterface = new Conviva.SystemInterface(
