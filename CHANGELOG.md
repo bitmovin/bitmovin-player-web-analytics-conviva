@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Develop
+
+### Added
+- Added configuration options to set Html5Metadata interface values. (#60)
+
 ## [3.0.6]
 
 ### Fixed
