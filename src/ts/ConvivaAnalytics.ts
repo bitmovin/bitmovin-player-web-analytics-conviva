@@ -35,12 +35,46 @@ export interface ConvivaAnalyticsConfiguration {
    */
   deviceCategory?: Conviva.Client.DeviceCategory;
 
+  /**
+   * Option to override the Conviva Device Brand.
+   * (Default: Auto extract from User Agent string)
+   */
   deviceBrand?: string;
+
+  /**
+   * Option to override the Conviva Device Manufacturer.
+   * (Default: Auto extract from User Agent string)
+   */
   deviceManufacturer?: string;
+
+  /**
+   * Option to override the Conviva Device Model.
+   * (Default: Auto extract from User Agent string)
+   */
   deviceModel?: string;
+
+  /**
+   * Option to override the Conviva Device Type
+   * (Default: Auto extract from User Agent string)
+   */
   deviceType?: Conviva.Client.DeviceType;
+
+  /**
+   * Option to override the Conviva Device Model
+   * (Default: Auto extract from User Agent string)
+   */
   deviceVersion?: string;
+
+  /**
+   * Option to override the Conviva Operating System Name
+   * (Default: Auto extract from User Agent string)
+   */
   operatingSystemName?: string;
+
+  /**
+   * Option to override the Conviva Operating System Version
+   * (Default: Auto extract from User Agent string)
+   */
   operatingSystemVersion?: string;
 }
 

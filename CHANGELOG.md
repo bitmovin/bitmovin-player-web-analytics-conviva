@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Develop
 
 ### Added
-- Added configuration options to set Html5Metadata interface values. (#60)
+- Configuration options to set Html5Metadata interface values. (#60)
 
 ## [3.0.6]
 
