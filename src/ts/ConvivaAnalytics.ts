@@ -60,7 +60,7 @@ export interface ConvivaAnalyticsConfiguration {
   deviceType?: Conviva.Client.DeviceType;
 
   /**
-   * Option to override the Conviva Device Model
+   * Option to override the Conviva Device Version.
    * (Default: Auto extract from User Agent string)
    */
   deviceVersion?: string;
