@@ -33,7 +33,7 @@ export interface ConvivaAnalyticsConfiguration {
    * Option to set the Conviva Device Category, which is used to assist with
    * user agent string parsing by the Conviva SDK. (default: WEB)
    */
-  deviceCategory?: Conviva.Client.DeviceCategory;
+  deviceCategory?: Conviva.Constants.DeviceCategory;
 }
 
 export interface EventAttributes {
@@ -51,12 +51,13 @@ export class ConvivaAnalytics {
   private config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
 
-  private readonly systemFactory: Conviva.SystemFactory;
-  private readonly client: Conviva.Client;
-  private playerStateManager: Conviva.PlayerStateManager;
+  // private readonly systemFactory: Conviva.SystemFactory;
+  // private readonly client: Conviva.Client;
+  // private playerStateManager: Conviva.PlayerStateManager;
 
   private readonly logger: Conviva.LoggingInterface;
-  private sessionKey: number;
+  // private sessionKey: number;
+  private convivaVideoAnalytics: any;
 
   /**
    * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
@@ -79,7 +80,7 @@ export class ConvivaAnalytics {
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
+    // this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
   });
 
   /**
@@ -110,35 +111,41 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
-    this.config.deviceCategory = this.config.deviceCategory || Conviva.Client.DeviceCategory.WEB;
+    this.config.deviceCategory = this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
-    this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+    // this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
     this.isAd = false;
 
-    const deviceMetadata: DeviceMetadata = {
-      deviceCategory: this.config.deviceCategory,
-    };
+    // const deviceMetadata: DeviceMetadata = {
+    //   deviceCategory: this.config.deviceCategory,
+    // };
 
-    const systemInterface = new Conviva.SystemInterface(
-      new Html5Time(),
-      new Html5Timer(),
-      new Html5Http(),
-      new Html5Storage(),
-      new Html5Metadata(deviceMetadata),
-      this.logger,
-    );
+    let callbackFunctions = {} as {[key: string]: Function}
+    callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
+    callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
+    const html5Storage = new Html5Storage();
+    callbackFunctions[Conviva.Constants.CallbackFunctions.SAVE_DATA] = html5Storage.saveData;
+    callbackFunctions[Conviva.Constants.CallbackFunctions.SAVE_DATA] = html5Storage.loadData;
+    callbackFunctions[Conviva.Constants.CallbackFunctions.CREATE_TIMER] = new Html5Timer().createTimer;
+    callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
-    const systemSettings = new Conviva.SystemSettings();
-    this.systemFactory = new Conviva.SystemFactory(systemInterface, systemSettings);
+    // const systemSettings = new Conviva.SystemSettings();
+    // this.systemFactory = new Conviva.SystemFactory(systemInterface, systemSettings);
 
-    const clientSettings = new Conviva.ClientSettings(customerKey);
+    // const clientSettings = new Conviva.ClientSettings(customerKey);
 
-    if (config.gatewayUrl) {
-      clientSettings.gatewayUrl = config.gatewayUrl;
-    }
+    // if (config.gatewayUrl) {
+    //   clientSettings.gatewayUrl = config.gatewayUrl;
+    // }
 
-    this.client = new Conviva.Client(clientSettings, this.systemFactory);
+    var settings = {} as {[key: string]: string| number};
+ 
+    settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
+    settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
+    Conviva.Analytics.init(customerKey, callbackFunctions, settings);
+    // Conviva.Analytics.init(TEST_CUSTOMER_KEY, callbackFunctions, settings);
+    // this.client = new Conviva.Client(clientSettings, this.systemFactory);
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
 
     this.registerPlayerEvents();
@@ -196,7 +203,7 @@ export class ConvivaAnalytics {
    * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
    */
   public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
-    this.client.sendCustomEvent(Conviva.Client.NO_SESSION_KEY, eventName, eventAttributes);
+    // this.client.sendCustomEvent(Conviva.Client.NO_SESSION_KEY, eventName, eventAttributes);
   }
 
   /**
@@ -213,7 +220,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
+    // this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
   }
 
   /**
@@ -238,12 +245,12 @@ export class ConvivaAnalytics {
    * @param severity One of FATAL or WARNING
    * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
    */
-  public reportPlaybackDeficiency(message: string, severity: Conviva.Client.ErrorSeverity, endSession: boolean = true) {
+  public reportPlaybackDeficiency(message: string, severity: Conviva.Constants.ErrorSeverity, endSession: boolean = true) {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.client.reportError(this.sessionKey, message, severity);
+    // this.client.reportError(this.sessionKey, message, severity);
     if (endSession) {
       this.internalEndSession();
       this.resetContentMetadata();
@@ -255,13 +262,13 @@ export class ConvivaAnalytics {
    */
   public pauseTracking(): void {
     // AdStart is the right way to pause monitoring according to conviva.
-    this.client.adStart(
-      this.sessionKey,
-      Conviva.Client.AdStream.SEPARATE,
-      Conviva.Client.AdPlayer.SEPARATE,
-      Conviva.Client.AdPosition.PREROLL, // Also stops tracking time for VST so PREROLL seems to be sufficient
-    );
-    this.client.detachPlayer(this.sessionKey);
+    // this.client.adStart(
+    //   this.sessionKey,
+    //   Conviva.Client.AdStream.SEPARATE,
+    //   Conviva.Client.AdPlayer.SEPARATE,
+    //   Conviva.Client.AdPosition.PREROLL, // Also stops tracking time for VST so PREROLL seems to be sufficient
+    // );
+    // this.client.detachPlayer(this.sessionKey);
     this.debugLog('Tracking paused.');
   }
 
@@ -270,8 +277,8 @@ export class ConvivaAnalytics {
    */
   public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
-    this.client.attachPlayer(this.sessionKey, this.playerStateManager);
-    this.client.adEnd(this.sessionKey);
+    // this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+    // this.client.adEnd(this.sessionKey);
     this.debugLog('Tracking resumed.');
   }
 
@@ -282,8 +289,8 @@ export class ConvivaAnalytics {
   private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
     this.internalEndSession(event);
-    this.client.release();
-    this.systemFactory.release();
+    // this.client.release();
+    // this.systemFactory.release();
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -347,15 +354,18 @@ export class ConvivaAnalytics {
    */
   private internalInitializeSession() {
     // initialize PlayerStateManager
-    this.playerStateManager = this.client.getPlayerStateManager();
-    this.playerStateManager.setPlayerType('Bitmovin Player');
-    this.playerStateManager.setPlayerVersion(this.player.version);
+    // this.playerStateManager = this.client.getPlayerStateManager();
+    // this.playerStateManager.setPlayerType('Bitmovin Player');
+    // this.playerStateManager.setPlayerVersion(this.player.version);
 
     this.buildContentMetadata();
 
     // Create a Conviva monitoring session.
-    this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
-    this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
+    // this.sessionKey = this.client.createSession(this.contentMetadataBuilder.build()); // this will make the initial request
+    this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
+    console.log('!!!TEST', this.contentMetadataBuilder.build())
+    this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
+    // this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -363,11 +373,11 @@ export class ConvivaAnalytics {
         Conviva.SystemSettings.LogLevel.ERROR);
     }
 
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
-    this.client.attachPlayer(this.sessionKey, this.playerStateManager);
+    // this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.STOPPED);
+    // this.client.attachPlayer(this.sessionKey, this.playerStateManager);
 
     if (this.lastSeenBitrate) {
-      this.playerStateManager.setBitrateKbps(this.lastSeenBitrate);
+      // this.playerStateManager.setBitrateKbps(this.lastSeenBitrate);
     }
   }
 
@@ -411,7 +421,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.client.updateContentMetadata(this.sessionKey, this.contentMetadataBuilder.build());
+    this.convivaVideoAnalytics.updateContentMetadata(this.contentMetadataBuilder.build());
   }
 
   private getAssetNameFromSource(source: SourceConfig): string {
@@ -428,25 +438,27 @@ export class ConvivaAnalytics {
   }
 
   private internalEndSession = (event?: PlayerEventBase) => {
-    if (!this.isSessionActive()) {
-      return;
-    }
+    // if (!this.isSessionActive()) {
+    //   return;
+    // }
 
-    this.debugLog('[ ConvivaAnalytics ] end session', this.sessionKey, event);
-    this.client.detachPlayer(this.sessionKey);
-    this.client.cleanupSession(this.sessionKey);
-    this.client.releasePlayerStateManager(this.playerStateManager);
+    // this.debugLog('[ ConvivaAnalytics ] end session', this.sessionKey, event);
+    // this.client.detachPlayer(this.sessionKey);
+    // this.client.cleanupSession(this.sessionKey);
+    // this.client.releasePlayerStateManager(this.playerStateManager);
 
-    this.sessionKey = Conviva.Client.NO_SESSION_KEY;
-    this.lastSeenBitrate = null;
+    // this.sessionKey = Conviva.Client.NO_SESSION_KEY;
+    // this.lastSeenBitrate = null;
   };
 
   private resetContentMetadata(): void {
-    this.contentMetadataBuilder.reset();
+    // this.contentMetadataBuilder.reset();
   }
 
   private isSessionActive(): boolean {
-    return this.sessionKey !== Conviva.Client.NO_SESSION_KEY;
+    // update with video analytics
+    return !!this.convivaVideoAnalytics;
+    // return this.sessionKey !== Conviva.Constants.NO_SESSION_KEY;
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
@@ -466,7 +478,7 @@ export class ConvivaAnalytics {
         break;
       case this.events.StallStarted:
         this.stallTrackingTimout.clear();
-        playerState = Conviva.PlayerStateManager.PlayerState.BUFFERING;
+        playerState = Conviva.Constants.PlayerState.BUFFERING;
         break;
       case this.events.Playing:
         this.stallTrackingTimout.clear();
@@ -478,31 +490,31 @@ export class ConvivaAnalytics {
           this.adBreakStartedToFire = null;
         }
 
-        playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+        playerState = Conviva.Constants.PlayerState.PLAYING;
         break;
       case this.events.Paused:
         this.stallTrackingTimout.clear();
-        playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+        playerState = Conviva.Constants.PlayerState.PAUSED;
         break;
       case this.events.Seeked:
       case this.events.TimeShifted:
       case this.events.StallEnded:
         this.stallTrackingTimout.clear();
         if (this.player.isPlaying()) {
-          playerState = Conviva.PlayerStateManager.PlayerState.PLAYING;
+          playerState = Conviva.Constants.PlayerState.PLAYING;
         } else {
-          playerState = Conviva.PlayerStateManager.PlayerState.PAUSED;
+          playerState = Conviva.Constants.PlayerState.PAUSED;
         }
         break;
       case this.events.PlaybackFinished:
         this.stallTrackingTimout.clear();
-        playerState = Conviva.PlayerStateManager.PlayerState.STOPPED;
+        playerState = Conviva.Constants.PlayerState.STOPPED;
         break;
     }
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      this.playerStateManager.setPlayerState(playerState);
+      // this.playerStateManager.setPlayerState(playerState);
     }
   };
 
@@ -533,10 +545,10 @@ export class ConvivaAnalytics {
   };
 
   private onPlaying = (event: PlaybackEvent) => {
-    this.contentMetadataBuilder.setPlaybackStarted(true);
-    this.debugLog('[ Player Event ] playing', event);
-    this.updateSession();
-    this.onPlaybackStateChanged(event);
+    // this.contentMetadataBuilder.setPlaybackStarted(true);
+    // this.debugLog('[ Player Event ] playing', event);
+    // this.updateSession();
+    // this.onPlaybackStateChanged(event);
   };
 
   private onPlaybackFinished = (event: PlayerEventBase) => {
@@ -565,7 +577,7 @@ export class ConvivaAnalytics {
     }
 
     this.lastSeenBitrate = null;
-    this.playerStateManager.setBitrateKbps(bitrateKbps);
+    // this.playerStateManager.setBitrateKbps(bitrateKbps);
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {
@@ -589,7 +601,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
+    // this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
   };
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
@@ -601,8 +613,8 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.client.adEnd(this.sessionKey);
-    this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+    // this.client.adEnd(this.sessionKey);
+    // this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -656,11 +668,11 @@ export class ConvivaAnalytics {
   };
 
   private trackSeekStart(target: number) {
-    this.playerStateManager.setPlayerSeekStart(Math.round(target));
+    // this.playerStateManager.setPlayerSeekStart(Math.round(target));
   }
 
   private trackSeekEnd() {
-    this.playerStateManager.setPlayerSeekEnd();
+    // this.playerStateManager.setPlayerSeekEnd();
   }
 
   private onError = (event: ErrorEvent) => {
@@ -669,7 +681,7 @@ export class ConvivaAnalytics {
       this.internalInitializeSession();
     }
 
-    this.reportPlaybackDeficiency(String(event.code) + ' ' + event.name, Conviva.Client.ErrorSeverity.FATAL);
+    this.reportPlaybackDeficiency(String(event.code) + ' ' + event.name, Conviva.Constants.ErrorSeverity.FATAL);
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
