@@ -1,6 +1,6 @@
 declare namespace Conviva {
 
-  namespace Client {
+  namespace Constants {
     enum AdPlayer {
       CONTENT,
       SEPARATE,
@@ -51,46 +51,107 @@ declare namespace Conviva {
       WARNING,
     }
 
+    enum CallbackFunctions {
+      CONSOLE_LOG,
+      MAKE_REQUEST,
+      SAVE_DATA,
+      LOAD_DATA,
+      CREATE_TIMER,
+      GET_EPOCH_TIME_IN_MS,
+    }
+
+    enum Playback {
+      PLAYER_STATE,
+    }
+
+    enum PlayerState {
+      STOPPED,
+      PLAYING,
+      BUFFERING,
+      PAUSED,
+      UNKNOWN,
+      NOT_MONITORED,
+    }
+
     const NO_SESSION_KEY: number;
 
     const version: string;
+
+    const GATEWAY_URL: string;
+
+    const LOG_LEVEL: string;
+
+    const ASSET_NAME: string;
+
+    const PLAYER_NAME: string;
+
+    const ENCODED_FRAMERATE: string;
+
+    const DURATION: string;
+
+    const DEFAULT_RESOURCE: string;
+  
+    const STREAM_URL: string;
+
+    const IS_LIVE: string;
+
+    const VIEWER_ID: string;
+
+    enum LogLevel {
+      DEBUG,
+      INFO,
+      WARNING,
+      ERROR,
+      NONE,
+    }
+
+    enum StreamType {
+      UNKNOWN,
+      LIVE,
+      VOD,
+    }
   }
 
-  class Client {
-    constructor(settings: ClientSettings, systemFactory: SystemFactory);
+  // class Client {
+  //   constructor(settings: ClientSettings, systemFactory: SystemFactory);
 
-    public adEnd(sessionKey: number): void;
+  //   public adEnd(sessionKey: number): void;
 
-    public adStart(
-      sessionKey: number,
-      adStream: Client.AdStream,
-      adPlayer: Client.AdPlayer,
-      adPosition: Client.AdPosition,
-    ): void;
+  //   public adStart(
+  //     sessionKey: number,
+  //     adStream: Client.AdStream,
+  //     adPlayer: Client.AdPlayer,
+  //     adPosition: Client.AdPosition,
+  //   ): void;
 
-    public attachPlayer(sessionKey: number, playerStateManager: PlayerStateManager): void;
+  //   public attachPlayer(sessionKey: number, playerStateManager: PlayerStateManager): void;
 
-    public cleanupSession(sessionKey: number): void;
+  //   public cleanupSession(sessionKey: number): void;
 
-    public contentPreload(sessionKey: number): void;
+  //   public contentPreload(sessionKey: number): void;
 
-    public contentStart(sessionKey: number): void;
+  //   public contentStart(sessionKey: number): void;
 
-    public createSession(contentMetadata: ContentMetadata | null): number;
+  //   public createSession(contentMetadata: ContentMetadata | null): number;
 
-    public detachPlayer(sessionKey: number): void;
+  //   public detachPlayer(sessionKey: number): void;
 
-    public getPlayerStateManager(): PlayerStateManager;
+  //   public getPlayerStateManager(): PlayerStateManager;
 
-    public release(): void;
+  //   public release(): void;
 
-    public releasePlayerStateManager(playerStateManager: PlayerStateManager): void;
+  //   public releasePlayerStateManager(playerStateManager: PlayerStateManager): void;
 
-    public reportError(sessionKey: number, errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
+  //   public reportError(sessionKey: number, errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
 
-    public sendCustomEvent(sessionKey: number, eventName: string, eventAttributes: {}): void;
+  //   public sendCustomEvent(sessionKey: number, eventName: string, eventAttributes: {}): void;
 
-    public updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
+  //   public updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
+  // }
+
+  class Analytics {
+    public static init(customerKey: string, callbackFunctions: any, settings: {[key: string]: string| number}): void;
+    public static buildVideoAnalytics(): any;
   }
 
   class ClientSettings {
@@ -155,7 +216,7 @@ declare namespace Conviva {
 
     getDeviceModel(): string | null;
 
-    getDeviceType(): Client.DeviceType;
+    getDeviceType(): Constants.DeviceType;
 
     getDeviceVersion(): string | null;
 
@@ -167,67 +228,67 @@ declare namespace Conviva {
 
     getOperatingSystemVersion(): string | null;
 
-    getDeviceCategory(): Conviva.Client.DeviceCategory | null;
+    getDeviceCategory(): Constants.DeviceCategory | null;
 
     release(): void;
   }
 
-  namespace PlayerStateManager {
-    enum PlayerState {
-      STOPPED,
-      PLAYING,
-      BUFFERING,
-      PAUSED,
-      UNKNOWN,
-      NOT_MONITORED,
-    }
-  }
+  // namespace PlayerStateManager {
+  //   enum PlayerState {
+  //     STOPPED,
+  //     PLAYING,
+  //     BUFFERING,
+  //     PAUSED,
+  //     UNKNOWN,
+  //     NOT_MONITORED,
+  //   }
+  // }
 
-  class PlayerStateManager {
-    public getBitrateKbps(): number;
+  // class PlayerStateManager {
+  //   public getBitrateKbps(): number;
 
-    public getDuration(): number;
+  //   public getDuration(): number;
 
-    public getEncodedFrameRate(): number;
+  //   public getEncodedFrameRate(): number;
 
-    public getPlayerState(): PlayerStateManager.PlayerState;
+  //   public getPlayerState(): PlayerStateManager.PlayerState;
 
-    public getPlayerType(): string | null;
+  //   public getPlayerType(): string | null;
 
-    public getPlayerVersion(): string | null;
+  //   public getPlayerVersion(): string | null;
 
-    public getRenderedFrameRate(): number;
+  //   public getRenderedFrameRate(): number;
 
-    public release(): void;
+  //   public release(): void;
 
-    public reset(): void;
+  //   public reset(): void;
 
-    public sendError(errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
+  //   public sendError(errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
 
-    public setBitrateKbps(newBitrateKbps: number): void;
+  //   public setBitrateKbps(newBitrateKbps: number): void;
 
-    public setDuration(duration: number): void;
+  //   public setDuration(duration: number): void;
 
-    public setEncodedFrameRate(encodedFrameRate: number): void;
+  //   public setEncodedFrameRate(encodedFrameRate: number): void;
 
-    public setPlayerSeekEnd(): void;
+  //   public setPlayerSeekEnd(): void;
 
-    public setPlayerSeekStart(seekToPos: number): void;
+  //   public setPlayerSeekStart(seekToPos: number): void;
 
-    public setPlayerState(newState: PlayerStateManager.PlayerState): void;
+  //   public setPlayerState(newState: PlayerStateManager.PlayerState): void;
 
-    public setPlayerType(playerType: string): void;
+  //   public setPlayerType(playerType: string): void;
 
-    public setPlayerVersion(playerVersion: string): void;
+  //   public setPlayerVersion(playerVersion: string): void;
 
-    public setRenderedFrameRate(renderedFrameRate: number): void;
+  //   public setRenderedFrameRate(renderedFrameRate: number): void;
 
-    public setStreamUrl(streamUrl: string): void;
+  //   public setStreamUrl(streamUrl: string): void;
 
-    public setUserSeekButtonDown(): void;
+  //   public setUserSeekButtonDown(): void;
 
-    public setUserSeekButtonUp(): void;
-  }
+  //   public setUserSeekButtonUp(): void;
+  // }
 
   type StorageLoadDataCallback = (succeeded: boolean, data: string | null) => void;
 
@@ -241,22 +302,22 @@ declare namespace Conviva {
     release(): void;
   }
 
-  class SystemFactory {
-    constructor(systemInterface: SystemInterface, systemSettings: SystemSettings);
+  // class SystemFactory {
+  //   constructor(systemInterface: SystemInterface, systemSettings: SystemSettings);
 
-    public release(): void;
-  }
+  //   public release(): void;
+  // }
 
-  class SystemInterface {
-    constructor(
-      timeInterface: TimeInterface,
-      timerInterface: TimerInterface,
-      httpInterface: HttpInterface,
-      storageInterface: StorageInterface,
-      metadataInterface: MetadataInterface,
-      loggingInterface: LoggingInterface,
-    );
-  }
+  // class SystemInterface {
+  //   constructor(
+  //     timeInterface: TimeInterface,
+  //     timerInterface: TimerInterface,
+  //     httpInterface: HttpInterface,
+  //     storageInterface: StorageInterface,
+  //     metadataInterface: MetadataInterface,
+  //     loggingInterface: LoggingInterface,
+  //   );
+  // }
 
   namespace SystemSettings {
     enum LogLevel {
