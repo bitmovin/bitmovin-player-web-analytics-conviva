@@ -51,10 +51,6 @@ export class ConvivaAnalytics {
   private config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
 
-  // private readonly systemFactory: Conviva.SystemFactory;
-  // private readonly client: Conviva.Client;
-  // private playerStateManager: Conviva.PlayerStateManager;
-
   private readonly logger: Conviva.LoggingInterface;
   private sessionKey: number;
   private convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
@@ -122,35 +118,31 @@ export class ConvivaAnalytics {
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
     this.isAd = false;
 
-    // const deviceMetadata: DeviceMetadata = {
-    //   deviceCategory: this.config.deviceCategory,
-    // };
+    const deviceMetadata: DeviceMetadata = {
+      deviceCategory: this.config.deviceCategory,
+    };
 
     let callbackFunctions = {} as {[key: string]: Function}
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
-    // const html5Storage = new Html5Storage();
-    // callbackFunctions[Conviva.Constants.CallbackFunctions.SAVE_DATA] = html5Storage.saveData;
-    // callbackFunctions[Conviva.Constants.CallbackFunctions.SAVE_DATA] = html5Storage.loadData;
+    const html5Storage = new Html5Storage();
+    callbackFunctions[Conviva.Constants.CallbackFunctions.SAVE_DATA] = html5Storage.saveData;
+    callbackFunctions[Conviva.Constants.CallbackFunctions.LOAD_DATA] = html5Storage.loadData;
     callbackFunctions[Conviva.Constants.CallbackFunctions.CREATE_TIMER] = new Html5Timer().createTimer;
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
-    // const systemSettings = new Conviva.SystemSettings();
-    // this.systemFactory = new Conviva.SystemFactory(systemInterface, systemSettings);
 
-    // const clientSettings = new Conviva.ClientSettings(customerKey);
+    // If gatewayUrl exists init in production mode for session monitoring. Otherwise init for production
+    if (config.gatewayUrl) {
+      const settings = {} as {[key: string]: string| number};
+      settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
+      settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
 
-    // if (config.gatewayUrl) {
-    //   clientSettings.gatewayUrl = config.gatewayUrl;
-    // }
-
-    var settings = {} as {[key: string]: string| number};
+      Conviva.Analytics.init(customerKey, callbackFunctions, settings);
+    } else {
+      Conviva.Analytics.init(customerKey, callbackFunctions);
+    }
  
-    settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
-    settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
-    Conviva.Analytics.init(customerKey, callbackFunctions, settings);
-    // Conviva.Analytics.init(TEST_CUSTOMER_KEY, callbackFunctions, settings);
-    // this.client = new Conviva.Client(clientSettings, this.systemFactory);
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
 
     this.registerPlayerEvents();
@@ -225,7 +217,7 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // this.client.sendCustomEvent(this.sessionKey, eventName, eventAttributes);
+    // TODO: Look further into custom events. The API from 2.x -> 4.x appears to have lost the option for custom events
   }
 
   /**
@@ -267,13 +259,10 @@ export class ConvivaAnalytics {
    */
   public pauseTracking(): void {
     // AdStart is the right way to pause monitoring according to conviva.
-    // this.client.adStart(
-    //   this.sessionKey,
-    //   Conviva.Client.AdStream.SEPARATE,
-    //   Conviva.Client.AdPlayer.SEPARATE,
-    //   Conviva.Client.AdPosition.PREROLL, // Also stops tracking time for VST so PREROLL seems to be sufficient
-    // );
-    // this.client.detachPlayer(this.sessionKey);
+    this.convivaVideoAnalytics.reportAdBreakStarted(
+      Conviva.Constants.AdType.CLIENT_SIDE,
+      Conviva.Constants.AdPlayer.SEPARATE
+    );
     this.debugLog('Tracking paused.');
   }
 
@@ -282,8 +271,7 @@ export class ConvivaAnalytics {
    */
   public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
-    // this.client.attachPlayer(this.sessionKey, this.playerStateManager);
-    // this.client.adEnd(this.sessionKey);
+    this.convivaVideoAnalytics.reportAdBreakEnded();
     this.debugLog('Tracking resumed.');
   }
 
@@ -294,8 +282,8 @@ export class ConvivaAnalytics {
   private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
     this.internalEndSession(event);
-    // this.client.release();
-    // this.systemFactory.release();
+    this.convivaVideoAnalytics.release();
+    Conviva.Analytics.release();
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -358,11 +346,6 @@ export class ConvivaAnalytics {
    *  - encodedFrameRate (unused)
    */
   private internalInitializeSession() {
-    // initialize PlayerStateManager
-    // this.playerStateManager = this.client.getPlayerStateManager();
-    // this.playerStateManager.setPlayerType('Bitmovin Player');
-    // this.playerStateManager.setPlayerVersion(this.player.version);
-
     this.buildContentMetadata();
 
     // Create a Conviva monitoring session.
@@ -375,7 +358,7 @@ export class ConvivaAnalytics {
         this.playheadTimeMs
       );
     });
-    // this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
+    this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
       // Something went wrong. With stable system interfaces, this should never happen.
@@ -598,7 +581,7 @@ export class ConvivaAnalytics {
     }
 
     const eventAttributes = ObjectUtils.flatten(event);
-    // this.sendCustomPlaybackEvent(event.type, eventAttributes);
+    this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
   private trackAdBreakStarted = (event: AdBreakEvent) => {
@@ -612,7 +595,10 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // this.client.adStart(this.sessionKey, Conviva.Client.AdStream.SEPARATE, Conviva.Client.AdPlayer.CONTENT, adPosition);
+    this.convivaVideoAnalytics.reportAdBreakStarted(
+      Conviva.Constants.AdType.CLIENT_SIDE,
+      Conviva.Constants.AdPlayer.SEPARATE
+    );
   };
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
@@ -624,8 +610,8 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // this.client.adEnd(this.sessionKey);
-    // this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.PLAYING);
+    this.convivaVideoAnalytics.reportAdBreakEnded();
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING)
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -687,11 +673,11 @@ export class ConvivaAnalytics {
   }
 
   private trackSeekStart(target: number) {
-    // this.playerStateManager.setPlayerSeekStart(Math.round(target));
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_STARTED);
   }
 
   private trackSeekEnd() {
-    // this.playerStateManager.setPlayerSeekEnd();
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
 
   private onError = (event: ErrorEvent) => {

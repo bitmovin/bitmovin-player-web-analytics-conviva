@@ -131,45 +131,8 @@ declare namespace Conviva {
     }
   }
 
-  // class Client {
-  //   constructor(settings: ClientSettings, systemFactory: SystemFactory);
-
-  //   public adEnd(sessionKey: number): void;
-
-  //   public adStart(
-  //     sessionKey: number,
-  //     adStream: Client.AdStream,
-  //     adPlayer: Client.AdPlayer,
-  //     adPosition: Client.AdPosition,
-  //   ): void;
-
-  //   public attachPlayer(sessionKey: number, playerStateManager: PlayerStateManager): void;
-
-  //   public cleanupSession(sessionKey: number): void;
-
-  //   public contentPreload(sessionKey: number): void;
-
-  //   public contentStart(sessionKey: number): void;
-
-  //   public createSession(contentMetadata: ContentMetadata | null): number;
-
-  //   public detachPlayer(sessionKey: number): void;
-
-  //   public getPlayerStateManager(): PlayerStateManager;
-
-  //   public release(): void;
-
-  //   public releasePlayerStateManager(playerStateManager: PlayerStateManager): void;
-
-  //   public reportError(sessionKey: number, errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
-
-  //   public sendCustomEvent(sessionKey: number, eventName: string, eventAttributes: {}): void;
-
-  //   public updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
-  // }
-
   class Analytics {
-    public static init(customerKey: string, callbackFunctions: any, settings: {[key: string]: string| number}): void;
+    public static init(customerKey: string, callbackFunctions: any, settings?: {[key: string]: string| number}): void;
     public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
     public static release(): void;
   }
@@ -279,63 +242,6 @@ declare namespace Conviva {
     release(): void;
   }
 
-  // namespace PlayerStateManager {
-  //   enum PlayerState {
-  //     STOPPED,
-  //     PLAYING,
-  //     BUFFERING,
-  //     PAUSED,
-  //     UNKNOWN,
-  //     NOT_MONITORED,
-  //   }
-  // }
-
-  // class PlayerStateManager {
-  //   public getBitrateKbps(): number;
-
-  //   public getDuration(): number;
-
-  //   public getEncodedFrameRate(): number;
-
-  //   public getPlayerState(): PlayerStateManager.PlayerState;
-
-  //   public getPlayerType(): string | null;
-
-  //   public getPlayerVersion(): string | null;
-
-  //   public getRenderedFrameRate(): number;
-
-  //   public release(): void;
-
-  //   public reset(): void;
-
-  //   public sendError(errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
-
-  //   public setBitrateKbps(newBitrateKbps: number): void;
-
-  //   public setDuration(duration: number): void;
-
-  //   public setEncodedFrameRate(encodedFrameRate: number): void;
-
-  //   public setPlayerSeekEnd(): void;
-
-  //   public setPlayerSeekStart(seekToPos: number): void;
-
-  //   public setPlayerState(newState: PlayerStateManager.PlayerState): void;
-
-  //   public setPlayerType(playerType: string): void;
-
-  //   public setPlayerVersion(playerVersion: string): void;
-
-  //   public setRenderedFrameRate(renderedFrameRate: number): void;
-
-  //   public setStreamUrl(streamUrl: string): void;
-
-  //   public setUserSeekButtonDown(): void;
-
-  //   public setUserSeekButtonUp(): void;
-  // }
-
   type StorageLoadDataCallback = (succeeded: boolean, data: string | null) => void;
 
   type StorageSaveDataCallback = (succeeded: boolean, data: string | null) => void;
@@ -347,23 +253,6 @@ declare namespace Conviva {
 
     release(): void;
   }
-
-  // class SystemFactory {
-  //   constructor(systemInterface: SystemInterface, systemSettings: SystemSettings);
-
-  //   public release(): void;
-  // }
-
-  // class SystemInterface {
-  //   constructor(
-  //     timeInterface: TimeInterface,
-  //     timerInterface: TimerInterface,
-  //     httpInterface: HttpInterface,
-  //     storageInterface: StorageInterface,
-  //     metadataInterface: MetadataInterface,
-  //     loggingInterface: LoggingInterface,
-  //   );
-  // }
 
   namespace SystemSettings {
     enum LogLevel {
