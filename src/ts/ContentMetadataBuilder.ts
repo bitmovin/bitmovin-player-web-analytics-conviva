@@ -88,6 +88,7 @@ export class ContentMetadataBuilder {
     convivaContentInfo[Conviva.Constants.STREAM_URL] = this.contentMetadata.streamUrl;
     convivaContentInfo[Conviva.Constants.IS_LIVE] = this.contentMetadata.streamType;
     convivaContentInfo[Conviva.Constants.VIEWER_ID] = this.contentMetadata.viewerId;
+    convivaContentInfo[Conviva.Constants.PLAYER_NAME] = this.contentMetadata.applicationName;
 
     return {...convivaContentInfo, ...this.contentMetadata.custom};
   }

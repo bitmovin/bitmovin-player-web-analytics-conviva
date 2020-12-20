@@ -61,7 +61,21 @@ declare namespace Conviva {
     }
 
     enum Playback {
+      BITRATE,
+      BUFFER_LENGTH,
+      CDN_IP,
       PLAYER_STATE,
+      PLAY_HEAD_TIME,
+      RENDERED_FRAMERATE,
+      RESOLUTION,
+      SEEK_ENDED,
+      SEEK_STARTED,
+    }
+
+    enum Network {
+      CONNECTION_TYPE,
+      LINK_ENCRYPTION,
+      SIGNAL_STRENGTH,
     }
 
     enum PlayerState {
@@ -110,6 +124,11 @@ declare namespace Conviva {
       LIVE,
       VOD,
     }
+
+    enum AdType {
+      CLIENT_SIDE,
+      SERVER_SIDE,
+    }
   }
 
   // class Client {
@@ -151,7 +170,34 @@ declare namespace Conviva {
 
   class Analytics {
     public static init(customerKey: string, callbackFunctions: any, settings: {[key: string]: string| number}): void;
-    public static buildVideoAnalytics(): any;
+    public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
+    public static release(): void;
+  }
+
+  interface ConvivaVideoAnalytics {
+    reportPlaybackRequested(contentInfo?: {[key: string]: number | string}): void;
+
+    reportPlaybackFailed(errorMessage: string, contentInfo?: {[key: string]: number | string}): void;
+
+    reportPlaybackEnded(): void;
+
+    setContentInfo(contentInfo: {[key: string]: number | string}): void;
+
+    setPlayerInfo(playerInfo: {[key: string]: number | string}): void;
+
+    reportPlaybackMetric(event: Conviva.Constants.Playback | Conviva.Constants.PlayerState, value?: string | number): void;
+
+    reportDeviceMetric(metric: Conviva.Constants.Network, value?: string | number): void;
+
+    reportAdBreakStarted(adType: Conviva.Constants.AdType, adPlayer: Conviva.Constants.AdPlayer): void;
+
+    reportAdBreakEnded(): void;
+
+    setCallback(callback: Function): void;
+
+    getSessionId(): number;
+
+    release(): void;
   }
 
   class ClientSettings {
