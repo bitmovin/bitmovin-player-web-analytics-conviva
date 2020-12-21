@@ -6,15 +6,13 @@ import { ConvivaAnalytics } from '../../src/ts';
 describe('player event tests', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let clientMock: Conviva.Client;
-  let playerStateMock: Conviva.PlayerStateManager;
+  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics
 
   beforeEach(() => {
     MockHelper.mockConviva();
 
     playerMock = MockHelper.getPlayerMock();
-    clientMock = MockHelper.getConvivaClientMock();
-    playerStateMock = clientMock.getPlayerStateManager();
+    convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
     convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
   });

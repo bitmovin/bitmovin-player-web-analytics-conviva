@@ -188,6 +188,7 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.convivaVideoAnalytics.reportPlaybackEnded();
     this.internalEndSession();
     this.resetContentMetadata();
     this.sessionEndedExternally = true;
