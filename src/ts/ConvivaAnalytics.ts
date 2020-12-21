@@ -122,7 +122,7 @@ export class ConvivaAnalytics {
       deviceCategory: this.config.deviceCategory,
     };
 
-    let callbackFunctions = {} as {[key: string]: Function}
+    let callbackFunctions = {} as {[key: string]: Function};
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
     const html5Storage = new Html5Storage();
@@ -142,7 +142,7 @@ export class ConvivaAnalytics {
     } else {
       Conviva.Analytics.init(customerKey, callbackFunctions);
     }
- 
+
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
 
     this.registerPlayerEvents();
@@ -263,7 +263,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      Conviva.Constants.AdPosition.PREROLL
+      Conviva.Constants.AdPosition.PREROLL,
     );
     this.debugLog('Tracking paused.');
   }
@@ -357,7 +357,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.setCallback(() => {
       this.convivaVideoAnalytics.reportPlaybackMetric(
         Conviva.Constants.Playback.PLAY_HEAD_TIME,
-        this.playheadTimeMs
+        this.playheadTimeMs,
       );
     });
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
@@ -371,7 +371,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
 
     if (this.lastSeenBitrate) {
-      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, this.lastSeenBitrate)
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, this.lastSeenBitrate);
     }
   }
 
@@ -510,7 +510,7 @@ export class ConvivaAnalytics {
 
     if (playerState) {
       this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState)
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
     }
   };
 
@@ -600,7 +600,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      adPosition
+      adPosition,
     );
   };
 
@@ -614,7 +614,7 @@ export class ConvivaAnalytics {
     }
 
     this.convivaVideoAnalytics.reportAdBreakEnded();
-    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING)
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -669,7 +669,7 @@ export class ConvivaAnalytics {
 
   private onTimeChanged = (event: TimeChangedEvent) => {
     if (!this.isSessionActive()) {
-      return
+      return;
     }
 
     this.playheadTimeMs = event.time * 1000;

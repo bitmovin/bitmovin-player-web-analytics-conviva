@@ -104,7 +104,7 @@ declare namespace Conviva {
     const DURATION: string;
 
     const DEFAULT_RESOURCE: string;
-  
+
     const STREAM_URL: string;
 
     const IS_LIVE: string;
