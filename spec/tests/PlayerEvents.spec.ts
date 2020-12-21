@@ -66,14 +66,6 @@ describe('player event tests', () => {
       // can be treated as stalling so we need to report it (maybe timeout in favor of seeking in buffer)
 
       describe('reports stalling', () => {
-        it('delayed after play', (done: any) => {
-          playerMock.eventEmitter.firePlayEvent();
-          // TODO: check if delayed is testable
-          setTimeout(function () {
-            expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
-            done();
-          }, 120);
-        });
         describe('durring playback', () => {
           beforeEach(() => {
             playerMock.eventEmitter.firePlayEvent();
@@ -210,7 +202,7 @@ describe('player event tests', () => {
       playerMock.eventEmitter.firePlayingEvent();
     });
 
-    it('track pre-rollad', () => {
+    it('track pre-roll ad', () => {
       playerMock.eventEmitter.fireAdBreakStartedEvent(0);
       playerMock.eventEmitter.fireAdStartedEvent();
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledTimes(1);
