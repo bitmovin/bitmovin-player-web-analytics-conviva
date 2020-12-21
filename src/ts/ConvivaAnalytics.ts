@@ -262,7 +262,8 @@ export class ConvivaAnalytics {
     // AdStart is the right way to pause monitoring according to conviva.
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
-      Conviva.Constants.AdPlayer.SEPARATE
+      Conviva.Constants.AdPlayer.SEPARATE,
+      Conviva.Constants.AdPosition.PREROLL
     );
     this.debugLog('Tracking paused.');
   }
@@ -598,7 +599,8 @@ export class ConvivaAnalytics {
 
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
-      Conviva.Constants.AdPlayer.SEPARATE
+      Conviva.Constants.AdPlayer.SEPARATE,
+      adPosition
     );
   };
 

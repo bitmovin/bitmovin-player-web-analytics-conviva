@@ -152,7 +152,7 @@ declare namespace Conviva {
 
     reportDeviceMetric(metric: Conviva.Constants.Network, value?: string | number): void;
 
-    reportAdBreakStarted(adType: Conviva.Constants.AdType, adPlayer: Conviva.Constants.AdPlayer): void;
+    reportAdBreakStarted(adType: Conviva.Constants.AdType, adPlayer: Conviva.Constants.AdPlayer, position?: Conviva.Constants.AdPosition): void;
 
     reportAdBreakEnded(): void;
 

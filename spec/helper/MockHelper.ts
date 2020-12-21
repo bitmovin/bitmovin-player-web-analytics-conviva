@@ -66,6 +66,23 @@ export namespace MockHelper {
         UNKNOWN: 'unknown',
         LIVE: 'live',
         VOD: 'VOD',
+      },
+      ErrorSeverity: {
+        FATAL: 1,
+        WARNING: 0,
+      },
+      AdPosition: {
+        MIDROLL: 'Mid-roll',
+        PREROLL: 'Pre-roll',
+        POSTROLL: 'Post-roll',
+      },
+      AdType: {
+        CLIENT_SIDE: "Client Side",
+        SERVER_SIDE: "Server Side"
+      },
+      AdPlayer: {
+        CONTENT: "CONTENT",
+        SEPARATE: "SEPARATE"
       }
     }
     const reportPlaybackRequested = jest.fn();
