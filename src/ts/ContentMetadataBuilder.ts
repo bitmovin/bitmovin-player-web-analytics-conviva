@@ -13,6 +13,12 @@ export interface Metadata {
   encodedFrameRate?: number;
   defaultResource?: string;
   streamUrl?: string;
+  framework?: string;
+  frameworkVersion?: string;
+}
+
+export interface ConvivaMetadata {
+  [key: string]: string | number;
 }
 
 export interface CustomContentMetadata {
@@ -57,7 +63,7 @@ export class ContentMetadataBuilder {
     this.playbackStarted = value;
   }
 
-  build(): Conviva.ContentMetadata {
+  build(): ConvivaMetadata {
     if (!this.playbackStarted) {
       // Asset name is only allowed to be set once
       if (!this.contentMetadata.assetName) {
@@ -68,6 +74,8 @@ export class ContentMetadataBuilder {
       this.contentMetadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
       this.contentMetadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
       this.contentMetadata.duration = this.metadataOverrides.duration || this.metadata.duration;
+      this.contentMetadata.framework = this.metadataOverrides.framework || this.metadata.framework;
+      this.contentMetadata.frameworkVersion = this.metadataOverrides.frameworkVersion || this.metadata.frameworkVersion;
 
       this.contentMetadata.custom = this.custom;
     }
@@ -76,7 +84,19 @@ export class ContentMetadataBuilder {
     this.contentMetadata.defaultResource = this.metadataOverrides.defaultResource || this.metadata.defaultResource;
     this.contentMetadata.streamUrl = this.metadataOverrides.streamUrl || this.metadata.streamUrl;
 
-    return this.contentMetadata;
+    const convivaContentInfo = {} as ConvivaMetadata;
+    convivaContentInfo[Conviva.Constants.ASSET_NAME] = this.contentMetadata.assetName;
+    convivaContentInfo[Conviva.Constants.ENCODED_FRAMERATE] = this.contentMetadata.encodedFrameRate;
+    convivaContentInfo[Conviva.Constants.DURATION] = this.contentMetadata.duration;
+    convivaContentInfo[Conviva.Constants.DEFAULT_RESOURCE] = this.contentMetadata.defaultResource;
+    convivaContentInfo[Conviva.Constants.STREAM_URL] = this.contentMetadata.streamUrl;
+    convivaContentInfo[Conviva.Constants.IS_LIVE] = this.contentMetadata.streamType;
+    convivaContentInfo[Conviva.Constants.VIEWER_ID] = this.contentMetadata.viewerId;
+    convivaContentInfo[Conviva.Constants.PLAYER_NAME] = this.contentMetadata.applicationName;
+    convivaContentInfo[Conviva.Constants.FRAMEWORK_NAME] = this.contentMetadata.framework;
+    convivaContentInfo[Conviva.Constants.FRAMEWORK_VERSION] = this.contentMetadata.frameworkVersion;
+
+    return {...convivaContentInfo, ...this.contentMetadata.custom};
   }
 
   // These methods should be treated as package private

@@ -1,7 +1,5 @@
-import Client = Conviva.Client;
-
 export interface DeviceMetadata {
-  deviceCategory: Conviva.Client.DeviceCategory;
+  deviceCategory: Conviva.Constants.DeviceCategory;
 }
 
 export class Html5Metadata implements Conviva.MetadataInterface {
@@ -37,7 +35,7 @@ export class Html5Metadata implements Conviva.MetadataInterface {
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
-  public getDeviceType(): Client.DeviceType {
+  public getDeviceType(): Conviva.Constants.DeviceType {
     return null;
   }
 
@@ -67,7 +65,7 @@ export class Html5Metadata implements Conviva.MetadataInterface {
   }
 
   // Relying on HTTP user agent string parsing on the Conviva Platform.
-  getDeviceCategory(): Conviva.Client.DeviceCategory {
+  getDeviceCategory(): Conviva.Constants.DeviceCategory {
     return this.metadata.deviceCategory;
   }
 

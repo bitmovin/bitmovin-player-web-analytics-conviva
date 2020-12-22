@@ -1,6 +1,6 @@
 declare namespace Conviva {
 
-  namespace Client {
+  namespace Constants {
     enum AdPlayer {
       CONTENT,
       SEPARATE,
@@ -51,46 +51,132 @@ declare namespace Conviva {
       WARNING,
     }
 
+    enum CallbackFunctions {
+      CONSOLE_LOG,
+      MAKE_REQUEST,
+      SAVE_DATA,
+      LOAD_DATA,
+      CREATE_TIMER,
+      GET_EPOCH_TIME_IN_MS,
+    }
+
+    enum Playback {
+      BITRATE,
+      BUFFER_LENGTH,
+      CDN_IP,
+      PLAYER_STATE,
+      PLAY_HEAD_TIME,
+      RENDERED_FRAMERATE,
+      RESOLUTION,
+      SEEK_ENDED,
+      SEEK_STARTED,
+    }
+
+    enum Network {
+      CONNECTION_TYPE,
+      LINK_ENCRYPTION,
+      SIGNAL_STRENGTH,
+    }
+
+    enum PlayerState {
+      STOPPED,
+      PLAYING,
+      BUFFERING,
+      PAUSED,
+      UNKNOWN,
+      NOT_MONITORED,
+    }
+
     const NO_SESSION_KEY: number;
 
     const version: string;
+
+    const GATEWAY_URL: string;
+
+    const LOG_LEVEL: string;
+
+    const ASSET_NAME: string;
+
+    const PLAYER_NAME: string;
+
+    const ENCODED_FRAMERATE: string;
+
+    const DURATION: string;
+
+    const DEFAULT_RESOURCE: string;
+
+    const STREAM_URL: string;
+
+    const IS_LIVE: string;
+
+    const VIEWER_ID: string;
+
+    const FRAMEWORK_NAME: string;
+
+    const FRAMEWORK_VERSION: string;
+
+    enum LogLevel {
+      DEBUG,
+      INFO,
+      WARNING,
+      ERROR,
+      NONE,
+    }
+
+    enum StreamType {
+      UNKNOWN,
+      LIVE,
+      VOD,
+    }
+
+    enum AdType {
+      CLIENT_SIDE,
+      SERVER_SIDE,
+    }
+
+    enum DeviceMetadata {
+      BRAND,
+      CATEGORY,
+      MANUFACTURER,
+      MODEL,
+      OS_NAME,
+      OS_VERSION,
+      TYPE,
+      VERSION,
+    }
   }
 
-  class Client {
-    constructor(settings: ClientSettings, systemFactory: SystemFactory);
+  class Analytics {
+    public static init(customerKey: string, callbackFunctions: any, settings?: {[key: string]: string| number}): void;
+    public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
+    public static setDeviceMetadata(metadata: {[key: string]: Conviva.Constants.DeviceCategory}): Conviva.Constants.DeviceCategory;
+    public static release(): void;
+  }
 
-    public adEnd(sessionKey: number): void;
+  interface ConvivaVideoAnalytics {
+    reportPlaybackRequested(contentInfo?: {[key: string]: number | string}): void;
 
-    public adStart(
-      sessionKey: number,
-      adStream: Client.AdStream,
-      adPlayer: Client.AdPlayer,
-      adPosition: Client.AdPosition,
-    ): void;
+    reportPlaybackFailed(errorMessage: string, contentInfo?: {[key: string]: number | string}): void;
 
-    public attachPlayer(sessionKey: number, playerStateManager: PlayerStateManager): void;
+    reportPlaybackEnded(): void;
 
-    public cleanupSession(sessionKey: number): void;
+    setContentInfo(contentInfo: {[key: string]: number | string}): void;
 
-    public contentPreload(sessionKey: number): void;
+    setPlayerInfo(playerInfo: {[key: string]: number | string}): void;
 
-    public contentStart(sessionKey: number): void;
+    reportPlaybackMetric(event: Conviva.Constants.Playback | Conviva.Constants.PlayerState, value?: string | number): void;
 
-    public createSession(contentMetadata: ContentMetadata | null): number;
+    reportDeviceMetric(metric: Conviva.Constants.Network, value?: string | number): void;
 
-    public detachPlayer(sessionKey: number): void;
+    reportAdBreakStarted(adType: Conviva.Constants.AdType, adPlayer: Conviva.Constants.AdPlayer, position?: Conviva.Constants.AdPosition): void;
 
-    public getPlayerStateManager(): PlayerStateManager;
+    reportAdBreakEnded(): void;
 
-    public release(): void;
+    setCallback(callback: Function): void;
 
-    public releasePlayerStateManager(playerStateManager: PlayerStateManager): void;
+    getSessionId(): number;
 
-    public reportError(sessionKey: number, errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
-
-    public sendCustomEvent(sessionKey: number, eventName: string, eventAttributes: {}): void;
-
-    public updateContentMetadata(sessionKey: number, contentMetadata: ContentMetadata): void;
+    release(): void;
   }
 
   class ClientSettings {
@@ -119,6 +205,8 @@ declare namespace Conviva {
     public streamType: ContentMetadata.StreamType;
     public streamUrl: string;
     public viewerId: string;
+    public frameworkVersion: string;
+    public framework: string;
   }
 
   type HttpRequestCancelFunction = () => void;
@@ -155,7 +243,7 @@ declare namespace Conviva {
 
     getDeviceModel(): string | null;
 
-    getDeviceType(): Client.DeviceType;
+    getDeviceType(): Constants.DeviceType;
 
     getDeviceVersion(): string | null;
 
@@ -167,66 +255,9 @@ declare namespace Conviva {
 
     getOperatingSystemVersion(): string | null;
 
-    getDeviceCategory(): Conviva.Client.DeviceCategory | null;
+    getDeviceCategory(): Constants.DeviceCategory | null;
 
     release(): void;
-  }
-
-  namespace PlayerStateManager {
-    enum PlayerState {
-      STOPPED,
-      PLAYING,
-      BUFFERING,
-      PAUSED,
-      UNKNOWN,
-      NOT_MONITORED,
-    }
-  }
-
-  class PlayerStateManager {
-    public getBitrateKbps(): number;
-
-    public getDuration(): number;
-
-    public getEncodedFrameRate(): number;
-
-    public getPlayerState(): PlayerStateManager.PlayerState;
-
-    public getPlayerType(): string | null;
-
-    public getPlayerVersion(): string | null;
-
-    public getRenderedFrameRate(): number;
-
-    public release(): void;
-
-    public reset(): void;
-
-    public sendError(errorMessage: string, errorSeverity: Client.ErrorSeverity): void;
-
-    public setBitrateKbps(newBitrateKbps: number): void;
-
-    public setDuration(duration: number): void;
-
-    public setEncodedFrameRate(encodedFrameRate: number): void;
-
-    public setPlayerSeekEnd(): void;
-
-    public setPlayerSeekStart(seekToPos: number): void;
-
-    public setPlayerState(newState: PlayerStateManager.PlayerState): void;
-
-    public setPlayerType(playerType: string): void;
-
-    public setPlayerVersion(playerVersion: string): void;
-
-    public setRenderedFrameRate(renderedFrameRate: number): void;
-
-    public setStreamUrl(streamUrl: string): void;
-
-    public setUserSeekButtonDown(): void;
-
-    public setUserSeekButtonUp(): void;
   }
 
   type StorageLoadDataCallback = (succeeded: boolean, data: string | null) => void;
@@ -239,23 +270,6 @@ declare namespace Conviva {
     saveData(storageSpace: string, storageKey: string, data: string, callback: StorageSaveDataCallback): void;
 
     release(): void;
-  }
-
-  class SystemFactory {
-    constructor(systemInterface: SystemInterface, systemSettings: SystemSettings);
-
-    public release(): void;
-  }
-
-  class SystemInterface {
-    constructor(
-      timeInterface: TimeInterface,
-      timerInterface: TimerInterface,
-      httpInterface: HttpInterface,
-      storageInterface: StorageInterface,
-      metadataInterface: MetadataInterface,
-      loggingInterface: LoggingInterface,
-    );
   }
 
   namespace SystemSettings {
