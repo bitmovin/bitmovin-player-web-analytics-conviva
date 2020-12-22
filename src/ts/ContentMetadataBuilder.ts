@@ -13,6 +13,8 @@ export interface Metadata {
   encodedFrameRate?: number;
   defaultResource?: string;
   streamUrl?: string;
+  framework?: string;
+  frameworkVersion?: string;
 }
 
 export interface ConvivaMetadata {
@@ -72,6 +74,8 @@ export class ContentMetadataBuilder {
       this.contentMetadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
       this.contentMetadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
       this.contentMetadata.duration = this.metadataOverrides.duration || this.metadata.duration;
+      this.contentMetadata.framework = this.metadataOverrides.framework || this.metadata.framework;
+      this.contentMetadata.frameworkVersion = this.metadataOverrides.frameworkVersion || this.metadata.frameworkVersion;
 
       this.contentMetadata.custom = this.custom;
     }
@@ -89,6 +93,8 @@ export class ContentMetadataBuilder {
     convivaContentInfo[Conviva.Constants.IS_LIVE] = this.contentMetadata.streamType;
     convivaContentInfo[Conviva.Constants.VIEWER_ID] = this.contentMetadata.viewerId;
     convivaContentInfo[Conviva.Constants.PLAYER_NAME] = this.contentMetadata.applicationName;
+    convivaContentInfo[Conviva.Constants.FRAMEWORK_NAME] = this.contentMetadata.framework;
+    convivaContentInfo[Conviva.Constants.FRAMEWORK_VERSION] = this.contentMetadata.frameworkVersion;
 
     return {...convivaContentInfo, ...this.contentMetadata.custom};
   }

@@ -118,9 +118,10 @@ export class ConvivaAnalytics {
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
     this.isAd = false;
 
-    const deviceMetadata: DeviceMetadata = {
-      deviceCategory: this.config.deviceCategory,
+    const deviceMetadata: {[key: string]: Conviva.Constants.DeviceCategory} = {
+      [Conviva.Constants.DeviceMetadata.CATEGORY]: this.config.deviceCategory,
     };
+    Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
     let callbackFunctions = {} as {[key: string]: Function};
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;

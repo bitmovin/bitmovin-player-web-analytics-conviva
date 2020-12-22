@@ -111,6 +111,10 @@ declare namespace Conviva {
 
     const VIEWER_ID: string;
 
+    const FRAMEWORK_NAME: string;
+
+    const FRAMEWORK_VERSION: string;
+
     enum LogLevel {
       DEBUG,
       INFO,
@@ -129,11 +133,23 @@ declare namespace Conviva {
       CLIENT_SIDE,
       SERVER_SIDE,
     }
+
+    enum DeviceMetadata {
+      BRAND,
+      CATEGORY,
+      MANUFACTURER,
+      MODEL,
+      OS_NAME,
+      OS_VERSION,
+      TYPE,
+      VERSION,
+    }
   }
 
   class Analytics {
     public static init(customerKey: string, callbackFunctions: any, settings?: {[key: string]: string| number}): void;
     public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
+    public static setDeviceMetadata(metadata: {[key: string]: Conviva.Constants.DeviceCategory}): Conviva.Constants.DeviceCategory;
     public static release(): void;
   }
 
@@ -189,6 +205,8 @@ declare namespace Conviva {
     public streamType: ContentMetadata.StreamType;
     public streamUrl: string;
     public viewerId: string;
+    public frameworkVersion: string;
+    public framework: string;
   }
 
   type HttpRequestCancelFunction = () => void;
