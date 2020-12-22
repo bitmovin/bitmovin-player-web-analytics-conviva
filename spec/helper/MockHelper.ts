@@ -78,12 +78,15 @@ export namespace MockHelper {
       },
       AdType: {
         CLIENT_SIDE: "Client Side",
-        SERVER_SIDE: "Server Side"
+        SERVER_SIDE: "Server Side",
       },
       AdPlayer: {
         CONTENT: "CONTENT",
-        SEPARATE: "SEPARATE"
-      }
+        SEPARATE: "SEPARATE",
+      },
+      DeviceMetadata: {
+        CATEGORY: 'CATEGORY',
+      },
     }
     const reportPlaybackRequested = jest.fn();
 
@@ -112,6 +115,7 @@ export namespace MockHelper {
     global.Conviva.Analytics = {
       init: jest.fn().mockImplementation(),
       release: jest.fn().mockImplementation(),
+      setDeviceMetadata: jest.fn().mockImplementation(),
     }
 
     global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
