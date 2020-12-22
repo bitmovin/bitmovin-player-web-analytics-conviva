@@ -505,7 +505,7 @@ export class ConvivaAnalytics {
         break;
       case this.events.PlaybackFinished:
         this.stallTrackingTimout.clear();
-        playerState = Conviva.Constants.PlayerState.STOPPED;
+        this.convivaVideoAnalytics.reportPlaybackEnded();
         break;
     }
 
@@ -556,7 +556,8 @@ export class ConvivaAnalytics {
     }
 
     this.onPlaybackStateChanged(event);
-    this.internalEndSession(event);
+    this.convivaVideoAnalytics.release();
+    this.convivaVideoAnalytics = null;
     this.resetContentMetadata();
   };
 
