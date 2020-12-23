@@ -76,7 +76,7 @@ export class ConvivaAnalytics {
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
-    // this.playerStateManager.setPlayerState(Conviva.PlayerStateManager.PlayerState.BUFFERING);
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
   });
 
   /**
@@ -133,16 +133,11 @@ export class ConvivaAnalytics {
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
 
-    // If gatewayUrl exists init in production mode for session monitoring. Otherwise init for production
-    if (config.gatewayUrl) {
-      const settings = {} as {[key: string]: string| number};
-      settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
-      settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
+    const settings = {} as {[key: string]: string| number};
+    settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
+    settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
 
-      Conviva.Analytics.init(customerKey, callbackFunctions, settings);
-    } else {
-      Conviva.Analytics.init(customerKey, callbackFunctions);
-    }
+    Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
 
@@ -193,16 +188,6 @@ export class ConvivaAnalytics {
     this.internalEndSession();
     this.resetContentMetadata();
     this.sessionEndedExternally = true;
-  }
-
-  /**
-   * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
-   * be sent and is not tied to a specific video.
-   * @param eventName arbitrary event name
-   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
-   */
-  public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
-    // this.client.sendCustomEvent(Conviva.Client.NO_SESSION_KEY, eventName, eventAttributes);
   }
 
   /**
@@ -466,8 +451,6 @@ export class ConvivaAnalytics {
     switch (event.type) {
       case this.events.Play:
       case this.events.Seek:
-        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_STARTED);
-        break;
       case this.events.TimeShift:
         this.stallTrackingTimout.start();
         break;
@@ -492,8 +475,6 @@ export class ConvivaAnalytics {
         playerState = Conviva.Constants.PlayerState.PAUSED;
         break;
       case this.events.Seeked:
-        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
-        break;
       case this.events.TimeShifted:
       case this.events.StallEnded:
         this.stallTrackingTimout.clear();
