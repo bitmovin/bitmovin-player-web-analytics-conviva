@@ -79,7 +79,7 @@ describe('player event tests', () => {
 
           afterEach((done: any) => {
             setTimeout(function () {
-              expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenNthCalledWith(4, Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+              expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
               done();
             }, 120);
           });
