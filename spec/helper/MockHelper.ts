@@ -77,12 +77,12 @@ export namespace MockHelper {
         POSTROLL: 'Post-roll',
       },
       AdType: {
-        CLIENT_SIDE: "Client Side",
-        SERVER_SIDE: "Server Side",
+        CLIENT_SIDE: 'Client Side',
+        SERVER_SIDE: 'Server Side',
       },
       AdPlayer: {
-        CONTENT: "CONTENT",
-        SEPARATE: "SEPARATE",
+        CONTENT: 'CONTENT',
+        SEPARATE: 'SEPARATE',
       },
       DeviceMetadata: {
         CATEGORY: 'CATEGORY',
