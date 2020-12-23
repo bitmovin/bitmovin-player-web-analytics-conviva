@@ -196,16 +196,6 @@ export class ConvivaAnalytics {
   }
 
   /**
-   * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
-   * be sent and is not tied to a specific video.
-   * @param eventName arbitrary event name
-   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
-   */
-  public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
-    // this.client.sendCustomEvent(Conviva.Client.NO_SESSION_KEY, eventName, eventAttributes);
-  }
-
-  /**
    * Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
    * during an active video session.
    * @param eventName arbitrary event name
