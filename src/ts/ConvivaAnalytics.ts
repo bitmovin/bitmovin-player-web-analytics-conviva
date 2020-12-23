@@ -133,16 +133,11 @@ export class ConvivaAnalytics {
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
 
-    // If gatewayUrl exists init in production mode for session monitoring. Otherwise init for production
-    if (config.gatewayUrl) {
-      const settings = {} as {[key: string]: string| number};
-      settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
-      settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
+    const settings = {} as {[key: string]: string| number};
+    settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
+    settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
 
-      Conviva.Analytics.init(customerKey, callbackFunctions, settings);
-    } else {
-      Conviva.Analytics.init(customerKey, callbackFunctions);
-    }
+    Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
 
