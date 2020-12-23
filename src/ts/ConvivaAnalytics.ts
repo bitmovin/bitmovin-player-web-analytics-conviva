@@ -456,8 +456,6 @@ export class ConvivaAnalytics {
     switch (event.type) {
       case this.events.Play:
       case this.events.Seek:
-        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_STARTED);
-        break;
       case this.events.TimeShift:
         this.stallTrackingTimout.start();
         break;
@@ -482,8 +480,6 @@ export class ConvivaAnalytics {
         playerState = Conviva.Constants.PlayerState.PAUSED;
         break;
       case this.events.Seeked:
-        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
-        break;
       case this.events.TimeShifted:
       case this.events.StallEnded:
         this.stallTrackingTimout.clear();
