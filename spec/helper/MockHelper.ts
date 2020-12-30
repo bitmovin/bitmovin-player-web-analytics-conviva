@@ -87,6 +87,9 @@ export namespace MockHelper {
       DeviceMetadata: {
         CATEGORY: 'CATEGORY',
       },
+      LogLevel: {
+        DEBUG: 'debug',
+      }
     }
     const reportPlaybackRequested = jest.fn();
 
@@ -116,6 +119,7 @@ export namespace MockHelper {
       init: jest.fn().mockImplementation(),
       release: jest.fn().mockImplementation(),
       setDeviceMetadata: jest.fn().mockImplementation(),
+      updateContentMetadata: jest.fn().mockImplementation(),
     }
 
     global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
