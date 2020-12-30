@@ -135,7 +135,7 @@ export class ConvivaAnalytics {
 
     const settings = {} as {[key: string]: string| number};
     settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
-    settings[Conviva.Constants.LOG_LEVEL] = Conviva.Constants.LogLevel.DEBUG;
+    settings[Conviva.Constants.LOG_LEVEL] = this.config.debugLoggingEnabled ? Conviva.Constants.LogLevel.DEBUG : Conviva.Constants.LogLevel.NONE;
 
     Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
