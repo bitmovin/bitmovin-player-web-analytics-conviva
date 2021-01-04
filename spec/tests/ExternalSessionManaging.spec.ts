@@ -56,20 +56,4 @@ describe('externally session managing', () => {
     convivaAnalytics.initializeSession();
     expect(convivaVideoAnalyticsMock.getSessionId).not.toHaveBeenCalled();
   });
-
-  describe('external endsession is called', () => {
-      it('should not initialize session when player events fire after being ended externally', () => {
-          playerMock.eventEmitter.firePlayEvent();
-
-          expect(convivaVideoAnalyticsMock.reportPlaybackMetric).toHaveBeenCalled();
-
-          convivaAnalytics.endSession();
-
-          expect(convivaVideoAnalyticsMock.reportPlaybackEnded).toHaveBeenCalled();
-
-          playerMock.eventEmitter.firePlayEvent();
-
-          expect(convivaVideoAnalyticsMock.reportPlaybackEnded).toHaveBeenCalledTimes(1);
-      });
-  });
 });
