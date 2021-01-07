@@ -191,6 +191,25 @@ export class ConvivaAnalytics {
   }
 
   /**
+   * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
+   * be sent and is not tied to a specific video.
+   * @param eventName arbitrary event name
+   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
+   */
+  public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
+    // Check for active session
+    if (!this.isSessionActive()) {
+      this.logger.consoleLog('cannot send application event, no active monitoring session',
+        Conviva.SystemSettings.LogLevel.WARNING);
+      return;
+    }
+
+    // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
+    // in monitoring session if greater than 256 bytes
+    this.convivaVideoAnalytics.reportAppEvent(eventName, eventAttributes);
+  }
+
+  /**
    * Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
    * during an active video session.
    * @param eventName arbitrary event name
@@ -204,7 +223,9 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // TODO: Look further into custom events. The API from 2.x -> 4.x appears to have lost the option for custom events
+    // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
+    // in monitoring session if greater than 256 bytes
+    this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes)
   }
 
   /**

@@ -172,6 +172,10 @@ declare namespace Conviva {
 
     reportAdBreakEnded(): void;
 
+    reportPlaybackEvent(eventType: string, eventDetail: {[key: string]: string}): void;
+
+    reportAppEvent(eventType: string, eventDetail: {[key: string]: string}): void;
+
     setCallback(callback: Function): void;
 
     getSessionId(): number;
