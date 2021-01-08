@@ -113,6 +113,10 @@ export namespace MockHelper {
 
     const getSessionId = jest.fn();
 
+    const reportPlaybackEvent = jest.fn();
+
+    const reportAppEvent = jest.fn();
+
     const release = jest.fn();
     global.Conviva.Analytics = jest.fn().mockImplementation();
     global.Conviva.Analytics = {
@@ -133,6 +137,8 @@ export namespace MockHelper {
         reportDeviceMetric,
         reportAdBreakStarted,
         reportAdBreakEnded,
+        reportPlaybackEvent,
+        reportAppEvent,
         setCallback,
         getSessionId,
         release
@@ -165,6 +171,7 @@ export namespace MockHelper {
           },
         },
         getDuration: jest.fn(),
+        getCurrentTime: jest.fn(),
         isLive: jest.fn(),
         getConfig: jest.fn(() => {
           return {};
