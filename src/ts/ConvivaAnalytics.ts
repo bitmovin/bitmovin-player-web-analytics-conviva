@@ -1,6 +1,6 @@
 import {
   AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
-  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent, TimeMode
+  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent, TimeMode,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -220,7 +220,7 @@ export class ConvivaAnalytics {
 
     // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
     // in monitoring session if greater than 256 bytes
-    this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes)
+    this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes);
   }
 
   /**
