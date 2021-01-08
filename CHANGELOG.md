@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.7]
+
+### Added
+- Support for Conviva-SDK 4.0.15
+
+### Removed
+- Support for Conviva-SDK 2.151.0.36981
+
 ## [3.0.6]
 
 ### Fixed
