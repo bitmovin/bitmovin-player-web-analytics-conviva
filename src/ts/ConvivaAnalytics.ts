@@ -1,6 +1,6 @@
 import {
   AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
-  SeekEvent, SourceConfig, TimeChangedEvent, TimeShiftEvent, VideoQualityChangedEvent,
+  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent, TimeMode,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -84,11 +84,6 @@ export class ConvivaAnalytics {
    * If this is true, we should avoid initializing a new session internally if a session is not active
    */
   private sessionEndedExternally = false;
-
-  /**
-   * Time in ms handed to Conviva.Constant.Playback.PLAY_HEAD_TIME callback
-   */
-  private playheadTimeMs = 0;
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
@@ -191,6 +186,25 @@ export class ConvivaAnalytics {
   }
 
   /**
+   * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
+   * be sent and is not tied to a specific video.
+   * @param eventName arbitrary event name
+   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
+   */
+  public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
+    // Check for active session
+    if (!this.isSessionActive()) {
+      this.logger.consoleLog('cannot send application event, no active monitoring session',
+        Conviva.SystemSettings.LogLevel.WARNING);
+      return;
+    }
+
+    // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
+    // in monitoring session if greater than 256 bytes
+    this.convivaVideoAnalytics.reportAppEvent(eventName, eventAttributes);
+  }
+
+  /**
    * Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
    * during an active video session.
    * @param eventName arbitrary event name
@@ -204,7 +218,9 @@ export class ConvivaAnalytics {
       return;
     }
 
-    // TODO: Look further into custom events. The API from 2.x -> 4.x appears to have lost the option for custom events
+    // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
+    // in monitoring session if greater than 256 bytes
+    this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes);
   }
 
   /**
@@ -341,9 +357,10 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
+      const playheadTimeMs = this.player.getCurrentTime(TimeMode.RelativeTime) * 1000;
       this.convivaVideoAnalytics.reportPlaybackMetric(
         Conviva.Constants.Playback.PLAY_HEAD_TIME,
-        this.playheadTimeMs,
+        playheadTimeMs,
       );
     });
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
@@ -428,7 +445,6 @@ export class ConvivaAnalytics {
 
     this.convivaVideoAnalytics = null;
     this.lastSeenBitrate = null;
-    this.playheadTimeMs = 0;
   };
 
   private resetContentMetadata(): void {
@@ -650,14 +666,6 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged(event);
   };
 
-  private onTimeChanged = (event: TimeChangedEvent) => {
-    if (!this.isSessionActive()) {
-      return;
-    }
-
-    this.playheadTimeMs = event.time * 1000;
-  }
-
   private trackSeekStart(target: number) {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_STARTED);
   }
@@ -715,7 +723,6 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
-    playerEvents.add(this.events.TimeChanged, this.onTimeChanged);
 
     playerEvents.add(this.events.CastStarted, this.onCustomEvent);
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);

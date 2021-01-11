@@ -1,4 +1,5 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
+import { PlayerType } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 
@@ -34,7 +35,7 @@ describe('content metadata spec', () => {
     });
 
     it('set player type in custom tags', () => {
-      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue('native');
+      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
       playerMock.eventEmitter.firePlayEvent();
 
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
