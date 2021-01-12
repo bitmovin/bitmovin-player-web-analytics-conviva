@@ -28,7 +28,7 @@
         box-shadow: 0 0 30px rgba(0,0,0,0.7);
       }
     </style>
-    <script src="//cdn.bitmovin.com/player/web/8.6.0/bitmovinplayer.js"></script>
+    <script src="//cdn.bitmovin.com/player/web/8.31.0/bitmovinplayer.js"></script>
     <script src="./conviva-core-sdk.min.js"></script>
     <script src="./dist/bitmovin-player-analytics-conviva.js"></script>
   </head>
@@ -52,6 +52,8 @@
     conviva.updateContentMetadata({
       applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
       viewerId: 'uniqueViewerId',
+      framework: 'Bitmovin Player',
+      frameworkVersion: player.version,
       custom: {
         appVersion: '1.0',
         contentId: 'someContentId',

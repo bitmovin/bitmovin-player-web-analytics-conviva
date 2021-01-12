@@ -1,4 +1,5 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
+import { PlayerType } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 
@@ -8,15 +9,13 @@ describe('content metadata spec', () => {
 
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let clientMock: Conviva.Client;
-  let playerStateMock: Conviva.PlayerStateManager;
+  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics
 
   beforeEach(() => {
     MockHelper.mockConviva();
 
     playerMock = MockHelper.getPlayerMock();
-    clientMock = MockHelper.getConvivaClientMock();
-    playerStateMock = clientMock.getPlayerStateManager();
+    convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
     convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
 
@@ -30,26 +29,24 @@ describe('content metadata spec', () => {
     it('set asset name', () => {
       playerMock.eventEmitter.firePlayEvent();
 
-      expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
         assetName: 'Asset Title',
       }));
     });
 
     it('set player type in custom tags', () => {
-      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue('native');
+      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
       playerMock.eventEmitter.firePlayEvent();
 
-      expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-        custom: expect.objectContaining({
-          playerType: 'native',
-        }),
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        playerType: 'native',
       }));
     });
 
     it('set stream url', () => {
       playerMock.eventEmitter.firePlayEvent();
 
-      expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
         streamUrl: 'test.m3u8',
       }));
     });
@@ -61,7 +58,7 @@ describe('content metadata spec', () => {
         jest.spyOn(playerMock, 'getDuration').mockReturnValue(1); // different to initial value
         playerMock.eventEmitter.firePlayingEvent();
 
-        expect(clientMock.updateContentMetadata).toHaveBeenLastCalledWith(0, expect.objectContaining({
+        expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
           duration: 10,
         }));
       });
@@ -77,26 +74,26 @@ describe('content metadata spec', () => {
           it('viewerId', () => {
             convivaAnalytics.updateContentMetadata({ viewerId: 'newId', assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               viewerId: 'newId',
             }));
           });
 
           it('streamType', () => {
             convivaAnalytics.updateContentMetadata({
-              streamType: Conviva.ContentMetadata.StreamType.UNKNOWN,
+              streamType: Conviva.Constants.StreamType.UNKNOWN,
               assetName: 'MyAsset',
             });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-              streamType: 'unknown',
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+              isLive: 'unknown',
             }));
           });
 
           it('applicationname', () => {
             convivaAnalytics.updateContentMetadata({ applicationName: 'someValue', assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               applicationName: 'someValue',
             }));
           });
@@ -104,17 +101,13 @@ describe('content metadata spec', () => {
           it('custom tags', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' }, assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-              custom: expect.objectContaining({
-                myTag: 'withMyValue',
-              }),
-            }));
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({myTag: 'withMyValue'}));
           });
 
           it('duration', () => {
             convivaAnalytics.updateContentMetadata({ duration: 55, assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               duration: 55,
             }));
           });
@@ -122,7 +115,7 @@ describe('content metadata spec', () => {
           it('encoded frame rate', () => {
             convivaAnalytics.updateContentMetadata({ encodedFrameRate: 144, assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               encodedFrameRate: 144,
             }));
           });
@@ -130,7 +123,7 @@ describe('content metadata spec', () => {
           it('defaultResrouce', () => {
             convivaAnalytics.updateContentMetadata({ defaultResource: 'someValue', assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               defaultResource: 'someValue',
             }));
           });
@@ -138,7 +131,7 @@ describe('content metadata spec', () => {
           it('streamUrl', () => {
             convivaAnalytics.updateContentMetadata({ streamUrl: 'http://some.url', assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               streamUrl: 'http://some.url',
             }));
           });
@@ -146,7 +139,7 @@ describe('content metadata spec', () => {
           it('assetName', () => {
             convivaAnalytics.updateContentMetadata({ assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               assetName: 'MyAsset',
             }));
           });
@@ -158,7 +151,7 @@ describe('content metadata spec', () => {
           it('viewerId', () => {
             convivaAnalytics.updateContentMetadata({ viewerId: 'newId' });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               viewerId: 'newId',
             }));
           });
@@ -166,15 +159,15 @@ describe('content metadata spec', () => {
           it('streamType', () => {
             convivaAnalytics.updateContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.UNKNOWN });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-              streamType: 'unknown',
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+              isLive: 'unknown',
             }));
           });
 
           it('applicationname', () => {
             convivaAnalytics.updateContentMetadata({ applicationName: 'someValue' });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               applicationName: 'someValue',
             }));
           });
@@ -182,17 +175,13 @@ describe('content metadata spec', () => {
           it('custom tags', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' } });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-              custom: expect.objectContaining({
-                myTag: 'withMyValue',
-              }),
-            }));
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({myTag: 'withMyValue'}));
           });
 
           it('duration', () => {
             convivaAnalytics.updateContentMetadata({ duration: 55 });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               duration: 55,
             }));
           });
@@ -200,7 +189,7 @@ describe('content metadata spec', () => {
           it('encoded frame rate', () => {
             convivaAnalytics.updateContentMetadata({ encodedFrameRate: 144 });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               encodedFrameRate: 144,
             }));
           });
@@ -208,7 +197,7 @@ describe('content metadata spec', () => {
           it('defaultResrouce', () => {
             convivaAnalytics.updateContentMetadata({ defaultResource: 'someValue' });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               defaultResource: 'someValue',
             }));
           });
@@ -216,7 +205,7 @@ describe('content metadata spec', () => {
           it('streamUrl', () => {
             convivaAnalytics.updateContentMetadata({ streamUrl: 'http://some.url' });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               streamUrl: 'http://some.url',
             }));
           });
@@ -224,7 +213,7 @@ describe('content metadata spec', () => {
           it('assetName', () => {
             convivaAnalytics.updateContentMetadata({ assetName: 'MyAsset' });
             playerMock.eventEmitter.firePlayEvent();
-            expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
               assetName: 'MyAsset',
             }));
           });
@@ -241,7 +230,7 @@ describe('content metadata spec', () => {
           it('viewerId', () => {
             convivaAnalytics.updateContentMetadata({ viewerId: 'newId' });
 
-            expect(clientMock.updateContentMetadata).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
               viewerId: 'newId',
             }));
           });
@@ -249,15 +238,15 @@ describe('content metadata spec', () => {
           it('streamType', () => {
             convivaAnalytics.updateContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.UNKNOWN });
 
-            expect(clientMock.updateContentMetadata).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
-              streamType: 'UNKNOWN',
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
+              isLive: 'UNKNOWN',
             }));
           });
 
           it('applicationname', () => {
             convivaAnalytics.updateContentMetadata({ applicationName: 'someValue' });
 
-            expect(clientMock.updateContentMetadata).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
               applicationName: 'someValue',
             }));
           });
@@ -265,17 +254,13 @@ describe('content metadata spec', () => {
           it('custom tags', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' } });
 
-            expect(clientMock.updateContentMetadata).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
-              custom: expect.objectContaining({
-                myTag: undefined,
-              }),
-            }));
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(0, expect.objectContaining({myTag: undefined}));
           });
 
           it('duration', () => {
             convivaAnalytics.updateContentMetadata({ duration: 55 });
 
-            expect(clientMock.updateContentMetadata).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(0, expect.objectContaining({
               duration: 55,
             }));
           });
@@ -285,7 +270,7 @@ describe('content metadata spec', () => {
           it('encoded frame rate', () => {
             convivaAnalytics.updateContentMetadata({ encodedFrameRate: 144 });
 
-            expect(clientMock.updateContentMetadata).toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(expect.objectContaining({
               encodedFrameRate: 144,
             }));
           });
@@ -293,7 +278,7 @@ describe('content metadata spec', () => {
           it('defaultResource', () => {
             convivaAnalytics.updateContentMetadata({ defaultResource: 'someValue' });
 
-            expect(clientMock.updateContentMetadata).toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(expect.objectContaining({
               defaultResource: 'someValue',
             }));
           });
@@ -301,30 +286,11 @@ describe('content metadata spec', () => {
           it('streamUrl', () => {
             convivaAnalytics.updateContentMetadata({ streamUrl: 'http://some.url' });
 
-            expect(clientMock.updateContentMetadata).toHaveBeenLastCalledWith(0, expect.objectContaining({
+            expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(expect.objectContaining({
               streamUrl: 'http://some.url',
             }));
           });
         });
-      });
-
-      it('not overriding custom metadata', () => {
-        jest.spyOn(playerMock, 'getPlayerType').mockReturnValue('native');
-        convivaAnalytics.updateContentMetadata({ custom: { playerType: 'someValue' } });
-
-        playerMock.eventEmitter.firePlayEvent();
-
-        expect(clientMock.createSession).not.toHaveBeenLastCalledWith(expect.objectContaining({
-          custom: expect.objectContaining({
-            playerType: 'someValue',
-          }),
-        }));
-
-        expect(clientMock.createSession).toHaveBeenLastCalledWith(expect.objectContaining({
-          custom: expect.objectContaining({
-            playerType: 'native',
-          }),
-        }));
       });
     });
   });

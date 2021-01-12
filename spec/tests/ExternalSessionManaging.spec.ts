@@ -6,15 +6,14 @@ jest.mock('../../src/ts/Html5Logging');
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let clientMock: Conviva.Client;
-  let playerStateMock: Conviva.PlayerStateManager;
+  let convivaVideoAnalyticsMock: Conviva.ConvivaVideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
 
     playerMock = MockHelper.getPlayerMock();
-    clientMock = MockHelper.getConvivaClientMock();
-    playerStateMock = clientMock.getPlayerStateManager();
+
+    convivaVideoAnalyticsMock = Conviva.Analytics.buildVideoAnalytics();
 
     convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
 
@@ -37,7 +36,7 @@ describe('externally session managing', () => {
       convivaAnalytics.updateContentMetadata({ assetName: 'name to init' });
       convivaAnalytics.initializeSession();
 
-      expect(clientMock.createSession).toHaveBeenCalledTimes(1);
+      expect(convivaVideoAnalyticsMock.getSessionId).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -46,48 +45,15 @@ describe('externally session managing', () => {
       convivaAnalytics.initializeSession();
 
       // TODO: test content metadata
-      expect(clientMock.createSession).toHaveBeenCalledTimes(1);
+      expect(convivaVideoAnalyticsMock.getSessionId).toHaveBeenCalledTimes(1);
     });
   });
 
   it('should not init once initialized', () => {
     playerMock.eventEmitter.firePlayEvent();
 
-    (clientMock.createSession as any).mockClear();
+    (convivaVideoAnalyticsMock.getSessionId as any).mockClear();
     convivaAnalytics.initializeSession();
-    expect(clientMock.createSession).not.toHaveBeenCalled();
-  });
-
-  describe('multiple sessions', () => {
-    it('take the asset name from the source in a consecutive session', () => {
-      jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
-
-      convivaAnalytics.updateContentMetadata({ assetName: 'MyAsset' });
-      convivaAnalytics.initializeSession();
-      expect((clientMock.createSession as jest.Mock).mock.calls[0][0].assetName).toEqual('MyAsset');
-      convivaAnalytics.endSession();
-      (clientMock.createSession as any).mockClear();
-
-      jest.spyOn(playerMock, 'getSource').mockReturnValue({ title: 'MyTitle' });
-      convivaAnalytics.updateContentMetadata({ assetName: null });
-      convivaAnalytics.initializeSession();
-      expect((clientMock.createSession as jest.Mock).mock.calls[0][0].assetName).toEqual('MyTitle');
-    });
-  });
-
-  describe('external endsession is called', () => {
-      it('should not initialize session when player events fire after being ended externally', () => {
-          playerMock.eventEmitter.firePlayEvent();
-
-          expect(clientMock.createSession).toHaveBeenCalled();
-
-          convivaAnalytics.endSession();
-
-          expect(clientMock.cleanupSession).toHaveBeenCalled();
-
-          playerMock.eventEmitter.firePlayEvent();
-
-          expect(clientMock.createSession).toHaveBeenCalledTimes(1);
-      });
+    expect(convivaVideoAnalyticsMock.getSessionId).not.toHaveBeenCalled();
   });
 });

@@ -19,11 +19,131 @@ export namespace MockHelper {
     global.Conviva.SystemFactory = jest.fn().mockImplementation();
     global.Conviva.ClientSettings = jest.fn().mockImplementation();
     global.Conviva.ContentMetadata = jest.fn().mockImplementation();
+
     global.Conviva.ContentMetadata.StreamType = {
       LIVE: 'live',
       VOD: 'vod',
       UNKNOWN: 'unknown',
     };
+    global.Conviva.Constants = {
+      DeviceCategory: {
+        WEB: 'WEB',
+      },
+      CallbackFunctions: {
+        CONSOLE_LOG: 'CONSOLE_LOG',
+        MAKE_REQUEST: 'MAKE_REQUEST',
+        SAVE_DATA: 'SAVE_DATA',
+        LOAD_DATA: 'LOAD_DATA',
+      },
+      PlayerState: {
+        STOPPED: 'STOPPED',
+        PLAYING: 'PLAYING',
+        BUFFERING: 'BUFFERING',
+        PAUSED: 'PAUSED',
+        UNKNOWN: 'UNKNOWN',
+        NOT_MONITORED: 'NOT_MONITORED',
+      },
+      Playback: {
+        BITRATE: 'BITRATE',
+        BUFFER_LENGTH: 'BUFFER_LENGTH',
+        CDN_IP: 'CDN_IP',
+        PLAYER_STATE: 'PLAYER_STATE',
+        PLAY_HEAD_TIME: 'PLAY_HEAD_TIME',
+        RENDERED_FRAMERATE: 'RENDERED_FRAMERATE',
+        RESOLUTION: 'RESOLUTION',
+        SEEK_ENDED: 'SEEK_ENDED',
+        SEEK_STARTED: 'SEEK_STARTED',
+      },
+      ASSET_NAME: `assetName`,
+      ENCODED_FRAMERATE:'encodedFrameRate',
+      DURATION: 'duration',
+      DEFAULT_RESOURCE: 'defaultResource',
+      STREAM_URL: 'streamUrl',
+      IS_LIVE: 'isLive',
+      VIEWER_ID: 'viewerId',
+      PLAYER_NAME: 'applicationName',
+      StreamType: {
+        UNKNOWN: 'unknown',
+        LIVE: 'live',
+        VOD: 'VOD',
+      },
+      ErrorSeverity: {
+        FATAL: 1,
+        WARNING: 0,
+      },
+      AdPosition: {
+        MIDROLL: 'Mid-roll',
+        PREROLL: 'Pre-roll',
+        POSTROLL: 'Post-roll',
+      },
+      AdType: {
+        CLIENT_SIDE: 'Client Side',
+        SERVER_SIDE: 'Server Side',
+      },
+      AdPlayer: {
+        CONTENT: 'CONTENT',
+        SEPARATE: 'SEPARATE',
+      },
+      DeviceMetadata: {
+        CATEGORY: 'CATEGORY',
+      },
+      LogLevel: {
+        DEBUG: 'debug',
+      }
+    }
+    const reportPlaybackRequested = jest.fn();
+
+    const reportPlaybackFailed = jest.fn();
+
+    const reportPlaybackEnded = jest.fn();
+
+    const setContentInfo = jest.fn();
+
+    const setPlayerInfo = jest.fn();
+
+    const reportPlaybackMetric = jest.fn();
+
+    const reportDeviceMetric = jest.fn();
+
+    const reportAdBreakStarted = jest.fn();
+
+    const reportAdBreakEnded = jest.fn();
+
+    const setCallback = jest.fn();
+
+    const getSessionId = jest.fn();
+
+    const reportPlaybackEvent = jest.fn();
+
+    const reportAppEvent = jest.fn();
+
+    const release = jest.fn();
+    global.Conviva.Analytics = jest.fn().mockImplementation();
+    global.Conviva.Analytics = {
+      init: jest.fn().mockImplementation(),
+      release: jest.fn().mockImplementation(),
+      setDeviceMetadata: jest.fn().mockImplementation(),
+      updateContentMetadata: jest.fn().mockImplementation(),
+    }
+
+    global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
+      return {
+        reportPlaybackRequested,
+        reportPlaybackFailed,
+        reportPlaybackEnded,
+        setContentInfo,
+        setPlayerInfo,
+        reportPlaybackMetric,
+        reportDeviceMetric,
+        reportAdBreakStarted,
+        reportAdBreakEnded,
+        reportPlaybackEvent,
+        reportAppEvent,
+        setCallback,
+        getSessionId,
+        release
+      }
+    })
   }
 
   // Custom cast SDK implementation
@@ -36,87 +156,6 @@ export namespace MockHelper {
         }),
       };
     });
-  }
-
-  // TODO: find a way to handle multiple instances
-  // Currently this will always reference the latest instantiated client mock. This could lead to inconsistent
-  // mock / spy results in expectations.
-  // This works until we test multiple client mock instances e.g. for casting
-  export function getConvivaClientMock(): Conviva.Client {
-    const createSession = jest.fn(() => 0);
-    const cleanupSession = jest.fn();
-    const sendCustomEvent = jest.fn();
-    const updateContentMetadata = jest.fn();
-    const adStart = jest.fn();
-    const adEnd = jest.fn();
-    const reportError = jest.fn();
-    const releasePlayerStateManager = jest.fn();
-
-    const playerStateMock = getPlayerStateManagerMock();
-
-    global.Conviva.Client = jest.fn().mockImplementation(() => {
-      return {
-        sendCustomEvent,
-        getPlayerStateManager: jest.fn(() => playerStateMock),
-        releasePlayerStateManager,
-        createSession,
-        attachPlayer: jest.fn(),
-        detachPlayer: jest.fn(),
-        cleanupSession,
-        updateContentMetadata,
-        adStart,
-        adEnd,
-        reportError,
-      };
-    });
-
-    global.Conviva.Client.NO_SESSION_KEY = -2;
-
-    global.Conviva.Client.AdPosition = {
-      PREROLL: 'preroll',
-    };
-    global.Conviva.Client.AdStream = {
-      SEPARATE: 'separate',
-    };
-    global.Conviva.Client.AdPlayer = {
-      SEPARATE: 'separate',
-      CONTENT: 'content',
-    };
-    global.Conviva.Client.ErrorSeverity = {
-      FATAL: 'fatal',
-    };
-
-    global.Conviva.Client.DeviceCategory = {
-      WEB: 'WEB',
-    };
-
-    return new global.Conviva.Client();
-  }
-
-  export function getPlayerStateManagerMock(): Conviva.PlayerStateManager {
-    const setPlayerState = jest.fn();
-    const setPlayerSeekStart = jest.fn();
-    const setPlayerSeekEnd = jest.fn();
-    const setBitrateKbps = jest.fn();
-
-    const PlayerStateManagerClass = jest.fn().mockImplementation(() => ({
-      setPlayerType: jest.fn(),
-      setPlayerVersion: jest.fn(),
-      setPlayerState,
-      setPlayerSeekStart,
-      setPlayerSeekEnd,
-      setBitrateKbps,
-    }));
-
-    global.Conviva.PlayerStateManager = PlayerStateManagerClass;
-    global.Conviva.PlayerStateManager.PlayerState = {
-      STOPPED: 'stopped',
-      BUFFERING: 'buffering',
-      PAUSED: 'paused',
-      PLAYING: 'playing',
-    };
-
-    return new PlayerStateManagerClass();
   }
 
   export function getPlayerMock(): TestingPlayerAPI {
@@ -132,6 +171,7 @@ export namespace MockHelper {
           },
         },
         getDuration: jest.fn(),
+        getCurrentTime: jest.fn(),
         isLive: jest.fn(),
         getConfig: jest.fn(() => {
           return {};
