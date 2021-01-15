@@ -357,7 +357,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
-      const playheadTimeMs = this.player.getCurrentTime(TimeMode.RelativeTime) * 1000;
+      const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
       this.convivaVideoAnalytics.reportPlaybackMetric(
         Conviva.Constants.Playback.PLAY_HEAD_TIME,
         playheadTimeMs,
