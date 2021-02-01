@@ -286,8 +286,6 @@ export class ConvivaAnalytics {
   private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
     this.internalEndSession(event);
-    this.convivaVideoAnalytics.release();
-    Conviva.Analytics.release();
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
