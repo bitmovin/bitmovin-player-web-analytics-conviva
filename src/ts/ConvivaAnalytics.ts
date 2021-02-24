@@ -553,7 +553,6 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged(event);
     this.convivaVideoAnalytics.release();
     this.convivaVideoAnalytics = null;
-    this.resetContentMetadata();
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
