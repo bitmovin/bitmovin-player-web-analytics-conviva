@@ -45,7 +45,17 @@ Build the JS file by running `npm run build`
             const conviva = new ConvivaAnalytics(player, 'CUSTOMER_KEY', {
               debugLoggingEnabled: true, // optional
               gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
-              deviceCategory: Conviva.Client.DeviceCategory.WEB // optional, (default: WEB)
+              deviceCategory: Conviva.Client.DeviceCategory.WEB, // optional, (default: WEB)
+              deviceMetadata: { // optional (default: let Conviva backend infer these fields from User Agent sring)
+                category: Conviva.Client.DeviceCategory.WEB, // optional (default: same as config.deviceCategory or WEB)
+                brand: 'Device brand', // optional
+                manufacturer: 'Device Manufacturer', // optional
+                model: 'Device Model', // optional
+                type: Conviva.Client.DeviceType.DESKTOP, // optional
+                version: 'Device version', // optional
+                osName: 'Operating system name', // optional
+                osVersion: 'Operating system version' // optional
+              }
             });
             
             var sourceConfig = {

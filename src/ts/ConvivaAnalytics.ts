@@ -32,6 +32,61 @@ export interface ConvivaAnalyticsConfiguration {
    * user agent string parsing by the Conviva SDK. (default: WEB)
    */
   deviceCategory?: Conviva.Constants.DeviceCategory;
+
+  /**
+   * Option to override the Conviva Device Metadata.
+   * (Default: Auto extract all options from User Agent string)
+   */
+  deviceMetadata?: {
+    /**
+     * Option to set the Conviva Device Category, which is used to assist with
+     * user agent string parsing by the Conviva SDK.
+     * (default: The same specified in config.deviceCategory)
+     */
+    category?: Conviva.Constants.DeviceCategory;
+
+    /**
+     * Option to override the Conviva Device Brand.
+     * (Default: Auto extract from User Agent string)
+     */
+    brand?: string;
+
+    /**
+     * Option to override the Conviva Device Manufacturer.
+     * (Default: Auto extract from User Agent string)
+     */
+    manufacturer?: string;
+
+    /**
+     * Option to override the Conviva Device Model.
+     * (Default: Auto extract from User Agent string)
+     */
+    model?: string;
+
+    /**
+     * Option to override the Conviva Device Type
+     * (Default: Auto extract from User Agent string)
+     */
+    type?: Conviva.Constants.DeviceType;
+
+    /**
+     * Option to override the Conviva Device Version.
+     * (Default: Auto extract from User Agent string)
+     */
+    version?: string;
+
+    /**
+     * Option to override the Conviva Operating System Name
+     * (Default: Auto extract from User Agent string)
+     */
+    osName?: string;
+
+    /**
+     * Option to override the Conviva Operating System Version
+     * (Default: Auto extract from User Agent string)
+     */
+    osVersion?: string;
+  };
 }
 
 export interface EventAttributes {
@@ -111,8 +166,16 @@ export class ConvivaAnalytics {
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
     this.isAd = false;
 
-    const deviceMetadata: {[key: string]: Conviva.Constants.DeviceCategory} = {
-      [Conviva.Constants.DeviceMetadata.CATEGORY]: this.config.deviceCategory,
+    const deviceMetadataFromConfig = this.config.deviceMetadata || {};
+    const deviceMetadata = {
+      [Conviva.Constants.DeviceMetadata.CATEGORY]: deviceMetadataFromConfig.category || this.config.deviceCategory,
+      [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
+      [Conviva.Constants.DeviceMetadata.MANUFACTURER]: deviceMetadataFromConfig.manufacturer,
+      [Conviva.Constants.DeviceMetadata.MODEL]: deviceMetadataFromConfig.model,
+      [Conviva.Constants.DeviceMetadata.TYPE]: deviceMetadataFromConfig.type,
+      [Conviva.Constants.DeviceMetadata.VERSION]: deviceMetadataFromConfig.version,
+      [Conviva.Constants.DeviceMetadata.OS_NAME]: deviceMetadataFromConfig.osName,
+      [Conviva.Constants.DeviceMetadata.OS_VERSION]: deviceMetadataFromConfig.osVersion,
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
