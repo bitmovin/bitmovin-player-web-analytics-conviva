@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `bitmovin-player@^8.31.0` as peer dependency.
+
 ## [4.0.2]
 
 ### Fixed
