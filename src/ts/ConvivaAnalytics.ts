@@ -4,7 +4,6 @@ import {
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
-import { Html5Metadata } from './Html5Metadata';
 import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
@@ -13,7 +12,6 @@ import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
-import { DeviceMetadata } from './Html5Metadata';
 import { AdBreakHelper } from './helper/AdBreakHelper';
 
 type Player = PlayerAPI;
