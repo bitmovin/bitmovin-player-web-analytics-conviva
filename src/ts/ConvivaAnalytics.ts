@@ -30,6 +30,7 @@ export interface ConvivaAnalyticsConfiguration {
   /**
    * Option to set the Conviva Device Category, which is used to assist with
    * user agent string parsing by the Conviva SDK. (default: WEB)
+   * @deprecated Use `deviceMetadata.category` field
    */
   deviceCategory?: Conviva.Constants.DeviceCategory;
 
@@ -160,7 +161,6 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
-    this.config.deviceCategory = this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
@@ -168,7 +168,7 @@ export class ConvivaAnalytics {
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
     const deviceMetadata = {
-      [Conviva.Constants.DeviceMetadata.CATEGORY]: deviceMetadataFromConfig.category || this.config.deviceCategory,
+      [Conviva.Constants.DeviceMetadata.CATEGORY]: deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
       [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
       [Conviva.Constants.DeviceMetadata.MANUFACTURER]: deviceMetadataFromConfig.manufacturer,
       [Conviva.Constants.DeviceMetadata.MODEL]: deviceMetadataFromConfig.model,
