@@ -45,7 +45,17 @@ Build the JS file by running `npm run build`
             const conviva = new ConvivaAnalytics(player, 'CUSTOMER_KEY', {
               debugLoggingEnabled: true, // optional
               gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // optional, TOUCHSTONE_SERVICE_URL for testing
-              deviceCategory: Conviva.Client.DeviceCategory.WEB // optional, (default: WEB)
+              deviceCategory: Conviva.Client.DeviceCategory.WEB, // optional, deprecated (Use deviceMetadata.category) (default: WEB)
+              deviceMetadata: { // optional (default: let Conviva backend infer these fields from User Agent sring)
+                category: Conviva.Client.DeviceCategory.WEB, // optional (default: WEB)
+                brand: 'Device brand', // optional
+                manufacturer: 'Device Manufacturer', // optional
+                model: 'Device Model', // optional
+                type: Conviva.Client.DeviceType.DESKTOP, // optional
+                version: 'Device version', // optional
+                osName: 'Operating system name', // optional
+                osVersion: 'Operating system version' // optional
+              }
             });
             
             var sourceConfig = {
@@ -59,10 +69,10 @@ Build the JS file by running `npm run build`
             });
             ```
     
-    1. Using custom Build:
+    2. Using custom Build:
         1. Include `bitmovinplayer-analytics-conviva.js` **after** `conviva-core-sdk.min.js` in your HTML document
 
-        1. Usage
+        2. Usage
             ```js
             var playerConfig = {
               key: 'YOUR-PLAYER-KEY',
@@ -90,7 +100,7 @@ Build the JS file by running `npm run build`
             });
             ```
 
-1. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
+2. Release the instance by calling `conviva.release()` before destroying the player by calling `player.destroy()`
  
 ### Advanced Usage
 #### VPF tracking
