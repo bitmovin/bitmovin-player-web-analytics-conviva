@@ -463,10 +463,10 @@ export class ConvivaAnalytics {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
     this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
     this.contentMetadataBuilder.custom = {
-      ...this.contentMetadataBuilder.custom,
       playerType: this.player.getPlayerType(),
       streamType: this.player.getStreamType(),
       vrContentType: source.vr && source.vr.contentType,
+      ...this.contentMetadataBuilder.custom,
     };
 
     this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);

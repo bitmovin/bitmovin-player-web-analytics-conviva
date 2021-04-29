@@ -1,5 +1,5 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
-import { PlayerType } from 'bitmovin-player';
+import {PlayerType, StreamType, VRContentType} from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 
@@ -34,12 +34,60 @@ describe('content metadata spec', () => {
       }));
     });
 
-    it('set player type in custom tags', () => {
+    it('default playerType in custom tags', () => {
       jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
       playerMock.eventEmitter.firePlayEvent();
 
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
         playerType: 'native',
+      }));
+    });
+
+    it('default streamType in custom tags', () => {
+      jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+      playerMock.eventEmitter.firePlayEvent();
+
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        streamType: 'dash',
+      }));
+    });
+
+    it('default vrContentType in custom tags', () => {
+      playerMock.eventEmitter.firePlayEvent();
+
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        vrContentType: undefined,
+      }));
+    });
+
+    it('override playerType in custom tags', () => {
+      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
+      jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+      convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue', playerType: PlayerType.Html5 }, assetName: 'MyAsset' });
+      playerMock.eventEmitter.firePlayEvent();
+
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        playerType: PlayerType.Html5,
+        streamType: StreamType.Dash}));
+    });
+
+    it('override streamType in custom tags', () => {
+      jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
+      jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+      convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue', streamType: 'dash_vod' }, assetName: 'MyAsset' });
+      playerMock.eventEmitter.firePlayEvent();
+
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        playerType: PlayerType.Native,
+        streamType: 'dash_vod'}));
+    });
+
+    it('override vrContentType in custom tags', () => {
+      convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue', vrContentType: VRContentType.Single }, assetName: 'MyAsset' });
+      playerMock.eventEmitter.firePlayEvent();
+
+      expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(expect.objectContaining({
+        vrContentType: VRContentType.Single,
       }));
     });
 
