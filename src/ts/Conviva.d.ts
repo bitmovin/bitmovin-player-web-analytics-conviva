@@ -146,10 +146,14 @@ declare namespace Conviva {
     }
   }
 
+  type DeviceMetadata = {
+    [key: string]: Conviva.Constants.DeviceCategory | Conviva.Constants.DeviceType | string;
+  };
+
   class Analytics {
     public static init(customerKey: string, callbackFunctions: any, settings?: {[key: string]: string| number}): void;
     public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
-    public static setDeviceMetadata(metadata: {[key: string]: Conviva.Constants.DeviceCategory}): Conviva.Constants.DeviceCategory;
+    public static setDeviceMetadata(metadata: DeviceMetadata): Conviva.Constants.DeviceCategory;
     public static release(): void;
   }
 

@@ -4,7 +4,6 @@ import {
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
-import { Html5Metadata } from './Html5Metadata';
 import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
@@ -13,7 +12,6 @@ import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
-import { DeviceMetadata } from './Html5Metadata';
 import { AdBreakHelper } from './helper/AdBreakHelper';
 
 type Player = PlayerAPI;
@@ -32,8 +30,64 @@ export interface ConvivaAnalyticsConfiguration {
   /**
    * Option to set the Conviva Device Category, which is used to assist with
    * user agent string parsing by the Conviva SDK. (default: WEB)
+   * @deprecated Use `deviceMetadata.category` field
    */
   deviceCategory?: Conviva.Constants.DeviceCategory;
+
+  /**
+   * Option to override the Conviva Device Metadata.
+   * (Default: Auto extract all options from User Agent string)
+   */
+  deviceMetadata?: {
+    /**
+     * Option to set the Conviva Device Category, which is used to assist with
+     * user agent string parsing by the Conviva SDK.
+     * (default: The same specified in config.deviceCategory)
+     */
+    category?: Conviva.Constants.DeviceCategory;
+
+    /**
+     * Option to override the Conviva Device Brand.
+     * (Default: Auto extract from User Agent string)
+     */
+    brand?: string;
+
+    /**
+     * Option to override the Conviva Device Manufacturer.
+     * (Default: Auto extract from User Agent string)
+     */
+    manufacturer?: string;
+
+    /**
+     * Option to override the Conviva Device Model.
+     * (Default: Auto extract from User Agent string)
+     */
+    model?: string;
+
+    /**
+     * Option to override the Conviva Device Type
+     * (Default: Auto extract from User Agent string)
+     */
+    type?: Conviva.Constants.DeviceType;
+
+    /**
+     * Option to override the Conviva Device Version.
+     * (Default: Auto extract from User Agent string)
+     */
+    version?: string;
+
+    /**
+     * Option to override the Conviva Operating System Name
+     * (Default: Auto extract from User Agent string)
+     */
+    osName?: string;
+
+    /**
+     * Option to override the Conviva Operating System Version
+     * (Default: Auto extract from User Agent string)
+     */
+    osVersion?: string;
+  };
 }
 
 export interface EventAttributes {
@@ -107,14 +161,21 @@ export class ConvivaAnalytics {
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
-    this.config.deviceCategory = this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB;
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
     this.isAd = false;
 
-    const deviceMetadata: {[key: string]: Conviva.Constants.DeviceCategory} = {
-      [Conviva.Constants.DeviceMetadata.CATEGORY]: this.config.deviceCategory,
+    const deviceMetadataFromConfig = this.config.deviceMetadata || {};
+    const deviceMetadata = {
+      [Conviva.Constants.DeviceMetadata.CATEGORY]: deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
+      [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
+      [Conviva.Constants.DeviceMetadata.MANUFACTURER]: deviceMetadataFromConfig.manufacturer,
+      [Conviva.Constants.DeviceMetadata.MODEL]: deviceMetadataFromConfig.model,
+      [Conviva.Constants.DeviceMetadata.TYPE]: deviceMetadataFromConfig.type,
+      [Conviva.Constants.DeviceMetadata.VERSION]: deviceMetadataFromConfig.version,
+      [Conviva.Constants.DeviceMetadata.OS_NAME]: deviceMetadataFromConfig.osName,
+      [Conviva.Constants.DeviceMetadata.OS_VERSION]: deviceMetadataFromConfig.osVersion,
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
@@ -402,10 +463,10 @@ export class ConvivaAnalytics {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
     this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
     this.contentMetadataBuilder.custom = {
-      ...this.contentMetadataBuilder.custom,
       playerType: this.player.getPlayerType(),
       streamType: this.player.getStreamType(),
       vrContentType: source.vr && source.vr.contentType,
+      ...this.contentMetadataBuilder.custom,
     };
 
     this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);

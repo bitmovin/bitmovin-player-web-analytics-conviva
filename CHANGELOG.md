@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.3]
+### Added
+- `bitmovin-player@^8.31.0` as peer dependency.
+- Possibility to set detailed Conviva Device Metadata via `ConvivaAnalyticsConfiguration.deviceMetadata`
+- Possibility to override values for internally set custom metdata keys `streamType`, `playerType` and `vrContentType`
+
+### Deprecated
+- `ConvivaAnalyticsConfiguration.deviceCategory` field in favour of `ConvivaAnalyticsConfiguration.deviceMetadata.category` field
+
 ## [4.0.2]
 
 ### Fixed
@@ -87,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Support for Conviva-SDK version below 2.146.0.36444
 
+[4.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.2...v4.0.3
 [4.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.6...v4.0.0
