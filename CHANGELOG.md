@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `bitmovin-player@^8.31.0` as peer dependency.
 - Possibility to set detailed Conviva Device Metadata via `ConvivaAnalyticsConfiguration.deviceMetadata`
-- Possibility to override values for internally set custom metdata keys streamType, playerType and vrContentType
+- Possibility to override values for internally set custom metdata keys `streamType`, `playerType` and `vrContentType`
 
 ### Deprecated
 - `ConvivaAnalyticsConfiguration.deviceCategory` field in favour of `ConvivaAnalyticsConfiguration.deviceMetadata.category` field
