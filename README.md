@@ -1,7 +1,7 @@
 # Bitmovin Player Conviva Analytics Integration
 ## Compatibility
 **This version of the Conviva Analytics Integration works only with Player Version >= 8.31.x.
-The recommended and tested version of the Conviva SDK is 4.0.15. See [CHANGELOG](CHANGELOG.md) for details.
+The recommended and tested version of the Conviva SDK is 4.5.7. See [CHANGELOG](CHANGELOG.md) for details.
 
 ## Getting Started
 ### Installation
