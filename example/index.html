@@ -42,7 +42,7 @@
     </div>
   </div>
   <div class="container">
-    <button id="createPlayer">Re-instantiate Player</button>
+    <button id="createPlayer">Create Player</button>
     <button id="loadPlayer">Load Player</button>
     <button id="unloadPlayer">Unload Player</button>
     <button id="destroyPlayer">Destroy Player</button>
@@ -51,14 +51,13 @@
     var player;
     var conviva;
 
-    async function createPlayer() {
+    function createPlayer() {
       if (player) {
-        console.log("Destroying Player");
-        await player.destroy();
-        player = null;
+        alert("You must destroy the player before re-creating it.");
+        return;
       }
 
-      console.log("Creating Player");
+      console.log("Creating player");
 
       player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
 
@@ -70,10 +69,8 @@
       });
     }
 
-    createPlayer();
-
     function loadPlayer() {
-      console.log("Updating Conviva Content Metadata");
+      console.log("Updating Conviva content metadata");
       conviva.updateContentMetadata({
         applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
         viewerId: 'uniqueViewerId',
@@ -87,7 +84,8 @@
         },
       });
 
-      console.log("Loading Player");
+      console.log("Loading player");
+
       player.load(getPlayerSource()).then(function() {
         scheduleAds().then(function() {
           console.log('Ads scheduled successfully');
@@ -96,14 +94,12 @@
           console.error(reason);
         });
 
-        console.log('Successfully created Bitmovin Player instance');
+        console.log('Successfully loaded content');
       }, function(reason) {
-        console.error('Error while creating Bitmovin Player instance');
+        console.error('Error while loading content');
         console.error(reason);
       });
     }
-
-    loadPlayer();
 
     function unloadPlayer() {
       console.log("Unloading Player");
@@ -111,10 +107,13 @@
     }
 
     function destroyPlayer() {
-      console.log("Destroying Player");
       if (player) {
+        console.log("Destroying player");
+
         player.destroy();
         player = null;
+      } else {
+        console.log("No player to destroy")
       }
     }
 
@@ -194,6 +193,11 @@
         })
       ]);
     }
+
+    // Load up an initial player
+    createPlayer();
+    loadPlayer();
+
   </script>
   </body>
 </html>
