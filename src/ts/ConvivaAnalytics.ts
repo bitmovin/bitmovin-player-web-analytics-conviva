@@ -347,6 +347,8 @@ export class ConvivaAnalytics {
   private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
     this.internalEndSession(event);
+
+    Conviva.Analytics.release();
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -500,7 +502,6 @@ export class ConvivaAnalytics {
 
     this.debugLog('[ ConvivaAnalytics ] end session', Conviva.Constants.NO_SESSION_KEY, event);
     this.convivaVideoAnalytics.release();
-    Conviva.Analytics.release();
 
     this.convivaVideoAnalytics = null;
     this.lastSeenBitrate = null;
