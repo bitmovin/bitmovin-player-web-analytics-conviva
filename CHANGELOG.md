@@ -6,7 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [4.1.0]
+
+### Added
+- Support for Conviva-SDK version 4.5.7
+
+### Fixed
+- Consecutive playback of multiple sources not tracked correctly
+
+### Removed
+- Support for Conviva-SDK version 4.0.15
+
 ## [4.0.3]
+
 ### Added
 - `bitmovin-player@^8.31.0` as peer dependency.
 - Possibility to set detailed Conviva Device Metadata via `ConvivaAnalyticsConfiguration.deviceMetadata`
