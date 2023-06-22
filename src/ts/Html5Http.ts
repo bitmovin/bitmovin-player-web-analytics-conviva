@@ -8,7 +8,7 @@ export class Html5Http implements Conviva.HttpInterface {
     data: string | null,
     contentType: string | null,
     timeoutMs: number,
-    callback: HttpRequestCallback | null
+    callback: HttpRequestCallback | null,
   ): HttpRequestCancelFunction {
     return this.makeRequestStandard.apply(this, arguments);
   }
@@ -23,7 +23,7 @@ export class Html5Http implements Conviva.HttpInterface {
     data: string | null,
     contentType: string | null,
     timeoutMs: number,
-    callback: HttpRequestCallback | null
+    callback: HttpRequestCallback | null,
   ): HttpRequestCancelFunction {
     const xmlHttpReq = new XMLHttpRequest();
 

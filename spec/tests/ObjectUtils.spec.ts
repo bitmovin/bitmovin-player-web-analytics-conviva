@@ -19,7 +19,7 @@ describe('ObjectUtils', () => {
           'rootKey.withNestedKey': 'andValue',
           'rootKey.onAll.levels': '3',
           key: 'value',
-        })
+        }),
       );
     });
 
@@ -30,7 +30,7 @@ describe('ObjectUtils', () => {
           'myPrefix_rootKey.withNestedKey': 'andValue',
           'myPrefix_rootKey.onAll.levels': '3',
           myPrefix_key: 'value',
-        })
+        }),
       );
     });
   });

@@ -31,7 +31,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           assetName: 'Asset Title',
-        })
+        }),
       );
     });
 
@@ -42,7 +42,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           playerType: 'native',
-        })
+        }),
       );
     });
 
@@ -53,7 +53,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           streamType: 'dash',
-        })
+        }),
       );
     });
 
@@ -63,7 +63,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           vrContentType: undefined,
-        })
+        }),
       );
     });
 
@@ -77,7 +77,7 @@ describe('content metadata spec', () => {
         expect.objectContaining({
           playerType: PlayerType.Html5,
           streamType: StreamType.Dash,
-        })
+        }),
       );
     });
 
@@ -91,7 +91,7 @@ describe('content metadata spec', () => {
         expect.objectContaining({
           playerType: PlayerType.Native,
           streamType: 'dash_vod',
-        })
+        }),
       );
     });
 
@@ -102,7 +102,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           vrContentType: VRContentType.Single,
-        })
+        }),
       );
     });
 
@@ -112,7 +112,7 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           streamUrl: 'test.m3u8',
-        })
+        }),
       );
     });
 
@@ -126,7 +126,7 @@ describe('content metadata spec', () => {
         expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
           expect.objectContaining({
             duration: 10,
-          })
+          }),
         );
       });
     });
@@ -144,7 +144,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 viewerId: 'newId',
-              })
+              }),
             );
           });
 
@@ -157,7 +157,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 isLive: 'unknown',
-              })
+              }),
             );
           });
 
@@ -167,7 +167,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 applicationName: 'someValue',
-              })
+              }),
             );
           });
 
@@ -175,7 +175,7 @@ describe('content metadata spec', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' }, assetName: 'MyAsset' });
             convivaAnalytics.initializeSession();
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
-              expect.objectContaining({ myTag: 'withMyValue' })
+              expect.objectContaining({ myTag: 'withMyValue' }),
             );
           });
 
@@ -185,7 +185,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 duration: 55,
-              })
+              }),
             );
           });
 
@@ -195,7 +195,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 encodedFrameRate: 144,
-              })
+              }),
             );
           });
 
@@ -205,7 +205,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 defaultResource: 'someValue',
-              })
+              }),
             );
           });
 
@@ -215,7 +215,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 streamUrl: 'http://some.url',
-              })
+              }),
             );
           });
 
@@ -225,7 +225,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 assetName: 'MyAsset',
-              })
+              }),
             );
           });
         });
@@ -239,7 +239,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 viewerId: 'newId',
-              })
+              }),
             );
           });
 
@@ -249,7 +249,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 isLive: 'unknown',
-              })
+              }),
             );
           });
 
@@ -259,7 +259,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 applicationName: 'someValue',
-              })
+              }),
             );
           });
 
@@ -267,7 +267,7 @@ describe('content metadata spec', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' } });
             playerMock.eventEmitter.firePlayEvent();
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
-              expect.objectContaining({ myTag: 'withMyValue' })
+              expect.objectContaining({ myTag: 'withMyValue' }),
             );
           });
 
@@ -277,7 +277,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 duration: 55,
-              })
+              }),
             );
           });
 
@@ -287,7 +287,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 encodedFrameRate: 144,
-              })
+              }),
             );
           });
 
@@ -297,7 +297,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 defaultResource: 'someValue',
-              })
+              }),
             );
           });
 
@@ -307,7 +307,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 streamUrl: 'http://some.url',
-              })
+              }),
             );
           });
 
@@ -317,7 +317,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 assetName: 'MyAsset',
-              })
+              }),
             );
           });
         });
@@ -337,7 +337,7 @@ describe('content metadata spec', () => {
               0,
               expect.objectContaining({
                 viewerId: 'newId',
-              })
+              }),
             );
           });
 
@@ -348,7 +348,7 @@ describe('content metadata spec', () => {
               0,
               expect.objectContaining({
                 isLive: 'UNKNOWN',
-              })
+              }),
             );
           });
 
@@ -359,7 +359,7 @@ describe('content metadata spec', () => {
               0,
               expect.objectContaining({
                 applicationName: 'someValue',
-              })
+              }),
             );
           });
 
@@ -368,7 +368,7 @@ describe('content metadata spec', () => {
 
             expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(
               0,
-              expect.objectContaining({ myTag: undefined })
+              expect.objectContaining({ myTag: undefined }),
             );
           });
 
@@ -379,7 +379,7 @@ describe('content metadata spec', () => {
               0,
               expect.objectContaining({
                 duration: 55,
-              })
+              }),
             );
           });
         });
@@ -391,7 +391,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 encodedFrameRate: 144,
-              })
+              }),
             );
           });
 
@@ -401,7 +401,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 defaultResource: 'someValue',
-              })
+              }),
             );
           });
 
@@ -411,7 +411,7 @@ describe('content metadata spec', () => {
             expect(convivaVideoAnalytics.setContentInfo).toHaveBeenLastCalledWith(
               expect.objectContaining({
                 streamUrl: 'http://some.url',
-              })
+              }),
             );
           });
         });

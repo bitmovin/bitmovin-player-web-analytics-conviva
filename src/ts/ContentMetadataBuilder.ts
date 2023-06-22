@@ -47,7 +47,7 @@ export class ContentMetadataBuilder {
     if (this.playbackStarted) {
       this.logger.consoleLog(
         '[ Conviva Analytics ] Playback has started. Only some metadata attributes will be updated',
-        Conviva.SystemSettings.LogLevel.WARNING
+        Conviva.SystemSettings.LogLevel.WARNING,
       );
     }
 

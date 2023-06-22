@@ -279,7 +279,7 @@
                   },
                   function (t) {
                     throw new Error('Client constructor failed: ' + t.message);
-                  }
+                  },
                 );
             }.apply(this, arguments),
             (this.release = function () {
@@ -1183,7 +1183,7 @@
                   this.gi(),
                   i,
                   e,
-                  s
+                  s,
                 );
               }),
               (this.Ni = function (t, n, i, e, s, o, r) {
@@ -3322,7 +3322,7 @@
                                 'header',
                                 'X-Cache',
                                 '' + this.getResponseHeader('X-Cache'),
-                                '' + this.status
+                                '' + this.status,
                               )
                             : p.qa('null', 'header', 'null', 'null', '' + this.status));
                       }),
@@ -3412,11 +3412,11 @@
                     p.c.error('Missing viewerId. viewerId should be updated before first frame is rendered.'),
                   (Z.wt(p.Et.streamType) && c.StreamType.UNKNOWN !== p.Et.streamType) ||
                     p.c.error(
-                      'Missing streamType - Live or VOD. streamType should be updated before first frame is rendered.'
+                      'Missing streamType - Live or VOD. streamType should be updated before first frame is rendered.',
                     ),
                   Z.wt(p.Et.applicationName) ||
                     p.c.error(
-                      'Missing applicationName. applicationName should be updated before first frame is rendered.'
+                      'Missing applicationName. applicationName should be updated before first frame is rendered.',
                     )),
                   p.vn !== t &&
                     ((n = p.vn),
@@ -3900,7 +3900,7 @@
                             ? navigator.mimeTypes.length
                             : 0,
                           'undefined' !== typeof navigator.product && navigator.product ? navigator.product.length : 0,
-                          'undefined' !== typeof navigator.vendor && navigator.vendor ? navigator.vendor.length : 0
+                          'undefined' !== typeof navigator.vendor && navigator.vendor ? navigator.vendor.length : 0,
                         ),
                         (n.fillStyle = '#069'),
                         n.fillText(
@@ -3908,7 +3908,7 @@
                           'undefined' !== typeof navigator.maxTouchPoints && navigator.maxTouchPoints >= 0
                             ? navigator.maxTouchPoints
                             : 0,
-                          'undefined' !== typeof navigator.product && navigator.product ? navigator.product.length : 0
+                          'undefined' !== typeof navigator.product && navigator.product ? navigator.product.length : 0,
                         ),
                         (n.fillStyle = 'rgba(102, 204, 0, 0.7)'),
                         n.fillText(
@@ -3918,7 +3918,7 @@
                             : 0,
                           'undefined' !== typeof navigator.hardwareConcurrency && navigator.hardwareConcurrency
                             ? navigator.hardwareConcurrency
-                            : 0
+                            : 0,
                         ),
                         H.js(t.toDataURL())
                       );
@@ -3971,7 +3971,7 @@
                             ((t = i[B.co]) >= 0 &&
                               p.Ta.get(Y.Df) !== t &&
                               (p.c.debug(
-                                'onHeartbeatResponse(): setting Maximum Heartbeat Infos to ' + t + ' (from gateway)'
+                                'onHeartbeatResponse(): setting Maximum Heartbeat Infos to ' + t + ' (from gateway)',
                               ),
                               p.Ta.set(Y.Df, t)),
                             (t = i[B.lo]),
@@ -4513,7 +4513,7 @@
                     e || i(!(e = !0), n + ' (' + t + ' ms)');
                   },
                   t,
-                  'CallbackWithTimeout.wrap'
+                  'CallbackWithTimeout.wrap',
                 );
                 return function (t, n) {
                   e || ((e = !0), i(t, n));
@@ -5041,7 +5041,7 @@
                     });
                   },
                   n,
-                  i
+                  i,
                 );
               }),
               (this.createOnce = function (t, n, i) {
@@ -5054,7 +5054,7 @@
                       });
                     },
                     n,
-                    i
+                    i,
                   )),
                   e.cancel
                 );

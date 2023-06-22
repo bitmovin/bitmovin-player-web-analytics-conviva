@@ -44,7 +44,7 @@ describe('player event tests', () => {
 
         expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
           Conviva.Constants.Playback.PLAYER_STATE,
-          Conviva.Constants.PlayerState.PLAYING
+          Conviva.Constants.PlayerState.PLAYING,
         );
       });
 
@@ -55,7 +55,7 @@ describe('player event tests', () => {
 
         expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
           Conviva.Constants.Playback.PLAYER_STATE,
-          Conviva.Constants.PlayerState.PAUSED
+          Conviva.Constants.PlayerState.PAUSED,
         );
       });
     });
@@ -85,7 +85,7 @@ describe('player event tests', () => {
             setTimeout(function () {
               expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(
                 Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING
+                Conviva.Constants.PlayerState.BUFFERING,
               );
               done();
             }, 120);
@@ -101,12 +101,12 @@ describe('player event tests', () => {
 
             expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
               Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING
+              Conviva.Constants.PlayerState.BUFFERING,
             );
             setTimeout(() => {
               expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
                 Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING
+                Conviva.Constants.PlayerState.BUFFERING,
               );
               done();
             }, 2000);
@@ -127,12 +127,12 @@ describe('player event tests', () => {
 
             expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
               Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING
+              Conviva.Constants.PlayerState.BUFFERING,
             );
             setTimeout(() => {
               expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
                 Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING
+                Conviva.Constants.PlayerState.BUFFERING,
               );
               done();
             }, 2000);
@@ -146,12 +146,12 @@ describe('player event tests', () => {
 
             expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
               Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING
+              Conviva.Constants.PlayerState.BUFFERING,
             );
             setTimeout(() => {
               expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
                 Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING
+                Conviva.Constants.PlayerState.BUFFERING,
               );
               done();
             }, 2000);
@@ -194,14 +194,14 @@ describe('player event tests', () => {
         it('on seek', () => {
           playerMock.eventEmitter.fireSeekEvent(50.145);
           expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
-            Conviva.Constants.Playback.SEEK_STARTED
+            Conviva.Constants.Playback.SEEK_STARTED,
           );
         });
 
         it('on timeshift', () => {
           playerMock.eventEmitter.fireTimeShiftEvent();
           expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
-            Conviva.Constants.Playback.SEEK_STARTED
+            Conviva.Constants.Playback.SEEK_STARTED,
           );
         });
       });
@@ -210,14 +210,14 @@ describe('player event tests', () => {
         it('on seeked', () => {
           playerMock.eventEmitter.fireSeekedEvent();
           expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
-            Conviva.Constants.Playback.SEEK_ENDED
+            Conviva.Constants.Playback.SEEK_ENDED,
           );
         });
 
         it('on timeshifted', () => {
           playerMock.eventEmitter.fireTimeShiftedEvent();
           expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
-            Conviva.Constants.Playback.SEEK_ENDED
+            Conviva.Constants.Playback.SEEK_ENDED,
           );
         });
       });
@@ -242,7 +242,7 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.PREROLL
+        Conviva.Constants.AdPosition.PREROLL,
       );
     });
 
@@ -253,7 +253,7 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.MIDROLL
+        Conviva.Constants.AdPosition.MIDROLL,
       );
     });
 
@@ -297,7 +297,7 @@ describe('player event tests', () => {
 
       expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
         Conviva.Constants.Playback.BITRATE,
-        2_400
+        2_400,
       );
     });
 
@@ -309,7 +309,7 @@ describe('player event tests', () => {
 
         expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
           Conviva.Constants.Playback.BITRATE,
-          4_800
+          4_800,
         );
       });
     });

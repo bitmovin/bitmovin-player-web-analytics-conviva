@@ -30,7 +30,7 @@ describe('externally session managing', () => {
 
     it('throw without asset name initialize session', () => {
       expect(convivaAnalytics.initializeSession.bind(convivaAnalytics)).toThrow(
-        'AssetName is missing. Load player source first or set assetName via updateContentMetadata'
+        'AssetName is missing. Load player source first or set assetName via updateContentMetadata',
       );
     });
 

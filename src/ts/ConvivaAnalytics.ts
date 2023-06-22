@@ -142,7 +142,7 @@ export class ConvivaAnalytics {
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.BUFFERING
+      Conviva.Constants.PlayerState.BUFFERING,
     );
   });
 
@@ -155,8 +155,7 @@ export class ConvivaAnalytics {
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error(
-        'Conviva script missing, cannot init ConvivaAnalytics. ' +
-          "Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin's ConvivaAnalytics integration."
+        `Conviva script missing, cannot init ConvivaAnalytics. Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin's ConvivaAnalytics integration.`,
       );
       return; // Cancel initialization
     }
@@ -274,7 +273,7 @@ export class ConvivaAnalytics {
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         'cannot send application event, no active monitoring session',
-        Conviva.SystemSettings.LogLevel.WARNING
+        Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
     }
@@ -295,7 +294,7 @@ export class ConvivaAnalytics {
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         'cannot send playback event, no active monitoring session',
-        Conviva.SystemSettings.LogLevel.WARNING
+        Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
     }
@@ -330,7 +329,7 @@ export class ConvivaAnalytics {
   public reportPlaybackDeficiency(
     message: string,
     severity: Conviva.Constants.ErrorSeverity,
-    endSession: boolean = true
+    endSession: boolean = true,
   ) {
     if (!this.isSessionActive()) {
       return;
@@ -351,7 +350,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      Conviva.Constants.AdPosition.PREROLL
+      Conviva.Constants.AdPosition.PREROLL,
     );
     this.debugLog('Tracking paused.');
   }
@@ -405,7 +404,7 @@ export class ConvivaAnalytics {
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         '[ ConvivaAnalytics ] no active session. Content metadata will be propagated to Conviva on session initialization.',
-        Conviva.SystemSettings.LogLevel.DEBUG
+        Conviva.SystemSettings.LogLevel.DEBUG,
       );
       return;
     }
@@ -452,13 +451,13 @@ export class ConvivaAnalytics {
       // Something went wrong. With stable system interfaces, this should never happen.
       this.logger.consoleLog(
         'Something went wrong, could not obtain session key',
-        Conviva.SystemSettings.LogLevel.ERROR
+        Conviva.SystemSettings.LogLevel.ERROR,
       );
     }
 
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.STOPPED
+      Conviva.Constants.PlayerState.STOPPED,
     );
 
     if (this.lastSeenBitrate) {
@@ -687,7 +686,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      adPosition
+      adPosition,
     );
   };
 
@@ -703,7 +702,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakEnded();
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.PLAYING
+      Conviva.Constants.PlayerState.PLAYING,
     );
   };
 

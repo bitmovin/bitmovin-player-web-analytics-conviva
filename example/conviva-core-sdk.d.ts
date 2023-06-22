@@ -121,13 +121,13 @@ export interface ConvivaUtils {
     data: any,
     contentType: string,
     timeout: number,
-    callback: (succes: boolean, response: string) => void
+    callback: (succes: boolean, response: string) => void,
   ): void;
   [ConvivaKeys.SAVE_DATA]?(
     path: string,
     key: string,
     data: string,
-    callback: (success: boolean, data: string) => void
+    callback: (success: boolean, data: string) => void,
   ): void;
   [ConvivaKeys.LOAD_DATA]?(path: string, key: string, callback: (success: boolean, data: string) => void): void;
   [ConvivaKeys.GET_EPOCH_TIME_IN_MS]?(): number;
@@ -195,7 +195,7 @@ export interface VideoAnalytics {
   reportAdBreakStarted(
     type: valueof<ConvivaConstants['AdType']>,
     value: valueof<ConvivaConstants['AdPlayer']>,
-    adBreakInfo?: object
+    adBreakInfo?: object,
   ): void;
   reportPlaybackEnded(): void;
   reportPlaybackError(errorMessage: string, errorSeverity?: valueof<ConvivaConstants['ErrorSeverity']>): void;
@@ -204,7 +204,7 @@ export interface VideoAnalytics {
   reportPlaybackMetric(
     metricKey: valueof<ConvivaConstants['Playback']>,
     metricValue?: valueof<ConvivaConstants['PlayerState']> | number | string,
-    metricValue2?: valueof<ConvivaConstants['PlayerState']> | number | string
+    metricValue2?: valueof<ConvivaConstants['PlayerState']> | number | string,
   ): void;
   reportPlaybackRequested(contentInfo?: ConvivaMetadata): void;
   setCallback(callback: () => void | null): void;
@@ -222,7 +222,7 @@ export interface AdAnalytics {
   reportAdMetric(
     metricKey: valueof<ConvivaConstants['Playback']>,
     metricValue?: valueof<ConvivaConstants['PlayerState']> | number | string,
-    metricValue2?: valueof<ConvivaConstants['PlayerState']> | number | string
+    metricValue2?: valueof<ConvivaConstants['PlayerState']> | number | string,
   ): void;
   reportAdPlayerEvent(eventType: valueof<ConvivaConstants['Events']>, detail?: object): void;
   reportAdSkipped(): void;
