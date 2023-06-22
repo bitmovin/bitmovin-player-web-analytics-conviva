@@ -19,9 +19,11 @@ Build the JS file by running `npm run build`
 2. Install node.js
 3. Install required npm packages: [`npm install`](https://www.npmjs.com/)
 4. Run tasks:
-  * `npm run lint` to lint TypeScript files
+  * `npm run lint` to lint TypeScript files as well as CHANGELOG.md
   * `npm run build` to build project into `dist` directory
   * `npm run start` to open test page in browser, build and reload changed files automatically
+  * `npm run format` to run prettier and auto-format all code files
+  * `npm run test` to run tests
 
 ## Usage
 1. Include `conviva-core-sdk.min.js` as **first** of all scripts in your HTML document
