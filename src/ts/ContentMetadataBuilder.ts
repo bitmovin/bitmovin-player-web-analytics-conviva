@@ -26,7 +26,6 @@ export interface CustomContentMetadata {
 }
 
 export class ContentMetadataBuilder {
-
   private readonly logger: Conviva.LoggingInterface;
   private contentMetadata: Conviva.ContentMetadata;
 
@@ -48,7 +47,7 @@ export class ContentMetadataBuilder {
     if (this.playbackStarted) {
       this.logger.consoleLog(
         '[ Conviva Analytics ] Playback has started. Only some metadata attributes will be updated',
-        Conviva.SystemSettings.LogLevel.WARNING,
+        Conviva.SystemSettings.LogLevel.WARNING
       );
     }
 
@@ -92,11 +91,12 @@ export class ContentMetadataBuilder {
     convivaContentInfo[Conviva.Constants.STREAM_URL] = this.contentMetadata.streamUrl;
     convivaContentInfo[Conviva.Constants.IS_LIVE] = this.contentMetadata.streamType;
     convivaContentInfo[Conviva.Constants.VIEWER_ID] = this.contentMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER';
-    convivaContentInfo[Conviva.Constants.PLAYER_NAME] = this.contentMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE';
+    convivaContentInfo[Conviva.Constants.PLAYER_NAME] =
+      this.contentMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE';
     convivaContentInfo[Conviva.Constants.FRAMEWORK_NAME] = this.contentMetadata.framework;
     convivaContentInfo[Conviva.Constants.FRAMEWORK_VERSION] = this.contentMetadata.frameworkVersion;
 
-    return {...convivaContentInfo, ...this.contentMetadata.custom};
+    return { ...convivaContentInfo, ...this.contentMetadata.custom };
   }
 
   // These methods should be treated as package private
