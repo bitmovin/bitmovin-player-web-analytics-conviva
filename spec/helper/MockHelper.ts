@@ -1,14 +1,22 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerEvent } from './PlayerEvent';
 import {
-  AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, VideoPlaybackQualityChangedEvent, CastStartedEvent,
+  AdBreakEvent,
+  AdEvent,
+  PlaybackEvent,
+  ErrorEvent,
+  PlayerAPI,
+  PlayerEventBase,
+  PlayerEventCallback,
+  SeekEvent,
+  TimeShiftEvent,
+  VideoPlaybackQualityChangedEvent,
+  CastStartedEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
 declare const global: any;
 export namespace MockHelper {
-
   export function mockConviva(): void {
     global.Conviva = {};
     global.Conviva.SystemInterface = jest.fn().mockImplementation();
@@ -55,7 +63,7 @@ export namespace MockHelper {
         SEEK_STARTED: 'SEEK_STARTED',
       },
       ASSET_NAME: `assetName`,
-      ENCODED_FRAMERATE:'encodedFrameRate',
+      ENCODED_FRAMERATE: 'encodedFrameRate',
       DURATION: 'duration',
       DEFAULT_RESOURCE: 'defaultResource',
       STREAM_URL: 'streamUrl',
@@ -89,8 +97,8 @@ export namespace MockHelper {
       },
       LogLevel: {
         DEBUG: 'debug',
-      }
-    }
+      },
+    };
     const reportPlaybackRequested = jest.fn();
 
     const reportPlaybackFailed = jest.fn();
@@ -124,7 +132,7 @@ export namespace MockHelper {
       release: jest.fn().mockImplementation(),
       setDeviceMetadata: jest.fn().mockImplementation(),
       updateContentMetadata: jest.fn().mockImplementation(),
-    }
+    };
 
     global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
       return {
@@ -141,9 +149,9 @@ export namespace MockHelper {
         reportAppEvent,
         setCallback,
         getSessionId,
-        release
-      }
-    })
+        release,
+      };
+    });
   }
 
   // Custom cast SDK implementation
@@ -251,7 +259,7 @@ interface EventEmitter {
 }
 
 class PlayerEventHelper implements EventEmitter {
-  private eventHandlers: { [eventType: string]: PlayerEventCallback[]; } = {};
+  private eventHandlers: { [eventType: string]: PlayerEventCallback[] } = {};
 
   public on(eventType: PlayerEvent, callback: PlayerEventCallback) {
     if (!this.eventHandlers[eventType]) {

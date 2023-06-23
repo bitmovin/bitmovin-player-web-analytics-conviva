@@ -2,9 +2,14 @@ import HttpRequestCancelFunction = Conviva.HttpRequestCancelFunction;
 import HttpRequestCallback = Conviva.HttpRequestCallback;
 
 export class Html5Http implements Conviva.HttpInterface {
-
-  public makeRequest(httpMethod: 'GET' | 'POST', url: string, data: string | null, contentType: string | null,
-              timeoutMs: number, callback: HttpRequestCallback | null): HttpRequestCancelFunction {
+  public makeRequest(
+    httpMethod: 'GET' | 'POST',
+    url: string,
+    data: string | null,
+    contentType: string | null,
+    timeoutMs: number,
+    callback: HttpRequestCallback | null,
+  ): HttpRequestCancelFunction {
     return this.makeRequestStandard.apply(this, arguments);
   }
 
@@ -12,8 +17,14 @@ export class Html5Http implements Conviva.HttpInterface {
     // nothing to release
   }
 
-  private makeRequestStandard(httpMethod: 'GET' | 'POST', url: string, data: string | null, contentType: string | null,
-                              timeoutMs: number, callback: HttpRequestCallback | null): HttpRequestCancelFunction {
+  private makeRequestStandard(
+    httpMethod: 'GET' | 'POST',
+    url: string,
+    data: string | null,
+    contentType: string | null,
+    timeoutMs: number,
+    callback: HttpRequestCallback | null,
+  ): HttpRequestCancelFunction {
     const xmlHttpReq = new XMLHttpRequest();
 
     xmlHttpReq.open(httpMethod, url, true);
@@ -26,7 +37,7 @@ export class Html5Http implements Conviva.HttpInterface {
     }
     if (timeoutMs > 0) {
       xmlHttpReq.timeout = timeoutMs;
-      xmlHttpReq.ontimeout = function() {
+      xmlHttpReq.ontimeout = function () {
         // Often this callback will be called after onreadystatechange.
         // The first callback called will cleanup the other to prevent duplicate responses.
         xmlHttpReq.ontimeout = xmlHttpReq.onreadystatechange = null;
@@ -36,7 +47,7 @@ export class Html5Http implements Conviva.HttpInterface {
       };
     }
 
-    xmlHttpReq.onreadystatechange = function() {
+    xmlHttpReq.onreadystatechange = function () {
       if (xmlHttpReq.readyState === 4) {
         xmlHttpReq.ontimeout = xmlHttpReq.onreadystatechange = null;
         if (xmlHttpReq.status === 200) {
@@ -55,5 +66,4 @@ export class Html5Http implements Conviva.HttpInterface {
 
     return null; // no way to cancel the request
   }
-
 }
