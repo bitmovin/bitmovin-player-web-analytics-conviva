@@ -1,5 +1,5 @@
 # Bitmovin Player Conviva Analytics Integration
-This is an open-source project to enable the use of a third-party component (Conviva) with the Bitmovin Player iOS SDK.
+This is an open-source project to enable the use of a third-party component (Conviva) with the Bitmovin Player Web SDK.
 
 ## Maintenance and Update
 This project is not part of a regular maintenance or update schedule and is updated once yearly to conform with the latest product versions. For additional update requests, please take a look at the guidance further below.
