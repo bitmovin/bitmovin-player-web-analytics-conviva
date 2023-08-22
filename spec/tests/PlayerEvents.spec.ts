@@ -327,4 +327,69 @@ describe('player event tests', () => {
       });
     });
   });
+
+  describe('track audio changed', () => {
+    it('on audio changed', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireAudioChanged();
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.AUDIO_LANGUAGE,
+        '[es]:Spanish',
+      );
+    });
+  });
+
+  describe('track subtitle enabled', () => {
+    it('on subtitle enabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleEnabled('subtitles');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.SUBTITLES_LANGUAGE,
+        '[en]:English',
+      );
+    });
+  });
+
+  describe('track subtitle disabled', () => {
+    it('on subtitle disabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleDisabled('subtitles');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.SUBTITLES_LANGUAGE,
+        'off',
+      );
+    });
+  });
+
+  describe('track closed captions enabled', () => {
+    it('on closed captions enabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleEnabled('captions');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        '[en]:English',
+      );
+    });
+  });
+
+  describe('track closed captions disabled', () => {
+    it('on closed captions disabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleDisabled('captions');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        'off',
+      );
+    });
+  });
 });
