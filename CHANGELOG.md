@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Support for Conviva-SDK version 4.7.0
+- Tracking for Audio language
+- Tracking for Subtitle Language
+- Tracking for Closed Caption Language
+
+### Removed
+- Support for Conviva-SDK version 4.6.1
 
 ## v4.1.0 - 2022-10-24
 

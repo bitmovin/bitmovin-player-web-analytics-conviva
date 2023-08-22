@@ -60,15 +60,18 @@ declare namespace Conviva {
     }
 
     enum Playback {
+      AUDIO_LANGUAGE,
       BITRATE,
       BUFFER_LENGTH,
       CDN_IP,
+      CLOSED_CAPTIONS_LANGUAGE,
       PLAYER_STATE,
       PLAY_HEAD_TIME,
       RENDERED_FRAMERATE,
       RESOLUTION,
       SEEK_ENDED,
       SEEK_STARTED,
+      SUBTITLES_LANGUAGE,
     }
 
     enum Network {

@@ -2,6 +2,8 @@ import {
   AdBreak,
   AdBreakEvent,
   AdEvent,
+  AudioChangedEvent,
+  AudioTrack,
   ErrorEvent,
   PlaybackEvent,
   PlayerAPI,
@@ -11,6 +13,8 @@ import {
   SourceConfig,
   TimeShiftEvent,
   VideoQualityChangedEvent,
+  SubtitleEvent,
+  SubtitleTrack,
   TimeMode,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
@@ -463,6 +467,19 @@ export class ConvivaAnalytics {
     if (this.lastSeenBitrate) {
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, this.lastSeenBitrate);
     }
+
+    // Send the session init audio language values.
+    this.updateAudioTrack(this.player.getAudio());
+
+    // Check if at session init has a subtitle enabled.
+    const enableSubtitle = this.player.subtitles.list().filter((i) => i.enabled);
+
+    // Send the session init subtitle language values.
+    if (enableSubtitle.length === 1) {
+      this.updateSubtitleTrack(enableSubtitle[0]);
+    } else {
+      this.turnOffSubtitles();
+    }
   }
 
   /**
@@ -763,6 +780,63 @@ export class ConvivaAnalytics {
   private trackSeekEnd() {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
+  private onAudioChanged = (event: AudioChangedEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User change audio on the UI before play was triggered.
+      return;
+    }
+
+    this.updateAudioTrack(event.targetAudio);
+  };
+
+  private updateAudioTrack(audioTrack: AudioTrack) {
+    const formattedAudio =
+      audioTrack.lang !== 'unknown' ? '[' + audioTrack.lang + ']:' + audioTrack.label : audioTrack.label;
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.AUDIO_LANGUAGE, formattedAudio);
+  }
+
+  private onSubtitleEnabled = (event: SubtitleEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User change subtitle on the UI before play was triggered.
+      return;
+    }
+    this.updateSubtitleTrack(event.subtitle);
+  };
+
+  private updateSubtitleTrack(subtitleTrack: SubtitleTrack) {
+    const formattedSubtitle =
+      subtitleTrack.lang !== 'unknown' ? '[' + subtitleTrack.lang + ']:' + subtitleTrack.label : subtitleTrack.label;
+
+    if (subtitleTrack.kind === 'subtitles') {
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, formattedSubtitle);
+
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
+    } else if (subtitleTrack.kind === 'captions') {
+      this.convivaVideoAnalytics.reportPlaybackMetric(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        formattedSubtitle,
+      );
+
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
+    } else {
+      this.turnOffSubtitles();
+    }
+  }
+
+  private onSubtitleDisabled = (event: SubtitleEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User turn off subtitle on the UI before play was triggered.
+      return;
+    }
+
+    this.turnOffSubtitles();
+  };
+
+  private turnOffSubtitles() {
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
+
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
+  }
 
   private onError = (event: ErrorEvent) => {
     if (!this.isSessionActive() && !this.sessionEndedExternally) {
@@ -813,6 +887,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
+    playerEvents.add(this.events.AudioChanged, this.onAudioChanged);
+    playerEvents.add(this.events.SubtitleEnabled, this.onSubtitleEnabled);
+    playerEvents.add(this.events.SubtitleDisabled, this.onSubtitleDisabled);
 
     playerEvents.add(this.events.CastStarted, this.onCustomEvent);
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);
