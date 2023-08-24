@@ -1,14 +1,24 @@
 /// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerEvent } from './PlayerEvent';
 import {
-  AdBreakEvent, AdEvent, PlaybackEvent, ErrorEvent, PlayerAPI, PlayerEventBase, PlayerEventCallback, SeekEvent,
-  TimeShiftEvent, VideoPlaybackQualityChangedEvent, CastStartedEvent,
+  AdBreakEvent,
+  AdEvent,
+  PlaybackEvent,
+  ErrorEvent,
+  PlayerAPI,
+  PlayerEventBase,
+  PlayerEventCallback,
+  SeekEvent,
+  TimeShiftEvent,
+  VideoPlaybackQualityChangedEvent,
+  CastStartedEvent,
+  AudioChangedEvent,
+  SubtitleEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
 declare const global: any;
 export namespace MockHelper {
-
   export function mockConviva(): void {
     global.Conviva = {};
     global.Conviva.SystemInterface = jest.fn().mockImplementation();
@@ -44,6 +54,8 @@ export namespace MockHelper {
         NOT_MONITORED: 'NOT_MONITORED',
       },
       Playback: {
+        AUDIO_LANGUAGE: 'AUDIO_LANGUAGE',
+        CLOSED_CAPTIONS_LANGUAGE: 'CLOSED_CAPTIONS_LANGUAGE',
         BITRATE: 'BITRATE',
         BUFFER_LENGTH: 'BUFFER_LENGTH',
         CDN_IP: 'CDN_IP',
@@ -53,9 +65,10 @@ export namespace MockHelper {
         RESOLUTION: 'RESOLUTION',
         SEEK_ENDED: 'SEEK_ENDED',
         SEEK_STARTED: 'SEEK_STARTED',
+        SUBTITLES_LANGUAGE: 'SUBTITLES_LANGUAGE',
       },
       ASSET_NAME: `assetName`,
-      ENCODED_FRAMERATE:'encodedFrameRate',
+      ENCODED_FRAMERATE: 'encodedFrameRate',
       DURATION: 'duration',
       DEFAULT_RESOURCE: 'defaultResource',
       STREAM_URL: 'streamUrl',
@@ -89,8 +102,8 @@ export namespace MockHelper {
       },
       LogLevel: {
         DEBUG: 'debug',
-      }
-    }
+      },
+    };
     const reportPlaybackRequested = jest.fn();
 
     const reportPlaybackFailed = jest.fn();
@@ -124,7 +137,7 @@ export namespace MockHelper {
       release: jest.fn().mockImplementation(),
       setDeviceMetadata: jest.fn().mockImplementation(),
       updateContentMetadata: jest.fn().mockImplementation(),
-    }
+    };
 
     global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
       return {
@@ -141,9 +154,9 @@ export namespace MockHelper {
         reportAppEvent,
         setCallback,
         getSessionId,
-        release
-      }
-    })
+        release,
+      };
+    });
   }
 
   // Custom cast SDK implementation
@@ -170,6 +183,14 @@ export namespace MockHelper {
             CAST: 'CAST',
           },
         },
+        getAudio: jest.fn(() => {
+          return {
+            id: 'en',
+            lang: 'en',
+            label: 'English',
+            getQualities: jest.fn(),
+          };
+        }),
         getDuration: jest.fn(),
         getCurrentTime: jest.fn(),
         isLive: jest.fn(),
@@ -187,6 +208,11 @@ export namespace MockHelper {
             global.gcr.castMetadataListenerCallback(metadata);
           }
         }),
+        subtitles: {
+          list: jest.fn(() => {
+            return [];
+          }),
+        },
 
         // Event faker
         eventEmitter: eventHelper,
@@ -248,10 +274,16 @@ interface EventEmitter {
   fireCastWaitingForDevice(resuming?: boolean): void;
 
   fireCastStoppedEvent(): void;
+
+  fireAudioChanged(): void;
+
+  fireSubtitleEnabled(kind: string): void;
+
+  fireSubtitleDisabled(kind: string): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
-  private eventHandlers: { [eventType: string]: PlayerEventCallback[]; } = {};
+  private eventHandlers: { [eventType: string]: PlayerEventCallback[] } = {};
 
   public on(eventType: PlayerEvent, callback: PlayerEventCallback) {
     if (!this.eventHandlers[eventType]) {
@@ -463,6 +495,51 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.CastWaitingForDevice,
       deviceName: 'MyCastDevice',
       resuming: false,
+    });
+  }
+  fireAudioChanged(): void {
+    this.fireEvent<AudioChangedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.AudioChanged,
+      sourceAudio: {
+        id: 'en',
+        lang: 'en',
+        label: 'English',
+        getQualities: jest.fn(),
+      },
+      targetAudio: {
+        id: 'es',
+        lang: 'es',
+        label: 'Spanish',
+        getQualities: jest.fn(),
+      },
+      time: 10,
+    });
+  }
+
+  fireSubtitleEnabled(kind: string): void {
+    this.fireEvent<SubtitleEvent>({
+      subtitle: {
+        id: 'en',
+        kind: kind,
+        lang: 'en',
+        label: 'English',
+      },
+      timestamp: Date.now(),
+      type: PlayerEvent.SubtitleEnabled,
+    });
+  }
+
+  fireSubtitleDisabled(kind: string): void {
+    this.fireEvent<SubtitleEvent>({
+      subtitle: {
+        id: 'en',
+        kind: kind,
+        lang: 'en',
+        label: 'English',
+      },
+      timestamp: Date.now(),
+      type: PlayerEvent.SubtitleDisabled,
     });
   }
 }

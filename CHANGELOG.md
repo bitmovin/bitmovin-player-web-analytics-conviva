@@ -1,12 +1,21 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Support for Conviva-SDK version 4.7.0
+- Tracking for Audio language
+- Tracking for Subtitle Language
+- Tracking for Closed Caption Language
 
-## [4.1.0]
+### Removed
+- Support for Conviva-SDK version 4.6.1
+
+## v4.1.0 - 2022-10-24
 
 ### Added
 - Support for Conviva-SDK version 4.5.7
@@ -17,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Support for Conviva-SDK version 4.0.15
 
-## [4.0.3]
+## 4.0.3 - 2021-04-30
 
 ### Added
 - `bitmovin-player@^8.31.0` as peer dependency.
@@ -27,17 +36,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Deprecated
 - `ConvivaAnalyticsConfiguration.deviceCategory` field in favour of `ConvivaAnalyticsConfiguration.deviceMetadata.category` field
 
-## [4.0.2]
+## 4.0.2 - 2021-02-24
 
 ### Fixed
 - Metadata was cleared after playback finished.
 
-## [4.0.1]
+## 4.0.1 - 2021-02-01
 
 ### Fixed
 - Uncaught TypeError (`Cannot read property 'release' of null`) when attempting to release the Conviva instance.
 
-## [4.0.0]
+## 4.0.0 - 2021-01-15
 
 ### Added
 - Support for Conviva-SDK 4.0.15.
@@ -45,37 +54,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Support for Conviva-SDK 2.151.0.36981.
 
-## [3.0.6]
+## 3.0.6 - 2020-04-16
 
 ### Fixed
 - Prefer `window.setInterval()` in `Html5Timer.ts` instead of the NodeJS definition.
 
-## [3.0.5]
+## 3.0.5 - 2020-03-30
 
 ### Fixed
 - Updated `webpack-dev-server` to the latest version, to resolve console errors when running locally via `npm run start`.
 
-## [3.0.4]
+## 3.0.4 - 2020-03-05
 
 ### Fixed
 - Send playing event after an ad break has finished.
 
-## [3.0.3]
+## 3.0.3 - 2020-02-05
 
 ### Added
 - Added a configuration option to set the Conviva Device Category. 
 
-## [3.0.2]
+## 3.0.2 - 2019-10-23
 
 ### Added
 - `endSession` will now prevent a new session from being initialized via internal event handling.
 
-## [3.0.1]
+## 3.0.1 - 2019-05-16
 
 ### Added
 - Support for Conviva-SDK 2.151.0.36981.
 
-## [3.0.0]
+## 3.0.0 - 2019-03-15
 
 ### Added
 - `initializeSession` to external start session.
@@ -91,7 +100,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - `viewerId`, `applicationName` and `customTags` from `ConvivaAnalyticsConfiguration`. Use `updateContentMetadata` instead.
 
-## [2.0.0] (2018-12-12)
+## 2.1.0 - 2019-01-17
+
+### Added
+- `integrationVersion` as custom `contentMetadata` attribute
+- Method to track custom deficiency events
+
+## 2.0.0 - 2018-12-13
 
 ### Added
 - Tracking of `autoplay` and `preload` config attributes.
@@ -103,20 +118,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Removed
 - Seek event tracking
-
-## [95c526]
-
-Support for Conviva-SDK version below 2.146.0.36444
-
-[4.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.2...v4.0.3
-[4.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.1...v4.0.2
-[4.0.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v4.0.0...v4.0.1
-[4.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.6...v4.0.0
-[3.0.6]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.5...v3.0.6
-[3.0.5]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.4...v3.0.5
-[3.0.4]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.3...v3.0.4
-[3.0.3]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.2...v3.0.3
-[3.0.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.1...v3.0.2
-[3.0.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v3.0.0...v3.0.1
-[3.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/95c526a7306cef98061f8f65e3dec3023df501af...v3.0.0
-[95c526]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/commit/95c526a7306cef98061f8f65e3dec3023df501af

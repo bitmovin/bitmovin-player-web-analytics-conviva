@@ -1,5 +1,4 @@
 declare namespace Conviva {
-
   namespace Constants {
     enum AdPlayer {
       CONTENT,
@@ -61,15 +60,18 @@ declare namespace Conviva {
     }
 
     enum Playback {
+      AUDIO_LANGUAGE,
       BITRATE,
       BUFFER_LENGTH,
       CDN_IP,
+      CLOSED_CAPTIONS_LANGUAGE,
       PLAYER_STATE,
       PLAY_HEAD_TIME,
       RENDERED_FRAMERATE,
       RESOLUTION,
       SEEK_ENDED,
       SEEK_STARTED,
+      SUBTITLES_LANGUAGE,
     }
 
     enum Network {
@@ -151,34 +153,45 @@ declare namespace Conviva {
   };
 
   class Analytics {
-    public static init(customerKey: string, callbackFunctions: any, settings?: {[key: string]: string| number}): void;
+    public static init(
+      customerKey: string,
+      callbackFunctions: any,
+      settings?: { [key: string]: string | number },
+    ): void;
     public static buildVideoAnalytics(): Conviva.ConvivaVideoAnalytics;
     public static setDeviceMetadata(metadata: DeviceMetadata): Conviva.Constants.DeviceCategory;
     public static release(): void;
   }
 
   interface ConvivaVideoAnalytics {
-    reportPlaybackRequested(contentInfo?: {[key: string]: number | string}): void;
+    reportPlaybackRequested(contentInfo?: { [key: string]: number | string }): void;
 
-    reportPlaybackFailed(errorMessage: string, contentInfo?: {[key: string]: number | string}): void;
+    reportPlaybackFailed(errorMessage: string, contentInfo?: { [key: string]: number | string }): void;
 
     reportPlaybackEnded(): void;
 
-    setContentInfo(contentInfo: {[key: string]: number | string}): void;
+    setContentInfo(contentInfo: { [key: string]: number | string }): void;
 
-    setPlayerInfo(playerInfo: {[key: string]: number | string}): void;
+    setPlayerInfo(playerInfo: { [key: string]: number | string }): void;
 
-    reportPlaybackMetric(event: Conviva.Constants.Playback | Conviva.Constants.PlayerState, value?: string | number): void;
+    reportPlaybackMetric(
+      event: Conviva.Constants.Playback | Conviva.Constants.PlayerState,
+      value?: string | number,
+    ): void;
 
     reportDeviceMetric(metric: Conviva.Constants.Network, value?: string | number): void;
 
-    reportAdBreakStarted(adType: Conviva.Constants.AdType, adPlayer: Conviva.Constants.AdPlayer, position?: Conviva.Constants.AdPosition): void;
+    reportAdBreakStarted(
+      adType: Conviva.Constants.AdType,
+      adPlayer: Conviva.Constants.AdPlayer,
+      position?: Conviva.Constants.AdPosition,
+    ): void;
 
     reportAdBreakEnded(): void;
 
-    reportPlaybackEvent(eventType: string, eventDetail: {[key: string]: string}): void;
+    reportPlaybackEvent(eventType: string, eventDetail: { [key: string]: string }): void;
 
-    reportAppEvent(eventType: string, eventDetail: {[key: string]: string}): void;
+    reportAppEvent(eventType: string, eventDetail: { [key: string]: string }): void;
 
     setCallback(callback: Function): void;
 

@@ -6,7 +6,7 @@ import { ConvivaAnalytics } from '../../src/ts';
 describe('player event tests', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics
+  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
@@ -42,7 +42,10 @@ describe('player event tests', () => {
         jest.spyOn(playerMock, 'isPlaying').mockReturnValue(true);
         playerMock.eventEmitter.firePlayingEvent();
 
-        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+          Conviva.Constants.Playback.PLAYER_STATE,
+          Conviva.Constants.PlayerState.PLAYING,
+        );
       });
 
       it('on pause', () => {
@@ -50,9 +53,11 @@ describe('player event tests', () => {
         jest.spyOn(playerMock, 'isPaused').mockReturnValue(true);
         playerMock.eventEmitter.firePauseEvent();
 
-        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PAUSED);
+        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+          Conviva.Constants.Playback.PLAYER_STATE,
+          Conviva.Constants.PlayerState.PAUSED,
+        );
       });
-
     });
     it('should not crash here', () => {
       jest.spyOn(playerMock, 'isPaused').mockReturnValue(true);
@@ -72,14 +77,16 @@ describe('player event tests', () => {
             playerMock.eventEmitter.firePlayingEvent();
           });
 
-
           it('right after stall started', () => {
             playerMock.eventEmitter.fireStallStartedEvent();
           });
 
           afterEach((done: any) => {
             setTimeout(function () {
-              expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+              expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(
+                Conviva.Constants.Playback.PLAYER_STATE,
+                Conviva.Constants.PlayerState.BUFFERING,
+              );
               done();
             }, 120);
           });
@@ -92,9 +99,15 @@ describe('player event tests', () => {
           setTimeout(() => {
             playerMock.eventEmitter.firePlayingEvent();
 
-            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+              Conviva.Constants.Playback.PLAYER_STATE,
+              Conviva.Constants.PlayerState.BUFFERING,
+            );
             setTimeout(() => {
-              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+                Conviva.Constants.Playback.PLAYER_STATE,
+                Conviva.Constants.PlayerState.BUFFERING,
+              );
               done();
             }, 2000);
           }, 30);
@@ -112,9 +125,15 @@ describe('player event tests', () => {
           setTimeout(() => {
             playerMock.eventEmitter.fireSeekedEvent();
 
-            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+              Conviva.Constants.Playback.PLAYER_STATE,
+              Conviva.Constants.PlayerState.BUFFERING,
+            );
             setTimeout(() => {
-              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+                Conviva.Constants.Playback.PLAYER_STATE,
+                Conviva.Constants.PlayerState.BUFFERING,
+              );
               done();
             }, 2000);
           }, 30);
@@ -125,9 +144,15 @@ describe('player event tests', () => {
           setTimeout(() => {
             playerMock.eventEmitter.fireTimeShiftedEvent();
 
-            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+            expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+              Conviva.Constants.Playback.PLAYER_STATE,
+              Conviva.Constants.PlayerState.BUFFERING,
+            );
             setTimeout(() => {
-              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+              expect(convivaVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+                Conviva.Constants.Playback.PLAYER_STATE,
+                Conviva.Constants.PlayerState.BUFFERING,
+              );
               done();
             }, 2000);
           }, 30);
@@ -168,24 +193,32 @@ describe('player event tests', () => {
       describe('track seek start', () => {
         it('on seek', () => {
           playerMock.eventEmitter.fireSeekEvent(50.145);
-          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.SEEK_STARTED);
+          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+            Conviva.Constants.Playback.SEEK_STARTED,
+          );
         });
 
         it('on timeshift', () => {
           playerMock.eventEmitter.fireTimeShiftEvent();
-          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.SEEK_STARTED);
+          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+            Conviva.Constants.Playback.SEEK_STARTED,
+          );
         });
       });
 
       describe('track seek end', () => {
         it('on seeked', () => {
           playerMock.eventEmitter.fireSeekedEvent();
-          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.SEEK_ENDED);
+          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+            Conviva.Constants.Playback.SEEK_ENDED,
+          );
         });
 
         it('on timeshifted', () => {
           playerMock.eventEmitter.fireTimeShiftedEvent();
-          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.SEEK_ENDED);
+          expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+            Conviva.Constants.Playback.SEEK_ENDED,
+          );
         });
       });
     });
@@ -206,14 +239,22 @@ describe('player event tests', () => {
       playerMock.eventEmitter.fireAdBreakStartedEvent(0);
       playerMock.eventEmitter.fireAdStartedEvent();
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledTimes(1);
-      expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(Conviva.Constants.AdType.CLIENT_SIDE, Conviva.Constants.AdPlayer.SEPARATE, Conviva.Constants.AdPosition.PREROLL);
+      expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
+        Conviva.Constants.AdType.CLIENT_SIDE,
+        Conviva.Constants.AdPlayer.SEPARATE,
+        Conviva.Constants.AdPosition.PREROLL,
+      );
     });
 
     it('track  mid-roll ad', () => {
       playerMock.eventEmitter.fireAdBreakStartedEvent(5);
       playerMock.eventEmitter.fireAdStartedEvent();
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledTimes(1);
-      expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(Conviva.Constants.AdType.CLIENT_SIDE, Conviva.Constants.AdPlayer.SEPARATE, Conviva.Constants.AdPosition.MIDROLL);
+      expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
+        Conviva.Constants.AdType.CLIENT_SIDE,
+        Conviva.Constants.AdPlayer.SEPARATE,
+        Conviva.Constants.AdPosition.MIDROLL,
+      );
     });
 
     it('end session on post-roll ad', () => {
@@ -254,7 +295,10 @@ describe('player event tests', () => {
       playerMock.eventEmitter.firePlayingEvent();
       playerMock.eventEmitter.fireVideoPlaybackQualityChangedEvent(2_400_000);
 
-      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.BITRATE, 2_400);
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.BITRATE,
+        2_400,
+      );
     });
 
     describe('event order workaround', () => {
@@ -263,7 +307,10 @@ describe('player event tests', () => {
         playerMock.eventEmitter.firePlayEvent();
         playerMock.eventEmitter.firePlayingEvent();
 
-        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.BITRATE, 4_800);
+        expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+          Conviva.Constants.Playback.BITRATE,
+          4_800,
+        );
       });
     });
   });
@@ -278,6 +325,71 @@ describe('player event tests', () => {
 
         expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('track audio changed', () => {
+    it('on audio changed', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireAudioChanged();
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.AUDIO_LANGUAGE,
+        '[es]:Spanish',
+      );
+    });
+  });
+
+  describe('track subtitle enabled', () => {
+    it('on subtitle enabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleEnabled('subtitles');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.SUBTITLES_LANGUAGE,
+        '[en]:English',
+      );
+    });
+  });
+
+  describe('track subtitle disabled', () => {
+    it('on subtitle disabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleDisabled('subtitles');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.SUBTITLES_LANGUAGE,
+        'off',
+      );
+    });
+  });
+
+  describe('track closed captions enabled', () => {
+    it('on closed captions enabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleEnabled('captions');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        '[en]:English',
+      );
+    });
+  });
+
+  describe('track closed captions disabled', () => {
+    it('on closed captions disabled', () => {
+      playerMock.eventEmitter.firePlayEvent();
+      playerMock.eventEmitter.firePlayingEvent();
+      playerMock.eventEmitter.fireSubtitleDisabled('captions');
+
+      expect(convivaVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        'off',
+      );
     });
   });
 });
