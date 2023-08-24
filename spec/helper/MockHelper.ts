@@ -12,6 +12,8 @@ import {
   TimeShiftEvent,
   VideoPlaybackQualityChangedEvent,
   CastStartedEvent,
+  AudioChangedEvent,
+  SubtitleEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
@@ -52,6 +54,8 @@ export namespace MockHelper {
         NOT_MONITORED: 'NOT_MONITORED',
       },
       Playback: {
+        AUDIO_LANGUAGE: 'AUDIO_LANGUAGE',
+        CLOSED_CAPTIONS_LANGUAGE: 'CLOSED_CAPTIONS_LANGUAGE',
         BITRATE: 'BITRATE',
         BUFFER_LENGTH: 'BUFFER_LENGTH',
         CDN_IP: 'CDN_IP',
@@ -61,6 +65,7 @@ export namespace MockHelper {
         RESOLUTION: 'RESOLUTION',
         SEEK_ENDED: 'SEEK_ENDED',
         SEEK_STARTED: 'SEEK_STARTED',
+        SUBTITLES_LANGUAGE: 'SUBTITLES_LANGUAGE',
       },
       ASSET_NAME: `assetName`,
       ENCODED_FRAMERATE: 'encodedFrameRate',
@@ -178,6 +183,14 @@ export namespace MockHelper {
             CAST: 'CAST',
           },
         },
+        getAudio: jest.fn(() => {
+          return {
+            id: 'en',
+            lang: 'en',
+            label: 'English',
+            getQualities: jest.fn(),
+          };
+        }),
         getDuration: jest.fn(),
         getCurrentTime: jest.fn(),
         isLive: jest.fn(),
@@ -195,6 +208,11 @@ export namespace MockHelper {
             global.gcr.castMetadataListenerCallback(metadata);
           }
         }),
+        subtitles: {
+          list: jest.fn(() => {
+            return [];
+          }),
+        },
 
         // Event faker
         eventEmitter: eventHelper,
@@ -256,6 +274,12 @@ interface EventEmitter {
   fireCastWaitingForDevice(resuming?: boolean): void;
 
   fireCastStoppedEvent(): void;
+
+  fireAudioChanged(): void;
+
+  fireSubtitleEnabled(kind: string): void;
+
+  fireSubtitleDisabled(kind: string): void;
 }
 
 class PlayerEventHelper implements EventEmitter {
@@ -471,6 +495,51 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.CastWaitingForDevice,
       deviceName: 'MyCastDevice',
       resuming: false,
+    });
+  }
+  fireAudioChanged(): void {
+    this.fireEvent<AudioChangedEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.AudioChanged,
+      sourceAudio: {
+        id: 'en',
+        lang: 'en',
+        label: 'English',
+        getQualities: jest.fn(),
+      },
+      targetAudio: {
+        id: 'es',
+        lang: 'es',
+        label: 'Spanish',
+        getQualities: jest.fn(),
+      },
+      time: 10,
+    });
+  }
+
+  fireSubtitleEnabled(kind: string): void {
+    this.fireEvent<SubtitleEvent>({
+      subtitle: {
+        id: 'en',
+        kind: kind,
+        lang: 'en',
+        label: 'English',
+      },
+      timestamp: Date.now(),
+      type: PlayerEvent.SubtitleEnabled,
+    });
+  }
+
+  fireSubtitleDisabled(kind: string): void {
+    this.fireEvent<SubtitleEvent>({
+      subtitle: {
+        id: 'en',
+        kind: kind,
+        lang: 'en',
+        label: 'English',
+      },
+      timestamp: Date.now(),
+      type: PlayerEvent.SubtitleDisabled,
     });
   }
 }
