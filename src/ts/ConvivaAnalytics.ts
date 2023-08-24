@@ -472,14 +472,7 @@ export class ConvivaAnalytics {
     this.updateAudioTrack(this.player.getAudio());
 
     // Check if at session init has a subtitle enabled.
-    const enableSubtitle = this.player.subtitles.list().filter((i) => i.enabled);
-
-    // Send the session init subtitle language values.
-    if (enableSubtitle.length === 1) {
-      this.updateSubtitleTrack(enableSubtitle[0]);
-    } else {
-      this.turnOffSubtitles();
-    }
+    this.checkSubtitleWhenInternalInitialize();
   }
 
   /**
@@ -831,6 +824,20 @@ export class ConvivaAnalytics {
 
     this.turnOffSubtitles();
   };
+
+  private checkSubtitleWhenInternalInitialize() {
+    if (this.player.subtitles !== undefined) {
+      const enableSubtitle = this.player.subtitles.list().filter((i) => i.enabled);
+
+      // Send the session init subtitle language values.
+      if (enableSubtitle.length === 1) {
+        this.updateSubtitleTrack(enableSubtitle[0]);
+        return;
+      }
+    }
+
+    this.turnOffSubtitles();
+  }
 
   private turnOffSubtitles() {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
