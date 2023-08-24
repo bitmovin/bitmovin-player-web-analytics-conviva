@@ -1,5 +1,4 @@
 export class Html5Time implements Conviva.TimeInterface {
-
   public getEpochTimeMs(): number {
     const d = new Date();
     return d.getTime();

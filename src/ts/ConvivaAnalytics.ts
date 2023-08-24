@@ -1,6 +1,21 @@
 import {
-  AdBreak, AdBreakEvent, AdEvent, ErrorEvent, PlaybackEvent, PlayerAPI, PlayerEvent, PlayerEventBase,
-  SeekEvent, SourceConfig, TimeShiftEvent, VideoQualityChangedEvent, TimeMode,
+  AdBreak,
+  AdBreakEvent,
+  AdEvent,
+  AudioChangedEvent,
+  AudioTrack,
+  ErrorEvent,
+  PlaybackEvent,
+  PlayerAPI,
+  PlayerEvent,
+  PlayerEventBase,
+  SeekEvent,
+  SourceConfig,
+  TimeShiftEvent,
+  VideoQualityChangedEvent,
+  SubtitleEvent,
+  SubtitleTrack,
+  TimeMode,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -95,7 +110,6 @@ export interface EventAttributes {
 }
 
 export class ConvivaAnalytics {
-
   private static readonly VERSION: string = '{{VERSION}}';
 
   private static STALL_TRACKING_DELAY_MS = 100;
@@ -130,7 +144,10 @@ export class ConvivaAnalytics {
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
-    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.BUFFERING);
+    this.convivaVideoAnalytics.reportPlaybackMetric(
+      Conviva.Constants.Playback.PLAYER_STATE,
+      Conviva.Constants.PlayerState.BUFFERING,
+    );
   });
 
   /**
@@ -141,8 +158,9 @@ export class ConvivaAnalytics {
 
   constructor(player: Player, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
-      console.error('Conviva script missing, cannot init ConvivaAnalytics. '
-        + 'Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin\'s ConvivaAnalytics integration.');
+      console.error(
+        `Conviva script missing, cannot init ConvivaAnalytics. Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin's ConvivaAnalytics integration.`,
+      );
       return; // Cancel initialization
     }
 
@@ -168,7 +186,8 @@ export class ConvivaAnalytics {
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
     const deviceMetadata = {
-      [Conviva.Constants.DeviceMetadata.CATEGORY]: deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
+      [Conviva.Constants.DeviceMetadata.CATEGORY]:
+        deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
       [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
       [Conviva.Constants.DeviceMetadata.MANUFACTURER]: deviceMetadataFromConfig.manufacturer,
       [Conviva.Constants.DeviceMetadata.MODEL]: deviceMetadataFromConfig.model,
@@ -179,7 +198,7 @@ export class ConvivaAnalytics {
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
-    let callbackFunctions = {} as {[key: string]: Function};
+    let callbackFunctions = {} as { [key: string]: Function };
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
     const html5Storage = new Html5Storage();
@@ -188,10 +207,11 @@ export class ConvivaAnalytics {
     callbackFunctions[Conviva.Constants.CallbackFunctions.CREATE_TIMER] = new Html5Timer().createTimer;
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
-
-    const settings = {} as {[key: string]: string| number};
+    const settings = {} as { [key: string]: string | number };
     settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
-    settings[Conviva.Constants.LOG_LEVEL] = this.config.debugLoggingEnabled ? Conviva.Constants.LogLevel.DEBUG : Conviva.Constants.LogLevel.NONE;
+    settings[Conviva.Constants.LOG_LEVEL] = this.config.debugLoggingEnabled
+      ? Conviva.Constants.LogLevel.DEBUG
+      : Conviva.Constants.LogLevel.NONE;
 
     Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
@@ -219,7 +239,7 @@ export class ConvivaAnalytics {
     // This could be called before source loaded.
     // Without setting the asset name on the content metadata the SDK will throw errors when we initialize the session.
     if (!this.player.getSource() && !this.contentMetadataBuilder.assetName) {
-      throw('AssetName is missing. Load player source first or set assetName via updateContentMetadata');
+      throw 'AssetName is missing. Load player source first or set assetName via updateContentMetadata';
     }
 
     this.internalInitializeSession();
@@ -255,8 +275,10 @@ export class ConvivaAnalytics {
   public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     // Check for active session
     if (!this.isSessionActive()) {
-      this.logger.consoleLog('cannot send application event, no active monitoring session',
-        Conviva.SystemSettings.LogLevel.WARNING);
+      this.logger.consoleLog(
+        'cannot send application event, no active monitoring session',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
       return;
     }
 
@@ -274,8 +296,10 @@ export class ConvivaAnalytics {
   public sendCustomPlaybackEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     // Check for active session
     if (!this.isSessionActive()) {
-      this.logger.consoleLog('cannot send playback event, no active monitoring session',
-        Conviva.SystemSettings.LogLevel.WARNING);
+      this.logger.consoleLog(
+        'cannot send playback event, no active monitoring session',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
       return;
     }
 
@@ -306,7 +330,11 @@ export class ConvivaAnalytics {
    * @param severity One of FATAL or WARNING
    * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
    */
-  public reportPlaybackDeficiency(message: string, severity: Conviva.Constants.ErrorSeverity, endSession: boolean = true) {
+  public reportPlaybackDeficiency(
+    message: string,
+    severity: Conviva.Constants.ErrorSeverity,
+    endSession: boolean = true,
+  ) {
     if (!this.isSessionActive()) {
       return;
     }
@@ -419,24 +447,32 @@ export class ConvivaAnalytics {
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
-      this.convivaVideoAnalytics.reportPlaybackMetric(
-        Conviva.Constants.Playback.PLAY_HEAD_TIME,
-        playheadTimeMs,
-      );
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
     });
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
       // Something went wrong. With stable system interfaces, this should never happen.
-      this.logger.consoleLog('Something went wrong, could not obtain session key',
-        Conviva.SystemSettings.LogLevel.ERROR);
+      this.logger.consoleLog(
+        'Something went wrong, could not obtain session key',
+        Conviva.SystemSettings.LogLevel.ERROR,
+      );
     }
 
-    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
+    this.convivaVideoAnalytics.reportPlaybackMetric(
+      Conviva.Constants.Playback.PLAYER_STATE,
+      Conviva.Constants.PlayerState.STOPPED,
+    );
 
     if (this.lastSeenBitrate) {
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, this.lastSeenBitrate);
     }
+
+    // Send the session init audio language values.
+    this.updateAudioTrack(this.player.getAudio());
+
+    // Check if at session init has a subtitle enabled.
+    this.checkSubtitleWhenInternalInitialize();
   }
 
   /**
@@ -444,7 +480,9 @@ export class ConvivaAnalytics {
    */
   private buildContentMetadata() {
     this.contentMetadataBuilder.duration = this.player.getDuration();
-    this.contentMetadataBuilder.streamType = this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
+    this.contentMetadataBuilder.streamType = this.player.isLive()
+      ? Conviva.ContentMetadata.StreamType.LIVE
+      : Conviva.ContentMetadata.StreamType.VOD;
 
     this.contentMetadataBuilder.custom = {
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
@@ -672,7 +710,10 @@ export class ConvivaAnalytics {
     }
 
     this.convivaVideoAnalytics.reportAdBreakEnded();
-    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+    this.convivaVideoAnalytics.reportPlaybackMetric(
+      Conviva.Constants.Playback.PLAYER_STATE,
+      Conviva.Constants.PlayerState.PLAYING,
+    );
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -732,6 +773,77 @@ export class ConvivaAnalytics {
   private trackSeekEnd() {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
+  private onAudioChanged = (event: AudioChangedEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User change audio on the UI before play was triggered.
+      return;
+    }
+
+    this.updateAudioTrack(event.targetAudio);
+  };
+
+  private updateAudioTrack(audioTrack: AudioTrack) {
+    const formattedAudio =
+      audioTrack.lang !== 'unknown' ? '[' + audioTrack.lang + ']:' + audioTrack.label : audioTrack.label;
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.AUDIO_LANGUAGE, formattedAudio);
+  }
+
+  private onSubtitleEnabled = (event: SubtitleEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User change subtitle on the UI before play was triggered.
+      return;
+    }
+    this.updateSubtitleTrack(event.subtitle);
+  };
+
+  private updateSubtitleTrack(subtitleTrack: SubtitleTrack) {
+    const formattedSubtitle =
+      subtitleTrack.lang !== 'unknown' ? '[' + subtitleTrack.lang + ']:' + subtitleTrack.label : subtitleTrack.label;
+
+    if (subtitleTrack.kind === 'subtitles') {
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, formattedSubtitle);
+
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
+    } else if (subtitleTrack.kind === 'captions') {
+      this.convivaVideoAnalytics.reportPlaybackMetric(
+        Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
+        formattedSubtitle,
+      );
+
+      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
+    } else {
+      this.turnOffSubtitles();
+    }
+  }
+
+  private onSubtitleDisabled = (event: SubtitleEvent) => {
+    if (!this.isSessionActive()) {
+      // Handle the case that the User turn off subtitle on the UI before play was triggered.
+      return;
+    }
+
+    this.turnOffSubtitles();
+  };
+
+  private checkSubtitleWhenInternalInitialize() {
+    if (this.player.subtitles !== undefined) {
+      const enableSubtitle = this.player.subtitles.list().filter((i) => i.enabled);
+
+      // Send the session init subtitle language values.
+      if (enableSubtitle.length === 1) {
+        this.updateSubtitleTrack(enableSubtitle[0]);
+        return;
+      }
+    }
+
+    this.turnOffSubtitles();
+  }
+
+  private turnOffSubtitles() {
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
+
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
+  }
 
   private onError = (event: ErrorEvent) => {
     if (!this.isSessionActive() && !this.sessionEndedExternally) {
@@ -782,6 +894,9 @@ export class ConvivaAnalytics {
     playerEvents.add(this.events.Seeked, this.onSeeked);
     playerEvents.add(this.events.TimeShift, this.onTimeShift);
     playerEvents.add(this.events.TimeShifted, this.onTimeShifted);
+    playerEvents.add(this.events.AudioChanged, this.onAudioChanged);
+    playerEvents.add(this.events.SubtitleEnabled, this.onSubtitleEnabled);
+    playerEvents.add(this.events.SubtitleDisabled, this.onSubtitleDisabled);
 
     playerEvents.add(this.events.CastStarted, this.onCustomEvent);
     playerEvents.add(this.events.CastStopped, this.onCustomEvent);
@@ -797,10 +912,9 @@ export class ConvivaAnalytics {
       // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
       this.debugLog('[ ConvivaAnalytics ] detected post-roll ad ... Ending session');
       this.onPlaybackFinished({
-          timestamp: Date.now(),
-          type: this.events.PlaybackFinished,
-        },
-      );
+        timestamp: Date.now(),
+        type: this.events.PlaybackFinished,
+      });
       return;
     }
 
@@ -861,21 +975,24 @@ class PlayerConfigHelper {
     const playerConfig = player.getConfig();
 
     if (BrowserUtils.isMobile()) {
-      if (playerConfig.adaptation
-        && playerConfig.adaptation.mobile
-        && playerConfig.adaptation.mobile.preload !== undefined) {
+      if (
+        playerConfig.adaptation &&
+        playerConfig.adaptation.mobile &&
+        playerConfig.adaptation.mobile.preload !== undefined
+      ) {
         return playerConfig.adaptation.mobile.preload;
       }
     } else {
-      if (playerConfig.adaptation
-        && playerConfig.adaptation.desktop
-        && playerConfig.adaptation.desktop.preload !== undefined) {
+      if (
+        playerConfig.adaptation &&
+        playerConfig.adaptation.desktop &&
+        playerConfig.adaptation.desktop.preload !== undefined
+      ) {
         return playerConfig.adaptation.desktop.preload;
       }
     }
 
-    if (playerConfig.adaptation
-      && playerConfig.adaptation.preload !== undefined) {
+    if (playerConfig.adaptation && playerConfig.adaptation.preload !== undefined) {
       return playerConfig.adaptation.preload;
     }
 
@@ -884,9 +1001,8 @@ class PlayerConfigHelper {
 }
 
 class PlayerEventWrapper {
-
   private player: Player;
-  private readonly eventHandlers: { [eventType: string]: Array<(event?: PlayerEventBase) => void>; };
+  private readonly eventHandlers: { [eventType: string]: Array<(event?: PlayerEventBase) => void> };
 
   constructor(player: Player) {
     this.player = player;

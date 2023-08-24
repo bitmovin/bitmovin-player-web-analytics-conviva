@@ -44,6 +44,7 @@ declare enum ConvivaKeys {
 
     // Playback
     BITRATE = 'BITRATE',
+    AVG_BITRATE = 'AVG_BITRATE',
     BUFFER_LENGTH = 'BUFFER_LENGTH',
     CDN_IP = 'CDN_IP',
     PLAYER_STATE = 'PLAYER_STATE',
@@ -52,6 +53,10 @@ declare enum ConvivaKeys {
     RESOLUTION = 'RESOLUTION',
     SEEK_ENDED = 'SEEK_ENDED',
     SEEK_STARTED = 'SEEK_STARTED',
+    AUDIO_LANGUAGE = 'AUDIO_LANGUAGE',
+    SUBTITLES_LANGUAGE = 'SUBTITLES_LANGUAGE',
+    CLOSED_CAPTIONS_LANGUAGE = 'CLOSED_CAPTIONS_LANGUAGE',
+
 
     // PlayerState
     BUFFERING = 'BUFFERING',
@@ -407,6 +412,7 @@ export interface ConvivaConstants {
     POD_POSITION: ConvivaKeys.POD_POSITION;
     Playback: {
         BITRATE: 'BITRATE';
+        AVG_BITRATE: 'AVG_BITRATE';
         PLAY_HEAD_TIME: 'PLAY_HEAD_TIME';
         RESOLUTION: 'RESOLUTION';
         BUFFER_LENGTH: 'BUFFER_LENGTH';
@@ -417,6 +423,9 @@ export interface ConvivaConstants {
         CDN_IP: 'CDN_IP';
         DROPPED_FRAMES_TOTAL: 'DROPPED_FRAMES_TOTAL';
         DROPPED_FRAMES_COUNT: 'DROPPED_FRAMES_COUNT';
+        AUDIO_LANGUAGE: 'AUDIO_LANGUAGE';
+        SUBTITLES_LANGUAGE: 'SUBTITLES_LANGUAGE';
+        CLOSED_CAPTIONS_LANGUAGE: 'CLOSED_CAPTIONS_LANGUAGE';
     };
     PlayerState: {
         BUFFERING: ConvivaKeys.BUFFERING;

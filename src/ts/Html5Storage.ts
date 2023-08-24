@@ -2,7 +2,6 @@ import StorageLoadDataCallback = Conviva.StorageLoadDataCallback;
 import StorageSaveDataCallback = Conviva.StorageSaveDataCallback;
 
 export class Html5Storage implements Conviva.StorageInterface {
-
   public saveData(storageSpace: string, storageKey: string, data: string, callback: StorageSaveDataCallback): void {
     const localStorageKey = storageSpace + '.' + storageKey;
     try {
@@ -26,5 +25,4 @@ export class Html5Storage implements Conviva.StorageInterface {
   public release() {
     // nothing to release
   }
-
 }

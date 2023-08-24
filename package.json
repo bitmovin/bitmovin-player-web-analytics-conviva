@@ -1,6 +1,6 @@
 {
   "name": "@bitmovin/player-integration-conviva",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Conviva analytics integration for the Bitmovin Player",
   "repository": {
     "type": "git",
@@ -9,7 +9,9 @@
   "main": "./dist/bitmovin-player-analytics-conviva.js",
   "types": "./dist/bitmovin-player-analytics-conviva.d.ts",
   "scripts": {
-    "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts'",
+    "prepare": "husky install",
+    "format": "prettier --write src/ spec/ example/",
+    "lint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.ts' && kacl lint",
     "start": "./node_modules/.bin/webpack-dev-server --open --config webpack.dev.js",
     "clean": "rm -rf ./dist",
     "build": "npm run build:describe && npm run lint && npm run clean && npm run build:lib && npm run build:bundle",
@@ -20,14 +22,22 @@
     "test": "./node_modules/.bin/jest",
     "prepublishOnly": "npm run build"
   },
+  "lint-staged": {
+    "**/*.{ts,js}": "prettier --write --ignore-unknown",
+    "CHANGELOG.md": "kacl lint --filename"
+  },
   "author": "Bitmovin",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/jest": "^24.0.1",
     "bitmovin-player": "^8.31.0",
     "bitmovin-player-ui": "^3.3.1",
     "create-file-webpack": "^1.0.2",
+    "husky": "^8.0.3",
     "jest": "^24.1.0",
+    "kacl": "^1.1.1",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8",
     "string-replace-loader": "^2.1.1",
     "ts-jest": "^23.10.5",
     "ts-loader": "^5.3.1",
