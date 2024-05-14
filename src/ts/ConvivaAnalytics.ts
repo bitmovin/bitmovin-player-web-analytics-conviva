@@ -47,7 +47,7 @@ export interface ConvivaAnalyticsConfiguration {
    * user agent string parsing by the Conviva SDK. (default: WEB)
    * @deprecated Use `deviceMetadata.category` field
    */
-  deviceCategory?: Conviva.Constants.DeviceCategory;
+  deviceCategory?: Conviva.valueof<Conviva.ConvivaConstants['DeviceCategory']>;
 
   /**
    * Option to override the Conviva Device Metadata.
@@ -59,7 +59,7 @@ export interface ConvivaAnalyticsConfiguration {
      * user agent string parsing by the Conviva SDK.
      * (default: The same specified in config.deviceCategory)
      */
-    category?: Conviva.Constants.DeviceCategory;
+    category?: Conviva.valueof<Conviva.ConvivaConstants['DeviceCategory']>;
 
     /**
      * Option to override the Conviva Device Brand.
@@ -83,7 +83,7 @@ export interface ConvivaAnalyticsConfiguration {
      * Option to override the Conviva Device Type
      * (Default: Auto extract from User Agent string)
      */
-    type?: Conviva.Constants.DeviceType;
+    type?: Conviva.valueof<Conviva.ConvivaConstants['DeviceType']>;
 
     /**
      * Option to override the Conviva Device Version.
@@ -121,7 +121,7 @@ export class ConvivaAnalytics {
 
   private readonly logger: Conviva.LoggingInterface;
   private sessionKey: number;
-  private convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
+  private convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   /**
    * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
@@ -332,7 +332,7 @@ export class ConvivaAnalytics {
    */
   public reportPlaybackDeficiency(
     message: string,
-    severity: Conviva.Constants.ErrorSeverity,
+    severity: Conviva.valueof<Conviva.ConvivaConstants['ErrorSeverity']>,
     endSession: boolean = true,
   ) {
     if (!this.isSessionActive()) {
@@ -693,6 +693,10 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report ad break started', {
+      event,
+      adPosition,
+    });
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
@@ -709,6 +713,9 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report ad break ended', {
+      event,
+    });
     this.convivaVideoAnalytics.reportAdBreakEnded();
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,

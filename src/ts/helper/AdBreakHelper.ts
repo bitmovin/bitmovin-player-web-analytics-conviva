@@ -1,7 +1,10 @@
 import { AdBreak, PlayerAPI } from 'bitmovin-player';
 
 export class AdBreakHelper {
-  public static mapAdPosition(adBreak: AdBreak, player: PlayerAPI): Conviva.Constants.AdPosition {
+  public static mapAdPosition(
+    adBreak: AdBreak,
+    player: PlayerAPI,
+  ): Conviva.valueof<Conviva.ConvivaConstants['AdPosition']> {
     if (adBreak.scheduleTime <= 0) {
       return Conviva.Constants.AdPosition.PREROLL;
     }

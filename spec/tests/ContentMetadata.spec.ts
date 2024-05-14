@@ -1,4 +1,3 @@
-/// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerType, StreamType, VRContentType } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
@@ -8,7 +7,7 @@ jest.mock('../../src/ts/Html5Logging');
 describe('content metadata spec', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
+  let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
@@ -134,7 +133,7 @@ describe('content metadata spec', () => {
     describe('externally content metadata updates', () => {
       describe('before playback started (with init session event)', () => {
         beforeEach(() => {
-          jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
+          jest.spyOn(playerMock, 'getSource').mockReturnValue(null);
         });
 
         describe('it does create session with', () => {

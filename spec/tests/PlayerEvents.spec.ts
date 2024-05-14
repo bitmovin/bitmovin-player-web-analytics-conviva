@@ -1,12 +1,10 @@
-/// <reference path='../../src/ts/Conviva.d.ts'/>
-
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 import { ConvivaAnalytics } from '../../src/ts';
 
 describe('player event tests', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
+  let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
