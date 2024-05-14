@@ -354,7 +354,6 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      // Conviva.Constants.AdPosition.PREROLL,
     );
     this.debugLog('Tracking paused.');
   }
@@ -693,14 +692,9 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalytics ] report ad break started', {
-      event,
-      adPosition,
-    });
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
-      // adPosition,
     );
   };
 
@@ -713,9 +707,6 @@ export class ConvivaAnalytics {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalytics ] report ad break ended', {
-      event,
-    });
     this.convivaVideoAnalytics.reportAdBreakEnded();
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,

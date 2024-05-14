@@ -1,5 +1,6 @@
 /**
- * Add missing types from `conviva-core-sdk` package.
+ * The following properties exist on the `window.Conviva` object but they are missing
+ * in types of `conviva-core-sdk` package for some reason, so let's add them manually.
  */
 
 declare module Conviva {
