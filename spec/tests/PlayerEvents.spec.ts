@@ -1,12 +1,10 @@
-/// <reference path='../../src/ts/Conviva.d.ts'/>
-
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 import { ConvivaAnalytics } from '../../src/ts';
 
 describe('player event tests', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalytics: Conviva.ConvivaVideoAnalytics;
+  let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
@@ -242,7 +240,6 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.PREROLL,
       );
     });
 
@@ -253,7 +250,6 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.MIDROLL,
       );
     });
 

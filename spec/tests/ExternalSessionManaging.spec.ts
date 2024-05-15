@@ -6,7 +6,7 @@ jest.mock('../../src/ts/Html5Logging');
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalyticsMock: Conviva.ConvivaVideoAnalytics;
+  let convivaVideoAnalyticsMock: Conviva.VideoAnalytics;
 
   beforeEach(() => {
     MockHelper.mockConviva();
@@ -25,7 +25,7 @@ describe('externally session managing', () => {
 
   describe('before loading source', () => {
     beforeEach(() => {
-      jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
+      jest.spyOn(playerMock, 'getSource').mockReturnValue(null);
     });
 
     it('throw without asset name initialize session', () => {

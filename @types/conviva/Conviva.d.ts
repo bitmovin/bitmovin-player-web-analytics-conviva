@@ -2,9 +2,10 @@
  * Definitions are copied from `conviva-core-sdk` package.
  */
 
-export type valueof<T> = T[keyof T];
+declare module Conviva {
+  type valueof<T> = T[keyof T];
 
-declare enum ConvivaKeys {
+  enum ConvivaKeys {
     APPLICATION_VERSION = 'c3.app.version',
     ASSET_NAME = 'Conviva.assetName',
     CUSTOMER_KEY = 'customerKey',
@@ -122,7 +123,7 @@ declare enum ConvivaKeys {
     MEDIA_ELEMENT = 'mediaElement',
 }
 
-export interface ConvivaUtils {
+interface ConvivaUtils {
     [ConvivaKeys.CONSOLE_LOG]?(message: string, logLevel: valueof<ConvivaConstants['LogLevel']>): void;
     [ConvivaKeys.MAKE_REQUEST]?(
         method: 'GET' | 'POST',
@@ -143,12 +144,12 @@ export interface ConvivaUtils {
     [ConvivaKeys.CREATE_TIMER]?(action: () => void, time: number, actionName?: string): () => void;
 }
 
-export interface ConvivaOptions {
+interface ConvivaOptions {
     [ConvivaKeys.LOG_LEVEL]?: number;
     [ConvivaKeys.GATEWAY_URL]?: string;
 }
 
-export interface ConvivaDeviceMetadata {
+interface ConvivaDeviceMetadata {
     [ConvivaKeys.BRAND]?: string;
     [ConvivaKeys.MANUFACTURER]?: string;
     [ConvivaKeys.MODEL]?: string;
@@ -162,30 +163,30 @@ export interface ConvivaDeviceMetadata {
     [ConvivaKeys.SCREEN_RESOLUTION_SCALE_FACTOR]?: number;
 }
 
-export interface ConvivaPlayerInfo {
+interface ConvivaPlayerInfo {
     [ConvivaKeys.FRAMEWORK_NAME]?: string;
     [ConvivaKeys.FRAMEWORK_VERSION]?: string;
 }
 
-export interface ConvivaPlayerExtraListeners {
+interface ConvivaPlayerExtraListeners {
     [Constants.MEDIA_ELEMENT]?: object;
     [Constants.CONVIVA_MODULE]?: object;
     [Constants.CONVIVA_AD_MODULE]?: object;
 }
 
-export interface ConvivaAdBreakInfo {
+interface ConvivaAdBreakInfo {
     [ConvivaKeys.POD_POSITION]?: string;
     [ConvivaKeys.POD_DURATION]?: number;
     [ConvivaKeys.POD_INDEX]?: number;
 }
 
-export interface ConvivaAdListenerInfo {
+interface ConvivaAdListenerInfo {
     [ConvivaKeys.AD_TAG_URL]?: string;
     [ConvivaKeys.AD_PRELOAD_FEATURE]?: boolean;
     [ConvivaKeys.IMASDK_CONTENT_PLAYER]: object;
 }
 
-export type ConvivaMetadata = {
+type ConvivaMetadata = {
     [ConvivaKeys.IS_LIVE]?:
         | ConvivaConstants['StreamType']['LIVE']
         | ConvivaConstants['StreamType']['UNKNOWN']
@@ -199,7 +200,7 @@ export type ConvivaMetadata = {
     [ConvivaKeys.DEFAULT_RESOURCE]?: string | null;
 } & { [key: string]: string }; // Custom tags
 
-export interface VideoAnalytics {
+interface VideoAnalytics {
     configureExistingSession(sessionKey: string): void;
     release(): void;
     reportAdBreakEnded(): void;
@@ -224,7 +225,7 @@ export interface VideoAnalytics {
     setPlayerInfo(playerInfo: ConvivaPlayerInfo): void;
 }
 
-export interface AdAnalytics {
+interface AdAnalytics {
     release(): void;
     reportAdEnded(): void;
     reportAdError(errorMessage: string, errorSeverity: valueof<ConvivaConstants['ErrorSeverity']>): void;
@@ -244,7 +245,7 @@ export interface AdAnalytics {
     setCallback(callback: () => void | null): void;
 }
 
-export namespace Analytics {
+namespace Analytics {
     function buildAdAnalytics(videoAnalytics?: VideoAnalytics): AdAnalytics;
     function buildVideoAnalytics(): VideoAnalytics;
     function configureExistingClient(convivaLegacyClient: object): void;
@@ -260,7 +261,7 @@ export namespace Analytics {
     function setUserPreferenceForDataDeletion(identifiers: object): void; // TODO: Define identifiers type
 }
 
-export interface ConvivaConstants {
+interface ConvivaConstants {
     AD_PRELOAD_FEATURE: ConvivaKeys.AD_PRELOAD_FEATURE;
     AD_TAG_URL: ConvivaKeys.AD_TAG_URL;
     AdPlayer: {
@@ -449,6 +450,7 @@ export interface ConvivaConstants {
     };
     VIEWER_ID: ConvivaKeys.VIEWER_ID;
     version: string;
-}
+  }
 
-export const Constants: ConvivaConstants;
+  const Constants: ConvivaConstants;
+}

@@ -1,4 +1,3 @@
-/// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent,
@@ -359,8 +358,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdSkipped,
       ad: {
         isLinear: true,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }
@@ -371,8 +370,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdStarted,
       ad: {
         isLinear: true,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }
@@ -461,14 +460,14 @@ class PlayerEventHelper implements EventEmitter {
       sourceQuality: {
         id: '1',
         bitrate: 250_000,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
       targetQuality: {
         id: '2',
         bitrate: bitrate,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }
