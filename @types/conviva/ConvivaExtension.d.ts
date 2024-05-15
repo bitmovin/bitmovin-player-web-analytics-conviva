@@ -15,8 +15,6 @@ declare module Conviva {
     public streamType: Conviva.valueof<Conviva.ConvivaConstants['StreamType']>;
     public streamUrl: string;
     public viewerId: string;
-    public frameworkVersion: string;
-    public framework: string;
   }
 
   interface LoggingInterface {
