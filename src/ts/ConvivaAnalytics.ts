@@ -16,6 +16,7 @@ import {
   SubtitleEvent,
   SubtitleTrack,
   TimeMode,
+  AdData,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -544,6 +545,7 @@ export class ConvivaAnalytics {
     this.convivaAdAnalytics = null;
 
     this.lastSeenBitrate = null;
+    this.latestAdBreakEvent = null;
   };
 
   private resetContentMetadata(): void {
@@ -702,7 +704,17 @@ export class ConvivaAnalytics {
 
     const adPosition = AdBreakHelper.mapAdPosition(this.latestAdBreakEvent.adBreak, this.player);
 
-    const adData = event.ad.data as any;
+    const adData = event.ad.data as undefined | (
+      // Add some missing types
+      AdData & {
+        adSystem?: {
+          name: string;
+        }
+        creative?: {
+          id: string
+        }
+      }
+    );
 
     const adInfo = {
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
