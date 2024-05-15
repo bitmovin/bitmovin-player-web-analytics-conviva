@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Updated Conviva types to the latest version and fixed some type issues
+
+### Deprecated
+- Removed `framework` and `frameworkVersion` custom metadata fields (custom tags)
+
 ## 4.2.0 - 2023-08-24
 ### Added
 - Support for Conviva-SDK version 4.7.0
