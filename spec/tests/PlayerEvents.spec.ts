@@ -240,7 +240,6 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.PREROLL,
       );
     });
 
@@ -251,7 +250,6 @@ describe('player event tests', () => {
       expect(convivaVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledWith(
         Conviva.Constants.AdType.CLIENT_SIDE,
         Conviva.Constants.AdPlayer.SEPARATE,
-        Conviva.Constants.AdPosition.MIDROLL,
       );
     });
 

@@ -71,8 +71,6 @@ export class ContentMetadataBuilder {
       this.contentMetadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
       this.contentMetadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
       this.contentMetadata.duration = this.metadataOverrides.duration || this.metadata.duration;
-      this.contentMetadata.framework = this.metadataOverrides.framework || this.metadata.framework;
-      this.contentMetadata.frameworkVersion = this.metadataOverrides.frameworkVersion || this.metadata.frameworkVersion;
 
       this.contentMetadata.custom = this.custom;
     }
@@ -91,15 +89,10 @@ export class ContentMetadataBuilder {
       [Conviva.Constants.VIEWER_ID]: this.contentMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
       [Conviva.Constants.PLAYER_NAME]: this.contentMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
     };
-    const customContentInfo: CustomContentMetadata = {
-      [Conviva.Constants.FRAMEWORK_NAME]: this.contentMetadata.framework,
-      [Conviva.Constants.FRAMEWORK_VERSION]: this.contentMetadata.frameworkVersion,
-      ...this.contentMetadata.custom,
-    };
 
     return {
       ...convivaContentInfo,
-      ...customContentInfo,
+      ...this.contentMetadata.custom,
     } as Conviva.ConvivaMetadata;
   }
 

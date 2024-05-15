@@ -1,5 +1,6 @@
 /**
- * Add missing types from `conviva-core-sdk` package.
+ * The following properties exist in the `window.Conviva` object but they are missing
+ * in types of `conviva-core-sdk` package for some reason, so let's add them manually.
  */
 
 declare module Conviva {
@@ -14,8 +15,6 @@ declare module Conviva {
     public streamType: Conviva.valueof<Conviva.ConvivaConstants['StreamType']>;
     public streamUrl: string;
     public viewerId: string;
-    public frameworkVersion: string;
-    public framework: string;
   }
 
   interface LoggingInterface {
