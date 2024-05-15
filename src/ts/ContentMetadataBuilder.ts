@@ -19,8 +19,6 @@ export interface Metadata {
   encodedFrameRate?: number;
   defaultResource?: string;
   streamUrl?: string;
-  framework?: string;
-  frameworkVersion?: string;
 }
 
 export class ContentMetadataBuilder {
