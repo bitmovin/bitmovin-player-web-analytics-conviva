@@ -92,5 +92,5 @@ declare module '@convivainc/conviva-js-coresdk' {
   }
 }
 
-// This is required, otherwise this file cannot be imported.
+// This is required, otherwise this file cannot be imported (would fail in runtime without it).
 export {};
