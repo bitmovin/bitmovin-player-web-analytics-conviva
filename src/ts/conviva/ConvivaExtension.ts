@@ -91,3 +91,6 @@ declare module '@convivainc/conviva-js-coresdk' {
     getSessionId(): number;
   }
 }
+
+// This is required, otherwise this file cannot be imported.
+export {};

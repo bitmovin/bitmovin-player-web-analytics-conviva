@@ -74,7 +74,7 @@ export class ContentMetadataBuilder {
       encodedFrameRate: this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate,
       defaultResource: this.metadataOverrides.defaultResource || this.metadata.defaultResource,
       streamUrl: this.metadataOverrides.streamUrl || this.metadata.streamUrl,
-    }
+    };
   }
 
   build(): Conviva.ConvivaMetadata {
