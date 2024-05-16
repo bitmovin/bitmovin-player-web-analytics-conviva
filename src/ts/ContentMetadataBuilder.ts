@@ -11,7 +11,7 @@ export class ContentMetadataBuilder {
 
   private metadataOverrides: Partial<Conviva.ContentMetadata> = {};
   private metadata: Partial<Conviva.ContentMetadata> = {};
-  private latestBuiltMetadata?: Partial<Conviva.ContentMetadata>;
+  private latestBuiltMetadata: Partial<Conviva.ContentMetadata> = {};
   private playbackStarted: boolean = false;
 
   constructor(logger: Conviva.LoggingInterface) {
