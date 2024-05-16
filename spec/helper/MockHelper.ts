@@ -15,26 +15,28 @@ import {
   SubtitleEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 declare const global: any;
 export namespace MockHelper {
-  export function mockConviva(): void {
-    global.Conviva = {};
-    global.Conviva.SystemInterface = jest.fn().mockImplementation();
-    global.Conviva.SystemSettings = jest.fn().mockImplementation();
-    global.Conviva.SystemSettings.LogLevel = {
+  export function createConvivaMock(): typeof Conviva {
+    const ConvivaMock: Record<string, any> = {};
+
+    ConvivaMock.SystemInterface = jest.fn().mockImplementation();
+    ConvivaMock.SystemSettings = jest.fn().mockImplementation();
+    ConvivaMock.SystemSettings.LogLevel = {
       WARNING: 'warning',
     };
-    global.Conviva.SystemFactory = jest.fn().mockImplementation();
-    global.Conviva.ClientSettings = jest.fn().mockImplementation();
-    global.Conviva.ContentMetadata = jest.fn().mockImplementation();
+    ConvivaMock.SystemFactory = jest.fn().mockImplementation();
+    ConvivaMock.ClientSettings = jest.fn().mockImplementation();
+    ConvivaMock.ContentMetadata = jest.fn().mockImplementation();
 
-    global.Conviva.ContentMetadata.StreamType = {
+    ConvivaMock.ContentMetadata.StreamType = {
       LIVE: 'live',
       VOD: 'vod',
       UNKNOWN: 'unknown',
     };
-    global.Conviva.Constants = {
+    ConvivaMock.Constants = {
       DeviceCategory: {
         WEB: 'WEB',
       },
@@ -130,15 +132,15 @@ export namespace MockHelper {
     const reportAppEvent = jest.fn();
 
     const release = jest.fn();
-    global.Conviva.Analytics = jest.fn().mockImplementation();
-    global.Conviva.Analytics = {
+    ConvivaMock.Analytics = jest.fn().mockImplementation();
+    ConvivaMock.Analytics = {
       init: jest.fn().mockImplementation(),
       release: jest.fn().mockImplementation(),
       setDeviceMetadata: jest.fn().mockImplementation(),
       updateContentMetadata: jest.fn().mockImplementation(),
     };
 
-    global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
+    ConvivaMock.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
       return {
         reportPlaybackRequested,
         reportPlaybackFailed,
@@ -156,6 +158,8 @@ export namespace MockHelper {
         release,
       };
     });
+
+    return ConvivaMock as typeof Conviva;
   }
 
   // Custom cast SDK implementation

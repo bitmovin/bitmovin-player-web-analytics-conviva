@@ -1,5 +1,11 @@
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
 import { ConvivaAnalytics } from '../../src/ts';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
+
+jest.mock('@convivainc/conviva-js-coresdk', () => {
+  const { MockHelper } = jest.requireActual('../helper/MockHelper');
+  return MockHelper.createConvivaMock();
+});
 
 describe('player event tests', () => {
   let convivaAnalytics: ConvivaAnalytics;
@@ -7,8 +13,6 @@ describe('player event tests', () => {
   let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
-    MockHelper.mockConviva();
-
     playerMock = MockHelper.getPlayerMock();
     convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
