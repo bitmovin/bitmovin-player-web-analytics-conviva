@@ -10,15 +10,21 @@ import * as Conviva from '@convivainc/conviva-js-coresdk';
 declare module '@convivainc/conviva-js-coresdk' {
   export class ContentMetadata {
     public static readonly StreamType: Conviva.ConvivaConstants['StreamType'];
-    public applicationName: string;
+
+    // Can only be set once
     public assetName: string;
-    public custom: Record<string, string>;
-    public defaultResource: string;
-    public duration: number;
-    public encodedFrameRate: number;
-    public streamType: Conviva.valueof<Conviva.ConvivaConstants['StreamType']>;
-    public streamUrl: string;
+
+    // Can only be set before playback started
     public viewerId: string;
+    public streamType: Conviva.valueof<Conviva.ConvivaConstants['StreamType']>;
+    public applicationName: string;
+    public custom: Record<string, string>;
+    public duration: number;
+
+    // Dynamic
+    public defaultResource: string;
+    public encodedFrameRate: number;
+    public streamUrl: string;
   }
 
   export interface LoggingInterface {
