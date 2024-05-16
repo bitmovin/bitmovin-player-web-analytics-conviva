@@ -41,43 +41,64 @@ export class ContentMetadataBuilder {
     this.playbackStarted = value;
   }
 
-  build(): Conviva.ConvivaMetadata {
-    const latestBuiltMetadata: Partial<Conviva.ContentMetadata> = this.latestBuiltMetadata || {};
+  private getStaticMetadata() {
+    const metadata: Partial<Conviva.ContentMetadata> = {};
 
+    // This metadata can only be changed before the playback is started
     if (!this.playbackStarted) {
       // Asset name is only allowed to be set once
-      if (!latestBuiltMetadata.assetName) {
-        latestBuiltMetadata.assetName = this.assetName;
-      }
+      metadata.assetName = this.latestBuiltMetadata.assetName || this.assetName;
 
-      latestBuiltMetadata.viewerId = this.viewerId;
-      latestBuiltMetadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
-      latestBuiltMetadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
-      latestBuiltMetadata.duration = this.metadataOverrides.duration || this.metadata.duration;
+      metadata.viewerId = this.viewerId;
+      metadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
+      metadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
+      metadata.duration = this.metadataOverrides.duration || this.metadata.duration;
 
-      latestBuiltMetadata.custom = this.custom;
+      metadata.custom = this.custom;
+    }
+    // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
+    else {
+      metadata.assetName = this.latestBuiltMetadata.assetName;
+      metadata.viewerId = this.latestBuiltMetadata.viewerId;
+      metadata.streamType = this.latestBuiltMetadata.streamType;
+      metadata.applicationName = this.latestBuiltMetadata.applicationName;
+      metadata.duration = this.latestBuiltMetadata.duration;
+      metadata.custom = this.latestBuiltMetadata.custom;
     }
 
-    latestBuiltMetadata.encodedFrameRate = this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate;
-    latestBuiltMetadata.defaultResource = this.metadataOverrides.defaultResource || this.metadata.defaultResource;
-    latestBuiltMetadata.streamUrl = this.metadataOverrides.streamUrl || this.metadata.streamUrl;
+    return metadata;
+  }
 
-    this.latestBuiltMetadata = latestBuiltMetadata;
+  private getDynamicMetadata(): Partial<Conviva.ContentMetadata> {
+    return {
+      encodedFrameRate: this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate,
+      defaultResource: this.metadataOverrides.defaultResource || this.metadata.defaultResource,
+      streamUrl: this.metadataOverrides.streamUrl || this.metadata.streamUrl,
+    }
+  }
 
-    const convivaContentInfo: ReservedContentMetadata = {
-      [Conviva.Constants.ASSET_NAME]: latestBuiltMetadata.assetName,
-      [Conviva.Constants.ENCODED_FRAMERATE]: latestBuiltMetadata.encodedFrameRate,
-      [Conviva.Constants.DURATION]: latestBuiltMetadata.duration,
-      [Conviva.Constants.DEFAULT_RESOURCE]: latestBuiltMetadata.defaultResource,
-      [Conviva.Constants.STREAM_URL]: latestBuiltMetadata.streamUrl,
-      [Conviva.Constants.IS_LIVE]: latestBuiltMetadata.streamType,
-      [Conviva.Constants.VIEWER_ID]: latestBuiltMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
-      [Conviva.Constants.PLAYER_NAME]: latestBuiltMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
+  build(): Conviva.ConvivaMetadata {
+    const newMetadata: Partial<Conviva.ContentMetadata> = {
+      ...this.getStaticMetadata(),
+      ...this.getDynamicMetadata(),
+    };
+
+    this.latestBuiltMetadata = newMetadata;
+
+    const reservedMetadata: ReservedContentMetadata = {
+      [Conviva.Constants.ASSET_NAME]: newMetadata.assetName,
+      [Conviva.Constants.ENCODED_FRAMERATE]: newMetadata.encodedFrameRate,
+      [Conviva.Constants.DURATION]: newMetadata.duration,
+      [Conviva.Constants.DEFAULT_RESOURCE]: newMetadata.defaultResource,
+      [Conviva.Constants.STREAM_URL]: newMetadata.streamUrl,
+      [Conviva.Constants.IS_LIVE]: newMetadata.streamType,
+      [Conviva.Constants.VIEWER_ID]: newMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
+      [Conviva.Constants.PLAYER_NAME]: newMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
     };
 
     return {
-      ...convivaContentInfo,
-      ...latestBuiltMetadata.custom,
+      ...reservedMetadata,
+      ...newMetadata.custom,
     } as Conviva.ConvivaMetadata;
   }
 

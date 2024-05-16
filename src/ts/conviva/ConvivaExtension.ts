@@ -2,7 +2,7 @@
  * The following properties exist in the `window.Conviva` object but they are missing
  * in types of `conviva-core-sdk` package for some reason, so let's add them manually.
  *
- * Keep this in the source code, so the types are available in the compiled code therefore in the consuming projects as.
+ * Keep this in the source code, so the types are available in the compiled code therefore in the consuming projects as well.
  */
 
 import * as Conviva from '@convivainc/conviva-js-coresdk';
@@ -12,7 +12,7 @@ declare module '@convivainc/conviva-js-coresdk' {
     public static readonly StreamType: Conviva.ConvivaConstants['StreamType'];
     public applicationName: string;
     public assetName: string;
-    public custom: {};
+    public custom: Record<string, string>;
     public defaultResource: string;
     public duration: number;
     public encodedFrameRate: number;
