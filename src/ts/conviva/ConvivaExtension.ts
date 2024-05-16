@@ -2,7 +2,7 @@
  * The following properties exist in the `window.Conviva` object but they are missing
  * in types of `conviva-core-sdk` package for some reason, so let's add them manually.
  *
- * Keep this is the source code, so the types are available in the compiled code.
+ * Keep this in the source code, so the types are available in the compiled code therefore in the consuming projects as.
  */
 
 import * as Conviva from '@convivainc/conviva-js-coresdk';

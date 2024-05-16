@@ -15,11 +15,10 @@ import {
   SubtitleEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
-import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 declare const global: any;
 export namespace MockHelper {
-  export function createConvivaMock(): typeof Conviva {
+  export function createConvivaMock() {
     const ConvivaMock: Record<string, any> = {};
 
     ConvivaMock.SystemInterface = jest.fn().mockImplementation();
@@ -159,7 +158,7 @@ export namespace MockHelper {
       };
     });
 
-    return ConvivaMock as typeof Conviva;
+    return ConvivaMock;
   }
 
   // Custom cast SDK implementation
