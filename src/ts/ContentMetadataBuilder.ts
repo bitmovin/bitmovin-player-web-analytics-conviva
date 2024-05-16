@@ -85,7 +85,7 @@ export class ContentMetadataBuilder {
 
     this.latestBuiltMetadata = newMetadata;
 
-    const reservedMetadata: ReservedContentMetadata = {
+    const newReservedMetadata: ReservedContentMetadata = {
       [Conviva.Constants.ASSET_NAME]: newMetadata.assetName,
       [Conviva.Constants.ENCODED_FRAMERATE]: newMetadata.encodedFrameRate,
       [Conviva.Constants.DURATION]: newMetadata.duration,
@@ -97,7 +97,7 @@ export class ContentMetadataBuilder {
     };
 
     return {
-      ...reservedMetadata,
+      ...newReservedMetadata,
       ...newMetadata.custom,
     } as Conviva.ConvivaMetadata;
   }
