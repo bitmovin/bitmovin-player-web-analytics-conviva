@@ -1,5 +1,4 @@
-import HttpRequestCancelFunction = Conviva.HttpRequestCancelFunction;
-import HttpRequestCallback = Conviva.HttpRequestCallback;
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 export class Html5Http implements Conviva.HttpInterface {
   public makeRequest(
@@ -8,8 +7,8 @@ export class Html5Http implements Conviva.HttpInterface {
     data: string | null,
     contentType: string | null,
     timeoutMs: number,
-    callback: HttpRequestCallback | null,
-  ): HttpRequestCancelFunction {
+    callback: Conviva.HttpRequestCallback | null,
+  ): Conviva.HttpRequestCancelFunction {
     return this.makeRequestStandard.apply(this, arguments);
   }
 
@@ -23,8 +22,8 @@ export class Html5Http implements Conviva.HttpInterface {
     data: string | null,
     contentType: string | null,
     timeoutMs: number,
-    callback: HttpRequestCallback | null,
-  ): HttpRequestCancelFunction {
+    callback: Conviva.HttpRequestCallback | null,
+  ): Conviva.HttpRequestCancelFunction {
     const xmlHttpReq = new XMLHttpRequest();
 
     xmlHttpReq.open(httpMethod, url, true);

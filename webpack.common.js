@@ -52,4 +52,5 @@ module.exports = {
       content: 'export * from \'./lib/index\';'
     }),
   ],
+  externals: ['@convivainc/conviva-js-coresdk']
 };

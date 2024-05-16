@@ -1,2 +1,6 @@
+import './conviva/ConvivaExtension';
+
 export { ConvivaAnalytics, ConvivaAnalyticsConfiguration, EventAttributes } from './ConvivaAnalytics';
-export { Metadata, CustomContentMetadata } from './ContentMetadataBuilder';
+export { ConvivaMetadata } from '@convivainc/conviva-js-coresdk';
+export { CustomMetadata } from './ContentMetadataBuilder';
+

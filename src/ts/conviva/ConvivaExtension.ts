@@ -1,11 +1,15 @@
 /**
  * The following properties exist in the `window.Conviva` object but they are missing
  * in types of `conviva-core-sdk` package for some reason, so let's add them manually.
+ *
+ * Keep this is the source code, so the types are available in the compiled code.
  */
 
-declare module Conviva {
-  class ContentMetadata {
-    public static readonly StreamType: Conviva.ConvivaConstants['StreamType']
+import * as Conviva from '@convivainc/conviva-js-coresdk';
+
+declare module '@convivainc/conviva-js-coresdk' {
+  export class ContentMetadata {
+    public static readonly StreamType: Conviva.ConvivaConstants['StreamType'];
     public applicationName: string;
     public assetName: string;
     public custom: {};
@@ -17,13 +21,13 @@ declare module Conviva {
     public viewerId: string;
   }
 
-  interface LoggingInterface {
+  export interface LoggingInterface {
     consoleLog(message: string, logLevel: Conviva.valueof<Conviva.ConvivaConstants['LogLevel']>): void;
 
     release(): void;
   }
 
-  class SystemSettings {
+  export class SystemSettings {
     public static readonly LogLevel: Conviva.ConvivaConstants['LogLevel'];
     public allowUncaughtExceptions: boolean;
     public httpTimeout: number;
@@ -31,27 +35,27 @@ declare module Conviva {
     public storageTimeout: number;
   }
 
-  interface TimeInterface {
+  export interface TimeInterface {
     getEpochTimeMs(): number;
 
     release(): void;
   }
 
-  type TimerAction = () => void;
+  export type TimerAction = () => void;
 
-  type TimerCancelFunction = () => void;
+  export type TimerCancelFunction = () => void;
 
-  interface TimerInterface {
+  export interface TimerInterface {
     createTimer(timerAction: TimerAction, intervalMs: number, actionName?: string | null): TimerCancelFunction;
 
     release(): void;
   }
 
-  type HttpRequestCancelFunction = () => void;
+  export type HttpRequestCancelFunction = () => void;
 
-  type HttpRequestCallback = (succeeded: boolean, data: string) => void;
+  export type HttpRequestCallback = (succeeded: boolean, data: string) => void;
 
-  interface HttpInterface {
+  export interface HttpInterface {
     makeRequest(
       httpMethod: 'GET' | 'POST',
       url: string,
@@ -64,11 +68,11 @@ declare module Conviva {
     release(): void;
   }
 
-  type StorageLoadDataCallback = (succeeded: boolean, data: string | null) => void;
+  export type StorageLoadDataCallback = (succeeded: boolean, data: string | null) => void;
 
-  type StorageSaveDataCallback = (succeeded: boolean, data: string | null) => void;
+  export type StorageSaveDataCallback = (succeeded: boolean, data: string | null) => void;
 
-  interface StorageInterface {
+  export interface StorageInterface {
     loadData(storageSpace: string, storageKey: string, callback: StorageLoadDataCallback): void;
 
     saveData(storageSpace: string, storageKey: string, data: string, callback: StorageSaveDataCallback): void;
@@ -76,7 +80,7 @@ declare module Conviva {
     release(): void;
   }
 
-  interface VideoAnalytics {
+  export interface VideoAnalytics {
     reportAppEvent(eventType: string, eventDetail: { [key: string]: string }): void;
     getSessionId(): number;
   }
