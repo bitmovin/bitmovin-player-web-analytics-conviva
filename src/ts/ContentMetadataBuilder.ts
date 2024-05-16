@@ -158,6 +158,6 @@ export class ContentMetadataBuilder {
     this.metadataOverrides = {};
     this.metadata = {};
     this.playbackStarted = false;
-    this.latestBuiltMetadata = undefined;
+    this.latestBuiltMetadata = {};
   }
 }
