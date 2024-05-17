@@ -6,7 +6,7 @@ type ReservedContentMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
 export type Metadata = Conviva.ContentMetadata & {
   // TODO extend it with additional standard tags
-}
+};
 
 export class ContentMetadataBuilder {
   private readonly logger: Conviva.LoggingInterface;
