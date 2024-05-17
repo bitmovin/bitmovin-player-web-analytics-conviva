@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Updated Conviva types to the latest version and fixed some type issues
-- `updateContentMetadata` accepts `Conviva.ContentMetadata` instead of a `Metadata` (the same structurally)
 
 ### Deprecated
 - Removed `framework` and `frameworkVersion` custom metadata fields (custom tags)
