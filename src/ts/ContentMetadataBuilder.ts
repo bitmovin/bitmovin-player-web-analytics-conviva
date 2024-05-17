@@ -4,12 +4,16 @@ type NoStringIndex<T> = { [K in keyof T as string extends K ? never : K]: T[K] }
 
 type ReservedContentMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
+export type Metadata = Conviva.ContentMetadata & {
+  // TODO extend it with additional standard tags
+}
+
 export class ContentMetadataBuilder {
   private readonly logger: Conviva.LoggingInterface;
 
-  private metadataOverrides: Partial<Conviva.ContentMetadata> = {};
-  private metadata: Partial<Conviva.ContentMetadata> = {};
-  private latestBuiltMetadata: Partial<Conviva.ContentMetadata> = {};
+  private metadataOverrides: Partial<Metadata> = {};
+  private metadata: Partial<Metadata> = {};
+  private latestBuiltMetadata: Partial<Metadata> = {};
   private playbackStarted: boolean = false;
 
   constructor(logger: Conviva.LoggingInterface) {
@@ -20,7 +24,7 @@ export class ContentMetadataBuilder {
    * This method is used for custom content metadata updates during / before a session.
    * @param newValue
    */
-  setOverrides(newValue: Partial<Conviva.ContentMetadata>) {
+  setOverrides(newValue: Partial<Metadata>) {
     if (this.playbackStarted) {
       this.logger.consoleLog(
         '[ Conviva Analytics ] Playback has started. Only some metadata attributes will be updated',
@@ -31,7 +35,7 @@ export class ContentMetadataBuilder {
     this.metadataOverrides = { ...this.metadataOverrides, ...newValue };
   }
 
-  getOverrides(): Partial<Conviva.ContentMetadata> {
+  getOverrides(): Partial<Metadata> {
     return this.metadataOverrides;
   }
 
@@ -40,7 +44,7 @@ export class ContentMetadataBuilder {
   }
 
   private getStaticMetadata() {
-    const metadata: Partial<Conviva.ContentMetadata> = {};
+    const metadata: Partial<Metadata> = {};
 
     // This metadata can only be changed before the playback is started
     if (!this.playbackStarted) {
@@ -67,7 +71,7 @@ export class ContentMetadataBuilder {
     return metadata;
   }
 
-  private getDynamicMetadata(): Partial<Conviva.ContentMetadata> {
+  private getDynamicMetadata(): Partial<Metadata> {
     return {
       encodedFrameRate: this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate,
       defaultResource: this.metadataOverrides.defaultResource || this.metadata.defaultResource,
@@ -76,7 +80,7 @@ export class ContentMetadataBuilder {
   }
 
   build(): Conviva.ConvivaMetadata {
-    const newMetadata: Partial<Conviva.ContentMetadata> = {
+    const newMetadata: Partial<Metadata> = {
       ...this.getStaticMetadata(),
       ...this.getDynamicMetadata(),
     };
@@ -125,11 +129,11 @@ export class ContentMetadataBuilder {
     this.metadata.applicationName = newValue;
   }
 
-  set custom(newValue: Conviva.ContentMetadata['custom']) {
+  set custom(newValue: Metadata['custom']) {
     this.metadata.custom = newValue;
   }
 
-  get custom(): Conviva.ContentMetadata['custom'] {
+  get custom(): Metadata['custom'] {
     return {
       ...this.metadataOverrides.custom,
       ...this.metadata.custom, // Keep our custom tags in case someone tries to override them
