@@ -2,7 +2,7 @@ import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 type NoStringIndex<T> = { [K in keyof T as string extends K ? never : K]: T[K] };
 
-type ReservedContentMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
+type DefinedInSdkMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
 export type Metadata = Conviva.ContentMetadata & {
   // Actually, Conviva accepts all tags in the custom object, but we want to have a better typing and API.
@@ -98,7 +98,7 @@ export class ContentMetadataBuilder {
 
     this.latestBuiltMetadata = newMetadata;
 
-    const newReservedMetadata: ReservedContentMetadata = {
+    const newDefinedInSdkMetadata: DefinedInSdkMetadata = {
       [Conviva.Constants.ASSET_NAME]: newMetadata.assetName,
       [Conviva.Constants.ENCODED_FRAMERATE]: newMetadata.encodedFrameRate,
       [Conviva.Constants.DURATION]: newMetadata.duration,
@@ -110,7 +110,7 @@ export class ContentMetadataBuilder {
     };
 
     return {
-      ...newReservedMetadata,
+      ...newDefinedInSdkMetadata,
       ...newMetadata.custom,
     } as Conviva.ConvivaMetadata;
   }
