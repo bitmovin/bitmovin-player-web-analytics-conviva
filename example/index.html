@@ -66,6 +66,14 @@
         conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
           debugLoggingEnabled: true,
           gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+          custom: {
+            assetId: 'testAssetId',
+            directors: 'Test director',
+            year: '2010',
+          },
+          additionalStandardTags: {
+            'c3.cm.brand': 'Test Brand',
+          }
         });
       }
 
