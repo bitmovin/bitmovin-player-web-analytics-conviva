@@ -5,7 +5,7 @@ type NoStringIndex<T> = { [K in keyof T as string extends K ? never : K]: T[K] }
 type DefinedInSdkMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
 export type Metadata = Conviva.ContentMetadata & {
-  // Actually, Conviva accepts all tags in the custom object, but we want to have a better typing and API.
+  // Actually, Conviva accepts custom tags and standard in the custom object, but we want to have a better typing and API.
   // These tags are merged to the same object as the `custom` tags.
   // Find the list:
   // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
