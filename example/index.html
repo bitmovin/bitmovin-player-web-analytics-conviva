@@ -77,13 +77,10 @@
           custom: {
             appVersion: '1.0',
             contentId: 'someContentId',
-            playerVendor: 'bitmovin',
-            playerVersion: player.version,
           },
         });
 
         console.log('Loading player');
-
         player.load(getPlayerSource()).then(
           function () {
             scheduleAds()

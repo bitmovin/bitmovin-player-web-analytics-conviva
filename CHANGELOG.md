@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Send player info
+
 ### Changed
 - Updated Conviva types to the latest version and fixed some type issues
 
