@@ -146,7 +146,7 @@ let metadataOverrides = {
   custom: {
     customTag: 'customValue',
   },
-  // Fine the list here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
+  // Find the list here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
   // under "Constants for Pre-defined Video and Content Metadata"
   additionalStandardTags: {
     'c3.app.version': '0.0.1',
