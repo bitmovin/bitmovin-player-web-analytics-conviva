@@ -6,7 +6,7 @@ type DefinedInSdkMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
 export type Metadata = Conviva.ContentMetadata & {
   // Actually, Conviva accepts all tags in the custom object, but we want to have a better typing and API.
-  // These tags are later merged to the same object as the `custom` tags.
+  // These tags are merged to the same object as the `custom` tags.
   // Find the list:
   // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
   // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
