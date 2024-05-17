@@ -5,7 +5,13 @@ type NoStringIndex<T> = { [K in keyof T as string extends K ? never : K]: T[K] }
 type ReservedContentMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
 export type Metadata = Conviva.ContentMetadata & {
-  // TODO extend it with additional standard tags
+  // Actually, Conviva accepts all tags in the custom object, but we want to have a better typing and API.
+  // This tags are later merged to the same object as the `custom` tags.
+  // Find the list:
+  // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
+  // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
+  //   under "Constants for Pre-defined Video and Content Metadata"
+  additionalStandardTags: Conviva.ContentMetadata['custom'];
 };
 
 export class ContentMetadataBuilder {
@@ -43,8 +49,8 @@ export class ContentMetadataBuilder {
     this.playbackStarted = value;
   }
 
-  private getStaticMetadata() {
-    const metadata: Partial<Metadata> = {};
+  private getStaticMetadata(): Partial<Conviva.ContentMetadata> {
+    const metadata: Partial<Conviva.ContentMetadata> = {};
 
     // This metadata can only be changed before the playback is started
     if (!this.playbackStarted) {
@@ -56,7 +62,12 @@ export class ContentMetadataBuilder {
       metadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
       metadata.duration = this.metadataOverrides.duration || this.metadata.duration;
 
-      metadata.custom = this.custom;
+      metadata.custom = {
+        ...this.metadataOverrides.custom,
+        ...this.metadataOverrides.additionalStandardTags,
+        // Keep our custom tags in case someone tries to override them
+        ...this.metadata.custom,
+      };
     }
     // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
     else {
@@ -71,7 +82,7 @@ export class ContentMetadataBuilder {
     return metadata;
   }
 
-  private getDynamicMetadata(): Partial<Metadata> {
+  private getDynamicMetadata(): Partial<Conviva.ContentMetadata> {
     return {
       encodedFrameRate: this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate,
       defaultResource: this.metadataOverrides.defaultResource || this.metadata.defaultResource,
@@ -129,15 +140,8 @@ export class ContentMetadataBuilder {
     this.metadata.applicationName = newValue;
   }
 
-  set custom(newValue: Metadata['custom']) {
-    this.metadata.custom = newValue;
-  }
-
-  get custom(): Metadata['custom'] {
-    return {
-      ...this.metadataOverrides.custom,
-      ...this.metadata.custom, // Keep our custom tags in case someone tries to override them
-    };
+  addToCustom(toAdd: Metadata['custom']) {
+    this.metadata.custom = { ...this.metadata.custom, ...toAdd };
   }
 
   set duration(newValue: number) {
