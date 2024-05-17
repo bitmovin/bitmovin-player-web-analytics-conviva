@@ -24,7 +24,7 @@ import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
-import { ContentMetadataBuilder } from './ContentMetadataBuilder';
+import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
@@ -319,7 +319,7 @@ export class ConvivaAnalytics {
    * @param metadataOverrides Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
-  public updateContentMetadata(metadataOverrides: Partial<Conviva.ContentMetadata>) {
+  public updateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
@@ -402,7 +402,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private internalUpdateContentMetadata(metadataOverrides: Partial<Conviva.ContentMetadata>) {
+  private internalUpdateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
     if (!this.isSessionActive()) {
