@@ -93,6 +93,9 @@ export class ContentMetadataBuilder {
       [Conviva.Constants.DURATION]: newMetadata.duration,
       [Conviva.Constants.DEFAULT_RESOURCE]: newMetadata.defaultResource,
       [Conviva.Constants.STREAM_URL]: newMetadata.streamUrl,
+      // If you follow the `IS_LIVE` constant you will find out that it's mapped to `Conviva.streamType`.
+      // That's why we set `streamType` here. It's not a mistake.
+      // Conviva automatically infers "Is live" from the stream type on their side.
       [Conviva.Constants.IS_LIVE]: newMetadata.streamType,
       [Conviva.Constants.VIEWER_ID]: newMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
       // It's not a mistake, "Application name" and "Player name" are referenced interchangeably on Conviva in some places
