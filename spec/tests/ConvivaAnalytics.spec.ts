@@ -18,15 +18,10 @@ describe('content metadata spec', () => {
     convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
     convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
-
-    jest.spyOn(playerMock, 'getSource').mockReturnValue({
-      hls: 'test.m3u8',
-      title: 'Asset Title',
-    });
   });
 
   describe('when initializing session', () => {
-    it('set player info name', () => {
+    it('set player info', () => {
       playerMock.eventEmitter.firePlayEvent();
 
       expect(convivaVideoAnalytics.setPlayerInfo).toHaveBeenLastCalledWith(

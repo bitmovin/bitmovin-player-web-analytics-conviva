@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Send player info
+- Send player info metadata (framework and framework version)
 - Add `additionalStandardTags` to `Metadata` of `updateContentMetadata` for [Conviva pre-defined video and content metadata](https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm)
 
 ### Changed
