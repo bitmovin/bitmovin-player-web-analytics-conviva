@@ -445,7 +445,7 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
     this.convivaVideoAnalytics.setPlayerInfo({
-      [Conviva.Constants.FRAMEWORK_NAME]: 'bitdash',
+      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
       [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
     });
 
