@@ -26,7 +26,7 @@ describe('content metadata spec', () => {
 
       expect(convivaVideoAnalytics.setPlayerInfo).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          frameworkName: 'bitdash',
+          frameworkName: 'Bitmovin Player',
           frameworkVersion: '8.0.0',
         }),
       );
