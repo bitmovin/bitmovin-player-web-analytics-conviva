@@ -95,6 +95,7 @@ export class ContentMetadataBuilder {
       [Conviva.Constants.STREAM_URL]: newMetadata.streamUrl,
       [Conviva.Constants.IS_LIVE]: newMetadata.streamType,
       [Conviva.Constants.VIEWER_ID]: newMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
+      // It's not a mistake, "Application name" and "Player name" are referenced interchangeably on Conviva in some places
       [Conviva.Constants.PLAYER_NAME]: newMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
     };
 
