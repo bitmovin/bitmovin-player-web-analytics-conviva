@@ -58,7 +58,7 @@ export class ContentMetadataBuilder {
 
       metadata.custom = this.custom;
     } else {
-      // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
+      // If the playback has been started, the values cannot be changed and the latest values before the playback started have to be used
 
       metadata.assetName = this.latestBuiltMetadata.assetName;
       metadata.viewerId = this.latestBuiltMetadata.viewerId;
