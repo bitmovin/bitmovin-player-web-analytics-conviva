@@ -57,9 +57,9 @@ export class ContentMetadataBuilder {
       metadata.duration = this.metadataOverrides.duration || this.metadata.duration;
 
       metadata.custom = this.custom;
-    }
-    // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
-    else {
+    } else {
+      // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
+
       metadata.assetName = this.latestBuiltMetadata.assetName;
       metadata.viewerId = this.latestBuiltMetadata.viewerId;
       metadata.streamType = this.latestBuiltMetadata.streamType;
