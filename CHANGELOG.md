@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Deprecated
 - Removed `framework` and `frameworkVersion` custom metadata fields (custom tags)
-- Removed `CustomContentMetadata`, use `Metadata['custom']` instead
+
+### Removed
+- `CustomContentMetadata`, use `Metadata['custom']` instead
 
 ## 4.2.0 - 2023-08-24
 ### Added

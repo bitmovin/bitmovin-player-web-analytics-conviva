@@ -68,9 +68,9 @@ export class ContentMetadataBuilder {
         // Keep our custom tags in case someone tries to override them
         ...this.metadata.custom,
       };
-    }
-    // If the playback has been started, the values cannot be changed and the latest values before the playback started has to be used
-    else {
+    } else {
+      // If the playback has been started, the values cannot be changed and the latest values before the playback started have to be used
+
       metadata.assetName = this.latestBuiltMetadata.assetName;
       metadata.viewerId = this.latestBuiltMetadata.viewerId;
       metadata.streamType = this.latestBuiltMetadata.streamType;
@@ -104,8 +104,12 @@ export class ContentMetadataBuilder {
       [Conviva.Constants.DURATION]: newMetadata.duration,
       [Conviva.Constants.DEFAULT_RESOURCE]: newMetadata.defaultResource,
       [Conviva.Constants.STREAM_URL]: newMetadata.streamUrl,
+      // If you follow the `IS_LIVE` constant you will find out that it's mapped to `Conviva.streamType`.
+      // That's why we set `streamType` here. It's not a mistake.
+      // Conviva automatically infers "Is live" from the stream type on their side.
       [Conviva.Constants.IS_LIVE]: newMetadata.streamType,
       [Conviva.Constants.VIEWER_ID]: newMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
+      // It's not a mistake, "Application name" and "Player name" are referenced interchangeably on Conviva in some places
       [Conviva.Constants.PLAYER_NAME]: newMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
     };
 
