@@ -231,7 +231,7 @@ export class ConvivaAnalytics {
    */
   public initializeSession(): void {
     if (this.isSessionActive()) {
-      this.logger.consoleLog('There is already a session running.', Conviva.SystemSettings.LogLevel.WARNING);
+      this.logger.consoleLog('[ ConvivaAnalytics ] There is already a session running.', Conviva.SystemSettings.LogLevel.WARNING);
       return;
     }
 
@@ -275,7 +275,7 @@ export class ConvivaAnalytics {
     // Check for active session
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
-        'cannot send application event, no active monitoring session',
+        '[ ConvivaAnalytics ] cannot send application event, no active monitoring session',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
@@ -296,7 +296,7 @@ export class ConvivaAnalytics {
     // Check for active session
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
-        'cannot send playback event, no active monitoring session',
+        '[ ConvivaAnalytics ] cannot send playback event, no active monitoring session',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
       return;
@@ -460,7 +460,7 @@ export class ConvivaAnalytics {
     if (!this.isSessionActive()) {
       // Something went wrong. With stable system interfaces, this should never happen.
       this.logger.consoleLog(
-        'Something went wrong, could not obtain session key',
+        '[ ConvivaAnalytics ] Something went wrong, could not obtain session key',
         Conviva.SystemSettings.LogLevel.ERROR,
       );
     }
@@ -716,17 +716,15 @@ export class ConvivaAnalytics {
       AdData & {
         adSystem?: {
           name: string;
-        }
+        },
         creative?: {
-          id: string
-        }
+          id: string;
+        },
       }
     );
 
-    const adInfo = {
+    const adInfo: Conviva.ConvivaMetadata = {
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
-      'c3.ad.id': event.ad.id,
-      'c3.ad.system': adData?.adSystem?.name,
       'c3.ad.position': adPosition,
       'c3.ad.isSlate': 'false',
       'c3.ad.mediaFileApiFramework': 'NA',
@@ -734,8 +732,19 @@ export class ConvivaAnalytics {
       'c3.ad.firstAdSystem': 'NA',
       'c3.ad.firstAdId': 'NA',
       'c3.ad.firstCreativeId': 'NA',
-      'c3.ad.creativeId': adData?.creative?.id,
     };
+
+    if (event.ad.id) {
+      adInfo['c3.ad.id'] = event.ad.id;
+    }
+
+    if (adData?.adSystem?.name) {
+      adInfo['c3.ad.system'] = adData.adSystem.name;
+    }
+
+    if (adData?.creative?.id) {
+      adInfo['c3.ad.creativeId'] = adData.creative.id;
+    }
 
     this.debugLog('[ ConvivaAnalytics ] report ad started', {
       event,
@@ -794,11 +803,32 @@ export class ConvivaAnalytics {
     this.onCustomEvent(event);
   };
 
-  private onAdError = (event: AdEvent) => {
+  private onAdError = (
+    event: ErrorEvent & {
+      message?: string,
+      troubleShootLink?: string,
+      data?: {
+        code?: number,
+      },
+    },
+  ) => {
     this.debugLog('[ Player Event ] ad error', event);
 
-    this.debugLog('[ ConvivaAnalytics ] report ad error', event);
-    // this.convivaAdAnalytics.reportAdError();
+    const message = event?.message || 'Unknown message';
+    const name = event?.name || 'Unknown name';
+    const formattedErrorParts = [
+      `${name}:`,
+      `${message};`,
+      `Error code: ${event.code};`,
+      event.data?.code ? `Ad error code: ${event.data?.code};` : undefined,
+      event.troubleShootLink ? `Troubleshoot link: ${event.troubleShootLink}` : undefined,
+    ].filter(Boolean);
+    const formattedError = formattedErrorParts.join(' ');
+    this.debugLog('[ ConvivaAnalytics ] report ad error', {
+      event,
+      formattedError,
+    });
+    this.convivaAdAnalytics.reportAdError(`Ad error: ${formattedError}`, Conviva.Constants.ErrorSeverity.WARNING);
 
     this.onCustomEvent(event);
   };
