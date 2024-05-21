@@ -1,6 +1,5 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import type {
-  AdBreak,
   AdBreakEvent,
   AdEvent,
   AudioChangedEvent,
@@ -134,12 +133,6 @@ export class ConvivaAnalytics {
 
   private latestAdBreakEvent: AdBreakEvent;
 
-  /**
-   * Needed to workaround wrong event order in case of a video-playback-quality-change event.
-   * See {@link onVideoQualityChanged} for more info
-   */
-  private lastSeenBitrate: number;
-
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
@@ -272,7 +265,6 @@ export class ConvivaAnalytics {
    * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
    */
   public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
-    // Check for active session
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         '[ ConvivaAnalytics ] cannot send application event, no active monitoring session',
@@ -293,7 +285,6 @@ export class ConvivaAnalytics {
    * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
    */
   public sendCustomPlaybackEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
-    // Check for active session
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         '[ ConvivaAnalytics ] cannot send playback event, no active monitoring session',
@@ -443,10 +434,13 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
     this.convivaAdAnalytics = Conviva.Analytics.buildAdAnalytics(this.convivaVideoAnalytics);
 
-    this.convivaVideoAnalytics.setPlayerInfo({
+    const playerInfo = {
       [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
       [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
-    });
+    }
+
+    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
+    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
 
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
@@ -469,10 +463,6 @@ export class ConvivaAnalytics {
       Conviva.Constants.Playback.PLAYER_STATE,
       Conviva.Constants.PlayerState.STOPPED,
     );
-
-    if (this.lastSeenBitrate) {
-      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, this.lastSeenBitrate);
-    }
 
     // Send the session init audio language values.
     this.updateAudioTrack(this.player.getAudio());
@@ -551,7 +541,6 @@ export class ConvivaAnalytics {
     this.convivaAdAnalytics.release();
     this.convivaAdAnalytics = null;
 
-    this.lastSeenBitrate = null;
     this.latestAdBreakEvent = null;
   };
 
@@ -564,6 +553,8 @@ export class ConvivaAnalytics {
   }
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
+    this.debugLog('[ Player Event ] playback state change related event', event);
+
     // Do not track playback state changes during ads, (e.g. triggered from IMA)
     // or if there is no active session.
     if (this.isAd || !this.isSessionActive()) {
@@ -614,6 +605,8 @@ export class ConvivaAnalytics {
   };
 
   private onSourceLoaded = (event: PlayerEventBase) => {
+    this.debugLog('[ Player Event ] source loaded', event);
+
     // In case the session was created external before loading the source
     if (!this.isSessionActive()) {
       return;
@@ -663,23 +656,18 @@ export class ConvivaAnalytics {
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
+    this.debugLog('[ Player Event ] video quality changed', event);
+
     // We calculate the bitrate with a divisor of 1000 so the values look nicer
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
     const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
 
-    if (!this.isSessionActive()) {
-      // Since the first videoPlaybackQualityChanged event comes before playback ever started we need to store the
-      // value and use it for tracking when initializing the session.
-      // TODO: remove this workaround when the player event order is fixed
-      this.lastSeenBitrate = bitrateKbps;
-      return;
-    }
-
-    this.lastSeenBitrate = null;
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, bitrateKbps);
   };
 
   private onCustomEvent = (event: PlayerEventBase) => {
+    this.debugLog('[ Player Event ] custom playback related event', event);
+
     if (!this.isSessionActive()) {
       this.debugLog('[ ConvivaAnalytics ] skip custom event, no session existing', event);
       return;
@@ -752,6 +740,7 @@ export class ConvivaAnalytics {
     });
 
     this.convivaAdAnalytics.reportAdStarted(adInfo);
+    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
   }
 
   // Fires before `onAdBreakFinished`
@@ -763,6 +752,7 @@ export class ConvivaAnalytics {
     });
 
     this.convivaAdAnalytics.reportAdEnded();
+    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
   }
 
   private onAdBreakFinished = (event: AdBreakEvent | ErrorEvent) => {
@@ -777,21 +767,6 @@ export class ConvivaAnalytics {
       Conviva.Constants.Playback.PLAYER_STATE,
       Conviva.Constants.PlayerState.PLAYING,
     );
-
-    // Specific post-roll handling
-    const isPostRollAdBreak = (adBreak: AdBreak) => {
-      return adBreak.scheduleTime === Infinity;
-    };
-
-    if (isPostRollAdBreak(this.latestAdBreakEvent.adBreak)) {
-      // Fire playbackFinished in case of a post-roll ad to stop session and do not track post roll ad
-      this.debugLog('[ ConvivaAnalytics ] detected post-roll ad ... Ending session');
-      this.onPlaybackFinished({
-        timestamp: Date.now(),
-        type: this.events.PlaybackFinished,
-      });
-      return;
-    }
   };
 
   private onAdSkipped = (event: AdEvent) => {
@@ -799,6 +774,7 @@ export class ConvivaAnalytics {
 
     this.debugLog('[ ConvivaAnalytics ] report ad skipped', event);
     this.convivaAdAnalytics.reportAdSkipped();
+    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
 
     this.onCustomEvent(event);
   };
@@ -829,11 +805,14 @@ export class ConvivaAnalytics {
       formattedError,
     });
     this.convivaAdAnalytics.reportAdError(`Ad error: ${formattedError}`, Conviva.Constants.ErrorSeverity.WARNING);
+    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
 
     this.onCustomEvent(event);
   };
 
   private onSeek = (event: SeekEvent) => {
+    this.debugLog('[ Player Event ] seek', event);
+
     if (!this.isSessionActive()) {
       // Handle the case that the User seeks on the UI before play was triggered.
       // This also handles startTime feature. The same applies for onTimeShift.
@@ -845,6 +824,8 @@ export class ConvivaAnalytics {
   };
 
   private onSeeked = (event: SeekEvent) => {
+    this.debugLog('[ Player Event ] seeked', event);
+
     if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
@@ -855,6 +836,8 @@ export class ConvivaAnalytics {
   };
 
   private onTimeShift = (event: TimeShiftEvent) => {
+    this.debugLog('[ Player Event ] time shift', event);
+
     if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
@@ -866,6 +849,8 @@ export class ConvivaAnalytics {
   };
 
   private onTimeShifted = (event: TimeShiftEvent) => {
+    this.debugLog('[ Player Event ] time shifted', event);
+
     if (!this.isSessionActive()) {
       // See comment in onSeek
       return;
@@ -883,6 +868,8 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
   private onAudioChanged = (event: AudioChangedEvent) => {
+    this.debugLog('[ Player Event ] audio changed', event);
+
     if (!this.isSessionActive()) {
       // Handle the case that the User change audio on the UI before play was triggered.
       return;
@@ -898,6 +885,8 @@ export class ConvivaAnalytics {
   }
 
   private onSubtitleEnabled = (event: SubtitleEvent) => {
+    this.debugLog('[ Player Event ] subtitled enabled', event);
+
     if (!this.isSessionActive()) {
       // Handle the case that the User change subtitle on the UI before play was triggered.
       return;
@@ -926,6 +915,8 @@ export class ConvivaAnalytics {
   }
 
   private onSubtitleDisabled = (event: SubtitleEvent) => {
+    this.debugLog('[ Player Event ] subtitles disabled', event);
+
     if (!this.isSessionActive()) {
       // Handle the case that the User turn off subtitle on the UI before play was triggered.
       return;
@@ -955,6 +946,8 @@ export class ConvivaAnalytics {
   }
 
   private onError = (event: ErrorEvent) => {
+    this.debugLog('[ Player Event ] error', event);
+
     if (!this.isSessionActive() && !this.sessionEndedExternally) {
       // initialize Session if not yet initialized to capture Video Start Failures
       this.internalInitializeSession();
@@ -964,6 +957,8 @@ export class ConvivaAnalytics {
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
+    this.debugLog('[ Player Event ] source unloaded', event);
+
     if (this.isAd) {
       // Ignore sourceUnloaded events during ads
       return;
@@ -974,6 +969,8 @@ export class ConvivaAnalytics {
   };
 
   private onDestroy = (event: any) => {
+    this.debugLog('[ Player Event ] destroy', event);
+
     this.destroy(event);
   };
 
