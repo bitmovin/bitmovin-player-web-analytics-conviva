@@ -1,7 +1,12 @@
 import { PlayerType, StreamType, VRContentType } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
+jest.mock('@convivainc/conviva-js-coresdk', () => {
+  const { MockHelper } = jest.requireActual('../helper/MockHelper');
+  return MockHelper.createConvivaMock();
+});
 jest.mock('../../src/ts/Html5Logging');
 
 describe('content metadata spec', () => {
@@ -10,8 +15,6 @@ describe('content metadata spec', () => {
   let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
-    MockHelper.mockConviva();
-
     playerMock = MockHelper.getPlayerMock();
     convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 

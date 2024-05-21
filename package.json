@@ -49,6 +49,7 @@
     "webpack-merge": "^4.1.5"
   },
   "peerDependencies": {
+    "@convivainc/conviva-js-coresdk": "^4.7.6",
     "bitmovin-player": "^8.31.0"
   }
 }

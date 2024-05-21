@@ -1,4 +1,5 @@
 import { AdBreak, PlayerAPI } from 'bitmovin-player';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 export class AdBreakHelper {
   public static mapAdPosition(

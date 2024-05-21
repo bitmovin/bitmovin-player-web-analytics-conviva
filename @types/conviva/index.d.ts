@@ -1,2 +1,0 @@
-import './Conviva'
-import './ConvivaExtension'

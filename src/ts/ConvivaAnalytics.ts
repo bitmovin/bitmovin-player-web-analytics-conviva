@@ -1,4 +1,5 @@
-import {
+import * as Conviva from '@convivainc/conviva-js-coresdk';
+import type {
   AdBreak,
   AdBreakEvent,
   AdEvent,
@@ -185,7 +186,7 @@ export class ConvivaAnalytics {
     this.isAd = false;
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
-    const deviceMetadata = {
+    const deviceMetadata: Conviva.ConvivaDeviceMetadata = {
       [Conviva.Constants.DeviceMetadata.CATEGORY]:
         deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
       [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
@@ -198,7 +199,7 @@ export class ConvivaAnalytics {
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
-    let callbackFunctions = {} as { [key: string]: Function };
+    let callbackFunctions: Record<string, Function> = {};
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
     const html5Storage = new Html5Storage();
@@ -207,7 +208,7 @@ export class ConvivaAnalytics {
     callbackFunctions[Conviva.Constants.CallbackFunctions.CREATE_TIMER] = new Html5Timer().createTimer;
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
-    const settings = {} as { [key: string]: string | number };
+    const settings: Record<string, string | number> = {};
     settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
     settings[Conviva.Constants.LOG_LEVEL] = this.config.debugLoggingEnabled
       ? Conviva.Constants.LogLevel.DEBUG
@@ -318,7 +319,7 @@ export class ConvivaAnalytics {
    * @param metadataOverrides Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
-  public updateContentMetadata(metadataOverrides: Metadata) {
+  public updateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
@@ -401,7 +402,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private internalUpdateContentMetadata(metadataOverrides: Metadata) {
+  private internalUpdateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
     if (!this.isSessionActive()) {
