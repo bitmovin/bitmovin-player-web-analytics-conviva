@@ -1,16 +1,19 @@
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
+jest.mock('@convivainc/conviva-js-coresdk', () => {
+  const { MockHelper } = jest.requireActual('../helper/MockHelper');
+  return MockHelper.createConvivaMock();
+});
 jest.mock('../../src/ts/Html5Logging');
 
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalyticsMock: Conviva.ConvivaVideoAnalytics;
+  let convivaVideoAnalyticsMock: Conviva.VideoAnalytics;
 
   beforeEach(() => {
-    MockHelper.mockConviva();
-
     playerMock = MockHelper.getPlayerMock();
 
     convivaVideoAnalyticsMock = Conviva.Analytics.buildVideoAnalytics();
@@ -25,7 +28,7 @@ describe('externally session managing', () => {
 
   describe('before loading source', () => {
     beforeEach(() => {
-      jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
+      jest.spyOn(playerMock, 'getSource').mockReturnValue(null);
     });
 
     it('throw without asset name initialize session', () => {

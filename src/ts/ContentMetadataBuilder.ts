@@ -1,49 +1,36 @@
-export interface Metadata {
-  // Can only be set once
-  assetName?: string;
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
-  // Can only be set before playback started
-  viewerId?: string;
-  streamType?: Conviva.ContentMetadata.StreamType;
-  applicationName?: string;
-  custom?: CustomContentMetadata;
-  duration?: number;
+type NoStringIndex<T> = { [K in keyof T as string extends K ? never : K]: T[K] };
 
-  // Dynamic
-  encodedFrameRate?: number;
-  defaultResource?: string;
-  streamUrl?: string;
-  framework?: string;
-  frameworkVersion?: string;
-}
+type DefinedInSdkMetadata = NoStringIndex<Conviva.ConvivaMetadata>;
 
-export interface ConvivaMetadata {
-  [key: string]: string | number;
-}
-
-export interface CustomContentMetadata {
-  [key: string]: string;
-}
+export type Metadata = Conviva.ContentMetadata & {
+  // Actually, Conviva accepts custom tags and standard in the custom object, but we want to have better typing and API.
+  // These tags are merged to the same object as the `custom` tags.
+  // Find the list:
+  // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
+  // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
+  //   under "Constants for Pre-defined Video and Content Metadata"
+  additionalStandardTags: Conviva.ContentMetadata['custom'];
+};
 
 export class ContentMetadataBuilder {
   private readonly logger: Conviva.LoggingInterface;
-  private contentMetadata: Conviva.ContentMetadata;
 
-  // internal metadata fields to enable merging / overriding
-  private metadataOverrides: Metadata = {};
-  private metadata: Metadata = {};
+  private metadataOverrides: Partial<Metadata> = {};
+  private metadata: Partial<Metadata> = {};
+  private latestBuiltMetadata: Partial<Metadata> = {};
   private playbackStarted: boolean = false;
 
   constructor(logger: Conviva.LoggingInterface) {
     this.logger = logger;
-    this.contentMetadata = new Conviva.ContentMetadata();
   }
 
   /**
    * This method is used for custom content metadata updates during / before a session.
    * @param newValue
    */
-  setOverrides(newValue: Metadata) {
+  setOverrides(newValue: Partial<Metadata>) {
     if (this.playbackStarted) {
       this.logger.consoleLog(
         '[ Conviva Analytics ] Playback has started. Only some metadata attributes will be updated',
@@ -54,7 +41,7 @@ export class ContentMetadataBuilder {
     this.metadataOverrides = { ...this.metadataOverrides, ...newValue };
   }
 
-  getOverrides(): Metadata {
+  getOverrides(): Partial<Metadata> {
     return this.metadataOverrides;
   }
 
@@ -62,41 +49,74 @@ export class ContentMetadataBuilder {
     this.playbackStarted = value;
   }
 
-  build(): ConvivaMetadata {
+  private getStaticMetadata(): Partial<Conviva.ContentMetadata> {
+    const metadata: Partial<Conviva.ContentMetadata> = {};
+
+    // This metadata can only be changed before the playback is started
     if (!this.playbackStarted) {
       // Asset name is only allowed to be set once
-      if (!this.contentMetadata.assetName) {
-        this.contentMetadata.assetName = this.assetName;
-      }
+      metadata.assetName = this.latestBuiltMetadata.assetName || this.assetName;
 
-      this.contentMetadata.viewerId = this.viewerId;
-      this.contentMetadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
-      this.contentMetadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
-      this.contentMetadata.duration = this.metadataOverrides.duration || this.metadata.duration;
-      this.contentMetadata.framework = this.metadataOverrides.framework || this.metadata.framework;
-      this.contentMetadata.frameworkVersion = this.metadataOverrides.frameworkVersion || this.metadata.frameworkVersion;
+      metadata.viewerId = this.viewerId;
+      metadata.streamType = this.metadataOverrides.streamType || this.metadata.streamType;
+      metadata.applicationName = this.metadataOverrides.applicationName || this.metadata.applicationName;
+      metadata.duration = this.metadataOverrides.duration || this.metadata.duration;
 
-      this.contentMetadata.custom = this.custom;
+      metadata.custom = {
+        ...this.metadataOverrides.custom,
+        ...this.metadataOverrides.additionalStandardTags,
+        // Keep our custom tags in case someone tries to override them
+        ...this.metadata.custom,
+      };
+    } else {
+      // If the playback has been started, the values cannot be changed and the latest values before the playback started have to be used
+
+      metadata.assetName = this.latestBuiltMetadata.assetName;
+      metadata.viewerId = this.latestBuiltMetadata.viewerId;
+      metadata.streamType = this.latestBuiltMetadata.streamType;
+      metadata.applicationName = this.latestBuiltMetadata.applicationName;
+      metadata.duration = this.latestBuiltMetadata.duration;
+      metadata.custom = this.latestBuiltMetadata.custom;
     }
 
-    this.contentMetadata.encodedFrameRate = this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate;
-    this.contentMetadata.defaultResource = this.metadataOverrides.defaultResource || this.metadata.defaultResource;
-    this.contentMetadata.streamUrl = this.metadataOverrides.streamUrl || this.metadata.streamUrl;
+    return metadata;
+  }
 
-    const convivaContentInfo = {} as ConvivaMetadata;
-    convivaContentInfo[Conviva.Constants.ASSET_NAME] = this.contentMetadata.assetName;
-    convivaContentInfo[Conviva.Constants.ENCODED_FRAMERATE] = this.contentMetadata.encodedFrameRate;
-    convivaContentInfo[Conviva.Constants.DURATION] = this.contentMetadata.duration;
-    convivaContentInfo[Conviva.Constants.DEFAULT_RESOURCE] = this.contentMetadata.defaultResource;
-    convivaContentInfo[Conviva.Constants.STREAM_URL] = this.contentMetadata.streamUrl;
-    convivaContentInfo[Conviva.Constants.IS_LIVE] = this.contentMetadata.streamType;
-    convivaContentInfo[Conviva.Constants.VIEWER_ID] = this.contentMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER';
-    convivaContentInfo[Conviva.Constants.PLAYER_NAME] =
-      this.contentMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE';
-    convivaContentInfo[Conviva.Constants.FRAMEWORK_NAME] = this.contentMetadata.framework;
-    convivaContentInfo[Conviva.Constants.FRAMEWORK_VERSION] = this.contentMetadata.frameworkVersion;
+  private getDynamicMetadata(): Partial<Conviva.ContentMetadata> {
+    return {
+      encodedFrameRate: this.metadataOverrides.encodedFrameRate || this.metadata.encodedFrameRate,
+      defaultResource: this.metadataOverrides.defaultResource || this.metadata.defaultResource,
+      streamUrl: this.metadataOverrides.streamUrl || this.metadata.streamUrl,
+    };
+  }
 
-    return { ...convivaContentInfo, ...this.contentMetadata.custom };
+  build(): Conviva.ConvivaMetadata {
+    const newMetadata: Partial<Metadata> = {
+      ...this.getStaticMetadata(),
+      ...this.getDynamicMetadata(),
+    };
+
+    this.latestBuiltMetadata = newMetadata;
+
+    const newDefinedInSdkMetadata: DefinedInSdkMetadata = {
+      [Conviva.Constants.ASSET_NAME]: newMetadata.assetName,
+      [Conviva.Constants.ENCODED_FRAMERATE]: newMetadata.encodedFrameRate,
+      [Conviva.Constants.DURATION]: newMetadata.duration,
+      [Conviva.Constants.DEFAULT_RESOURCE]: newMetadata.defaultResource,
+      [Conviva.Constants.STREAM_URL]: newMetadata.streamUrl,
+      // If you follow the `IS_LIVE` constant you will find out that it's mapped to `Conviva.streamType`.
+      // That's why we set `streamType` here. It's not a mistake.
+      // Conviva automatically infers "Is live" from the stream type on their side.
+      [Conviva.Constants.IS_LIVE]: newMetadata.streamType,
+      [Conviva.Constants.VIEWER_ID]: newMetadata.viewerId || 'GET_VIEWER_ID_FROM_PLAYER',
+      // It's not a mistake, "Application name" and "Player name" are referenced interchangeably on Conviva in some places
+      [Conviva.Constants.PLAYER_NAME]: newMetadata.applicationName || 'GET_PLAYER_NAME_OR_TYPE',
+    };
+
+    return {
+      ...newDefinedInSdkMetadata,
+      ...newMetadata.custom,
+    } as Conviva.ConvivaMetadata;
   }
 
   // These methods should be treated as package private
@@ -116,7 +136,7 @@ export class ContentMetadataBuilder {
     return this.metadataOverrides.viewerId || this.metadata.viewerId;
   }
 
-  set streamType(newValue: Conviva.ContentMetadata.StreamType) {
+  set streamType(newValue: Conviva.valueof<Conviva.ConvivaConstants['StreamType']>) {
     this.metadata.streamType = newValue;
   }
 
@@ -124,15 +144,8 @@ export class ContentMetadataBuilder {
     this.metadata.applicationName = newValue;
   }
 
-  set custom(newValue: CustomContentMetadata) {
-    this.metadata.custom = newValue;
-  }
-
-  get custom(): CustomContentMetadata {
-    return {
-      ...this.metadataOverrides.custom,
-      ...this.metadata.custom, // Keep our custom tags in case someone tries to override them
-    };
+  addToCustom(toAdd: Metadata['custom']) {
+    this.metadata.custom = { ...this.metadata.custom, ...toAdd };
   }
 
   set duration(newValue: number) {
@@ -155,6 +168,6 @@ export class ContentMetadataBuilder {
     this.metadataOverrides = {};
     this.metadata = {};
     this.playbackStarted = false;
-    this.contentMetadata = new Conviva.ContentMetadata();
+    this.latestBuiltMetadata = {};
   }
 }

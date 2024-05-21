@@ -1,7 +1,7 @@
-import SystemSettings = Conviva.SystemSettings;
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 export class Html5Logging implements Conviva.LoggingInterface {
-  public consoleLog(message: string, logLevel: SystemSettings.LogLevel): void {
+  public consoleLog(message: string, logLevel: Conviva.valueof<Conviva.ConvivaConstants['LogLevel']>): void {
     if (typeof console === 'undefined') {
       return;
     }

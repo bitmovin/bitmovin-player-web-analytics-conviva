@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 5.0.0 - 2024-05-21
+### Added
+- Send player info metadata (framework and framework version)
+- `additionalStandardTags` to `Metadata` of `updateContentMetadata` for [Conviva pre-defined video and content metadata](https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm)
+
+### Changed
+- Updated Conviva types to the latest version and fixed some type issues
+
+### Removed
+- `framework` and `frameworkVersion` custom metadata fields (custom tags)
+- `CustomContentMetadata`, use `Metadata['custom']` instead
+
 ## 4.2.0 - 2023-08-24
 ### Added
 - Support for Conviva-SDK version 4.7.0

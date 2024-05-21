@@ -1,4 +1,3 @@
-/// <reference path='../../src/ts/Conviva.d.ts'/>
 import { PlayerEvent } from './PlayerEvent';
 import {
   AdBreakEvent,
@@ -19,23 +18,24 @@ import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 
 declare const global: any;
 export namespace MockHelper {
-  export function mockConviva(): void {
-    global.Conviva = {};
-    global.Conviva.SystemInterface = jest.fn().mockImplementation();
-    global.Conviva.SystemSettings = jest.fn().mockImplementation();
-    global.Conviva.SystemSettings.LogLevel = {
+  export function createConvivaMock() {
+    const ConvivaMock: Record<string, any> = {};
+
+    ConvivaMock.SystemInterface = jest.fn().mockImplementation();
+    ConvivaMock.SystemSettings = jest.fn().mockImplementation();
+    ConvivaMock.SystemSettings.LogLevel = {
       WARNING: 'warning',
     };
-    global.Conviva.SystemFactory = jest.fn().mockImplementation();
-    global.Conviva.ClientSettings = jest.fn().mockImplementation();
-    global.Conviva.ContentMetadata = jest.fn().mockImplementation();
+    ConvivaMock.SystemFactory = jest.fn().mockImplementation();
+    ConvivaMock.ClientSettings = jest.fn().mockImplementation();
+    ConvivaMock.ContentMetadata = jest.fn().mockImplementation();
 
-    global.Conviva.ContentMetadata.StreamType = {
+    ConvivaMock.ContentMetadata.StreamType = {
       LIVE: 'live',
       VOD: 'vod',
       UNKNOWN: 'unknown',
     };
-    global.Conviva.Constants = {
+    ConvivaMock.Constants = {
       DeviceCategory: {
         WEB: 'WEB',
       },
@@ -72,6 +72,8 @@ export namespace MockHelper {
       DURATION: 'duration',
       DEFAULT_RESOURCE: 'defaultResource',
       STREAM_URL: 'streamUrl',
+      FRAMEWORK_NAME: 'frameworkName',
+      FRAMEWORK_VERSION: 'frameworkVersion',
       IS_LIVE: 'isLive',
       VIEWER_ID: 'viewerId',
       PLAYER_NAME: 'applicationName',
@@ -131,15 +133,15 @@ export namespace MockHelper {
     const reportAppEvent = jest.fn();
 
     const release = jest.fn();
-    global.Conviva.Analytics = jest.fn().mockImplementation();
-    global.Conviva.Analytics = {
+    ConvivaMock.Analytics = jest.fn().mockImplementation();
+    ConvivaMock.Analytics = {
       init: jest.fn().mockImplementation(),
       release: jest.fn().mockImplementation(),
       setDeviceMetadata: jest.fn().mockImplementation(),
       updateContentMetadata: jest.fn().mockImplementation(),
     };
 
-    global.Conviva.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
+    ConvivaMock.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
       return {
         reportPlaybackRequested,
         reportPlaybackFailed,
@@ -157,6 +159,8 @@ export namespace MockHelper {
         release,
       };
     });
+
+    return ConvivaMock;
   }
 
   // Custom cast SDK implementation
@@ -176,6 +180,7 @@ export namespace MockHelper {
 
     const PlayerMockClass: jest.Mock<TestingPlayerAPI> = jest.fn().mockImplementation(() => {
       return {
+        version: '8.0.0',
         getSource: jest.fn(),
         exports: {
           PlayerEvent,
@@ -359,8 +364,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdSkipped,
       ad: {
         isLinear: true,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }
@@ -371,8 +376,8 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdStarted,
       ad: {
         isLinear: true,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }
@@ -461,14 +466,14 @@ class PlayerEventHelper implements EventEmitter {
       sourceQuality: {
         id: '1',
         bitrate: 250_000,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
       targetQuality: {
         id: '2',
         bitrate: bitrate,
-        width: null,
-        height: null,
+        width: 0,
+        height: 0,
       },
     });
   }

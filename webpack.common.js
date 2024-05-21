@@ -8,8 +8,13 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        use: {
+          loader: 'ts-loader',
+          options: {
+            configFile: 'tsconfig.build.json'
+          }
+        },
+        exclude: /node_modules/,
       },
       {
         test: /\.tsx?$/,
@@ -47,4 +52,12 @@ module.exports = {
       content: 'export * from \'./lib/index\';'
     }),
   ],
+  externals: {
+    '@convivainc/conviva-js-coresdk': {
+      commonjs: '@convivainc/conviva-js-coresdk',
+      commonjs2: '@convivainc/conviva-js-coresdk',
+      amd: '@convivainc/conviva-js-coresdk',
+      root: ['Conviva']
+    },
+  }
 };
