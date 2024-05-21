@@ -10,10 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Updated Conviva types to the latest version and fixed some type issues
 
-### Deprecated
-- Removed `framework` and `frameworkVersion` custom metadata fields (custom tags)
-
 ### Removed
+- `framework` and `frameworkVersion` custom metadata fields (custom tags)
 - `CustomContentMetadata`, use `Metadata['custom']` instead
 
 ## 4.2.0 - 2023-08-24
