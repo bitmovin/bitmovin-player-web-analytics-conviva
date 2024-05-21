@@ -491,12 +491,12 @@ export class ConvivaAnalytics {
       ? Conviva.ContentMetadata.StreamType.LIVE
       : Conviva.ContentMetadata.StreamType.VOD;
 
-    this.contentMetadataBuilder.custom = {
+    this.contentMetadataBuilder.addToCustom({
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
       integrationVersion: ConvivaAnalytics.VERSION,
-    };
+    });
 
     const source = this.player.getSource();
 
@@ -509,12 +509,11 @@ export class ConvivaAnalytics {
   private buildSourceRelatedMetadata(source: SourceConfig) {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
     this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
-    this.contentMetadataBuilder.custom = {
+    this.contentMetadataBuilder.addToCustom({
       playerType: this.player.getPlayerType(),
       streamType: this.player.getStreamType(),
       vrContentType: source.vr && source.vr.contentType,
-      ...this.contentMetadataBuilder.custom,
-    };
+    });
 
     this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
   }
