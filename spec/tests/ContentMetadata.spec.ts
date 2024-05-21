@@ -1,7 +1,12 @@
 import { PlayerType, StreamType, VRContentType } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
 import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
+jest.mock('@convivainc/conviva-js-coresdk', () => {
+  const { MockHelper } = jest.requireActual('../helper/MockHelper');
+  return MockHelper.createConvivaMock();
+});
 jest.mock('../../src/ts/Html5Logging');
 
 describe('content metadata spec', () => {
@@ -10,8 +15,6 @@ describe('content metadata spec', () => {
   let convivaVideoAnalytics: Conviva.VideoAnalytics;
 
   beforeEach(() => {
-    MockHelper.mockConviva();
-
     playerMock = MockHelper.getPlayerMock();
     convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
 
@@ -66,7 +69,7 @@ describe('content metadata spec', () => {
       );
     });
 
-    it('override playerType in custom tags', () => {
+    it('do not override playerType in custom tags', () => {
       jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
       jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
       convivaAnalytics.updateContentMetadata({ custom: { playerType: PlayerType.Html5 }, assetName: 'MyAsset' });
@@ -74,13 +77,13 @@ describe('content metadata spec', () => {
 
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          playerType: PlayerType.Html5,
+          playerType: PlayerType.Native,
           streamType: StreamType.Dash,
         }),
       );
     });
 
-    it('override streamType in custom tags', () => {
+    it('do not override streamType in custom tags', () => {
       jest.spyOn(playerMock, 'getPlayerType').mockReturnValue(PlayerType.Native);
       jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
       convivaAnalytics.updateContentMetadata({ custom: { streamType: 'dash_vod' }, assetName: 'MyAsset' });
@@ -89,18 +92,18 @@ describe('content metadata spec', () => {
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           playerType: PlayerType.Native,
-          streamType: 'dash_vod',
+          streamType: StreamType.Dash,
         }),
       );
     });
 
-    it('override vrContentType in custom tags', () => {
+    it('do not override vrContentType in custom tags', () => {
       convivaAnalytics.updateContentMetadata({ custom: { vrContentType: VRContentType.Single }, assetName: 'MyAsset' });
       playerMock.eventEmitter.firePlayEvent();
 
       expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          vrContentType: VRContentType.Single,
+          vrContentType: undefined,
         }),
       );
     });
@@ -175,6 +178,14 @@ describe('content metadata spec', () => {
             convivaAnalytics.initializeSession();
             expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
               expect.objectContaining({ myTag: 'withMyValue' }),
+            );
+          });
+
+          it('additional standard tags', () => {
+            convivaAnalytics.updateContentMetadata({ additionalStandardTags: { 'c3.cm.brand': 'Test Brand' }, assetName: 'MyAsset' });
+            convivaAnalytics.initializeSession();
+            expect(convivaVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+              expect.objectContaining({ 'c3.cm.brand': 'Test Brand' }),
             );
           });
 
@@ -365,17 +376,23 @@ describe('content metadata spec', () => {
           it('custom tags', () => {
             convivaAnalytics.updateContentMetadata({ custom: { myTag: 'withMyValue' } });
 
-            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(
-              0,
-              expect.objectContaining({ myTag: undefined }),
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenCalledWith(
+              expect.objectContaining({ myTag: 'withMyValue' })
+            );
+          });
+
+          it('additional tags', () => {
+            convivaAnalytics.updateContentMetadata({ custom: { 'c3.cm.brand': 'Test Brand' } });
+
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenCalledWith(
+              expect.objectContaining({ 'c3.cm.brand': 'Test Brand' })
             );
           });
 
           it('duration', () => {
             convivaAnalytics.updateContentMetadata({ duration: 55 });
 
-            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenLastCalledWith(
-              0,
+            expect(convivaVideoAnalytics.setContentInfo).not.toHaveBeenCalledWith(
               expect.objectContaining({
                 duration: 55,
               }),

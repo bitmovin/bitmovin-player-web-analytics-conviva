@@ -1,4 +1,5 @@
-import {
+import * as Conviva from '@convivainc/conviva-js-coresdk';
+import type {
   AdBreak,
   AdBreakEvent,
   AdEvent,
@@ -183,7 +184,7 @@ export class ConvivaAnalytics {
     this.isAd = false;
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
-    const deviceMetadata = {
+    const deviceMetadata: Conviva.ConvivaDeviceMetadata = {
       [Conviva.Constants.DeviceMetadata.CATEGORY]:
         deviceMetadataFromConfig.category || this.config.deviceCategory || Conviva.Constants.DeviceCategory.WEB,
       [Conviva.Constants.DeviceMetadata.BRAND]: deviceMetadataFromConfig.brand,
@@ -196,7 +197,7 @@ export class ConvivaAnalytics {
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
-    let callbackFunctions = {} as { [key: string]: Function };
+    let callbackFunctions: Record<string, Function> = {};
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
     const html5Storage = new Html5Storage();
@@ -205,7 +206,7 @@ export class ConvivaAnalytics {
     callbackFunctions[Conviva.Constants.CallbackFunctions.CREATE_TIMER] = new Html5Timer().createTimer;
     callbackFunctions[Conviva.Constants.CallbackFunctions.GET_EPOCH_TIME_IN_MS] = new Html5Time().getEpochTimeMs;
 
-    const settings = {} as { [key: string]: string | number };
+    const settings: Record<string, string | number> = {};
     settings[Conviva.Constants.GATEWAY_URL] = config.gatewayUrl;
     settings[Conviva.Constants.LOG_LEVEL] = this.config.debugLoggingEnabled
       ? Conviva.Constants.LogLevel.DEBUG
@@ -316,7 +317,7 @@ export class ConvivaAnalytics {
    * @param metadataOverrides Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
-  public updateContentMetadata(metadataOverrides: Metadata) {
+  public updateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
@@ -399,7 +400,7 @@ export class ConvivaAnalytics {
     }
   }
 
-  private internalUpdateContentMetadata(metadataOverrides: Metadata) {
+  private internalUpdateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.contentMetadataBuilder.setOverrides(metadataOverrides);
 
     if (!this.isSessionActive()) {
@@ -441,12 +442,19 @@ export class ConvivaAnalytics {
     // Create a Conviva monitoring session.
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
     this.convivaAdAnalytics = Conviva.Analytics.buildAdAnalytics(this.convivaVideoAnalytics);
+
+    this.convivaVideoAnalytics.setPlayerInfo({
+      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
+      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
+    });
+
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
     });
+
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {
@@ -482,12 +490,12 @@ export class ConvivaAnalytics {
       ? Conviva.ContentMetadata.StreamType.LIVE
       : Conviva.ContentMetadata.StreamType.VOD;
 
-    this.contentMetadataBuilder.custom = {
+    this.contentMetadataBuilder.addToCustom({
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
       autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
       preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
       integrationVersion: ConvivaAnalytics.VERSION,
-    };
+    });
 
     const source = this.player.getSource();
 
@@ -500,12 +508,11 @@ export class ConvivaAnalytics {
   private buildSourceRelatedMetadata(source: SourceConfig) {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
     this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
-    this.contentMetadataBuilder.custom = {
+    this.contentMetadataBuilder.addToCustom({
       playerType: this.player.getPlayerType(),
       streamType: this.player.getStreamType(),
       vrContentType: source.vr && source.vr.contentType,
-      ...this.contentMetadataBuilder.custom,
-    };
+    });
 
     this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
   }

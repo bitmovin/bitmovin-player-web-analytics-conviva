@@ -8,6 +8,6 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "removeComments": false,
-    "types": ["./@types/conviva", "jest"],
+    "types": ["jest"],
   }
 }
