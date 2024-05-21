@@ -443,12 +443,19 @@ export class ConvivaAnalytics {
 
     // Create a Conviva monitoring session.
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
+
+    this.convivaVideoAnalytics.setPlayerInfo({
+      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
+      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
+    });
+
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
     });
+
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
 
     if (!this.isSessionActive()) {

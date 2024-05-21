@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Send player info metadata (framework and framework version)
+
 ### Changed
 - Updated Conviva types to the latest version and fixed some type issues
 
 ### Removed
 - `framework` and `frameworkVersion` custom metadata fields (custom tags)
+- `CustomContentMetadata`, use `Metadata['custom']` instead
+
+### Removed
 - `CustomContentMetadata`, use `Metadata['custom']` instead
 
 ## 4.2.0 - 2023-08-24

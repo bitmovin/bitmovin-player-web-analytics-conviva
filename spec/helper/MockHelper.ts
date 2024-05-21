@@ -72,6 +72,8 @@ export namespace MockHelper {
       DURATION: 'duration',
       DEFAULT_RESOURCE: 'defaultResource',
       STREAM_URL: 'streamUrl',
+      FRAMEWORK_NAME: 'frameworkName',
+      FRAMEWORK_VERSION: 'frameworkVersion',
       IS_LIVE: 'isLive',
       VIEWER_ID: 'viewerId',
       PLAYER_NAME: 'applicationName',
@@ -178,6 +180,7 @@ export namespace MockHelper {
 
     const PlayerMockClass: jest.Mock<TestingPlayerAPI> = jest.fn().mockImplementation(() => {
       return {
+        version: '8.0.0',
         getSource: jest.fn(),
         exports: {
           PlayerEvent,
