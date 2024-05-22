@@ -17,6 +17,9 @@ import type {
   SubtitleTrack,
   TimeMode,
   AdData,
+  VastAdData,
+  Ad,
+  LinearAd,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -706,41 +709,59 @@ export class ConvivaAnalytics {
     this.debugLog('[ Player Event ] ad started', event);
 
     const adPosition = AdBreakHelper.mapAdPosition(this.latestAdBreakEvent.adBreak, this.player);
+    const ad = event.ad as Ad | LinearAd;
+    const adData = ad.data as undefined | AdData | VastAdData;
 
-    const adData = event.ad.data as undefined | (
-      AdData &
-      // Add some missing types
-      {
-        adSystem?: {
-          name: string;
-        },
-        creative?: {
-          id: string;
-        },
+    let adSystemName = 'NA';
+    let creativeId = 'NA';
+    let firstAdSystem = 'NA';
+    let firstCreativeId = 'NA';
+    let adTitle: string | undefined;
+    let firstAdId = ad.id;
+
+    if (adData) {
+      if ('adSystem' in adData && adData.adSystem?.name) {
+        adSystemName = adData.adSystem.name;
       }
-    );
+
+      if ('creative' in adData && adData?.creative?.id) {
+        creativeId = adData.creative.id;
+      }
+
+      if ('adTitle' in adData && adData.adTitle) {
+        adTitle = adData.adTitle;
+      }
+
+      // if wrapperAdIds ???
+    }
 
     const adInfo: Conviva.ConvivaMetadata = {
+      'c3.ad.id': ad.id,
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
       'c3.ad.position': adPosition,
+      'c3.ad.system': adSystemName,
+      'c3.ad.creativeId': creativeId,
+      'c3.ad.firstAdId': firstAdId,
+
+      // Should it be NA instead?
       'c3.ad.isSlate': 'false',
+
       'c3.ad.mediaFileApiFramework': 'NA',
       'c3.ad.adStitcher': 'NA',
-      'c3.ad.firstAdSystem': 'NA',
-      'c3.ad.firstAdId': 'NA',
-      'c3.ad.firstCreativeId': 'NA',
+      'c3.ad.firstAdSystem': firstAdSystem,
+      'c3.ad.firstCreativeId': firstCreativeId,
     };
 
-    if (event.ad.id) {
-      adInfo['c3.ad.id'] = event.ad.id;
+    if (adTitle) {
+      adInfo[Conviva.Constants.ASSET_NAME] = adTitle;
     }
 
-    if (adData?.adSystem?.name) {
-      adInfo['c3.ad.system'] = adData.adSystem.name;
+    if (event.ad.mediaFileUrl) {
+      adInfo[Conviva.Constants.STREAM_URL] = event.ad.mediaFileUrl;
     }
 
-    if (adData?.creative?.id) {
-      adInfo['c3.ad.creativeId'] = adData.creative.id;
+    if ('duration' in ad && ad.duration) {
+      adInfo[Conviva.Constants.DURATION] = ad.duration;
     }
 
     this.debugLog('[ ConvivaAnalytics ] report ad started', {
@@ -785,7 +806,6 @@ export class ConvivaAnalytics {
       Conviva.Constants.Playback.PLAYER_STATE,
       Conviva.Constants.PlayerState.PLAYING,
     );
-    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
   };
 
   private onAdError = (
