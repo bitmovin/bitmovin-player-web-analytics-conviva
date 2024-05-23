@@ -68,7 +68,7 @@
 
         console.log('Creating Conviva Analytics');
 
-        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<convivaKey>', {
+        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<CONVIVA_CUSTOMER_KEY>', {
           debugLoggingEnabled: true,
           gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
           // This is inferred automatically, but can be overridden.
@@ -157,7 +157,7 @@
 
       function getPlayerConfig() {
         return {
-          key: '<playerKey>',
+          key: '<PLAYER_LICENSE_KEY>',
           playback: {
             muted: true,
           },
