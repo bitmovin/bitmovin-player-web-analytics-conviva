@@ -15,20 +15,24 @@ import {
   SubtitleEvent,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
+import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 declare const global: any;
 export namespace MockHelper {
+  export let latestVideoAnalytics: Conviva.VideoAnalytics;
+  export let latestAdAnalytics: Conviva.AdAnalytics;
+
   export function createConvivaMock() {
     const ConvivaMock: Record<string, any> = {};
 
-    ConvivaMock.SystemInterface = jest.fn().mockImplementation();
-    ConvivaMock.SystemSettings = jest.fn().mockImplementation();
+    ConvivaMock.SystemInterface = jest.fn();
+    ConvivaMock.SystemSettings = jest.fn();
     ConvivaMock.SystemSettings.LogLevel = {
       WARNING: 'warning',
     };
-    ConvivaMock.SystemFactory = jest.fn().mockImplementation();
-    ConvivaMock.ClientSettings = jest.fn().mockImplementation();
-    ConvivaMock.ContentMetadata = jest.fn().mockImplementation();
+    ConvivaMock.SystemFactory = jest.fn();
+    ConvivaMock.ClientSettings = jest.fn();
+    ConvivaMock.ContentMetadata = jest.fn();
 
     ConvivaMock.ContentMetadata.StreamType = {
       LIVE: 'live',
@@ -106,59 +110,58 @@ export namespace MockHelper {
         DEBUG: 'debug',
       },
     };
-    const reportPlaybackRequested = jest.fn();
-
-    const reportPlaybackFailed = jest.fn();
-
-    const reportPlaybackEnded = jest.fn();
-
-    const setContentInfo = jest.fn();
-
-    const setPlayerInfo = jest.fn();
-
-    const reportPlaybackMetric = jest.fn();
-
-    const reportDeviceMetric = jest.fn();
-
-    const reportAdBreakStarted = jest.fn();
-
-    const reportAdBreakEnded = jest.fn();
-
-    const setCallback = jest.fn();
-
-    const getSessionId = jest.fn();
-
-    const reportPlaybackEvent = jest.fn();
-
-    const reportAppEvent = jest.fn();
-
-    const release = jest.fn();
-    ConvivaMock.Analytics = jest.fn().mockImplementation();
+    ConvivaMock.Analytics = jest.fn();
     ConvivaMock.Analytics = {
-      init: jest.fn().mockImplementation(),
-      release: jest.fn().mockImplementation(),
-      setDeviceMetadata: jest.fn().mockImplementation(),
-      updateContentMetadata: jest.fn().mockImplementation(),
+      init: jest.fn(),
+      release: jest.fn(),
+      setDeviceMetadata: jest.fn(),
+      updateContentMetadata: jest.fn(),
     };
 
-    ConvivaMock.Analytics.buildVideoAnalytics = jest.fn().mockImplementation(() => {
-      return {
-        reportPlaybackRequested,
-        reportPlaybackFailed,
-        reportPlaybackEnded,
-        setContentInfo,
-        setPlayerInfo,
-        reportPlaybackMetric,
-        reportDeviceMetric,
-        reportAdBreakStarted,
-        reportAdBreakEnded,
-        reportPlaybackEvent,
-        reportAppEvent,
-        setCallback,
-        getSessionId,
-        release,
-      };
-    });
+    class MockVideoAnalytics implements Conviva.VideoAnalytics {
+      configureExistingSession = jest.fn() as Conviva.VideoAnalytics['configureExistingSession'];
+      reportPlaybackRequested = jest.fn() as Conviva.VideoAnalytics['reportPlaybackRequested']
+      reportPlaybackFailed = jest.fn() as Conviva.VideoAnalytics['reportPlaybackFailed'];
+      reportPlaybackEnded = jest.fn() as Conviva.VideoAnalytics['reportPlaybackEnded'];
+      reportPlaybackError = jest.fn() as Conviva.VideoAnalytics['reportPlaybackError'];
+      setContentInfo = jest.fn() as Conviva.VideoAnalytics['setContentInfo'];
+      setPlayerInfo = jest.fn() as Conviva.VideoAnalytics['setPlayerInfo'];
+      setPlayer = jest.fn() as Conviva.VideoAnalytics['setPlayer'];
+      reportPlaybackMetric = jest.fn() as Conviva.VideoAnalytics['reportPlaybackMetric'];
+      reportAdBreakStarted = jest.fn() as Conviva.VideoAnalytics['reportAdBreakStarted'];
+      reportAdBreakEnded = jest.fn() as Conviva.VideoAnalytics['reportAdBreakEnded'];
+      reportPlaybackEvent = jest.fn() as Conviva.VideoAnalytics['reportPlaybackEvent'];
+      reportAppEvent = jest.fn() as Conviva.VideoAnalytics['reportAppEvent'];
+      setCallback = jest.fn() as Conviva.VideoAnalytics['setCallback'];
+      getSessionId = jest.fn() as Conviva.VideoAnalytics['getSessionId'];
+      release = jest.fn() as Conviva.VideoAnalytics['release'];
+    }
+
+    ConvivaMock.Analytics.buildVideoAnalytics = (): Conviva.VideoAnalytics => {
+      latestVideoAnalytics = new MockVideoAnalytics();
+
+      return latestVideoAnalytics;
+    };
+
+    ConvivaMock.Analytics.buildAdAnalytics = (): Conviva.AdAnalytics => {
+      latestAdAnalytics = {
+        release: jest.fn() as Conviva.AdAnalytics['release'],
+        reportAdEnded: jest.fn() as Conviva.AdAnalytics['reportAdEnded'],
+        reportAdError: jest.fn() as Conviva.AdAnalytics['reportAdError'],
+        reportAdFailed: jest.fn() as Conviva.AdAnalytics['reportAdFailed'],
+        reportAdLoaded: jest.fn() as Conviva.AdAnalytics['reportAdLoaded'],
+        reportAdMetric: jest.fn() as Conviva.AdAnalytics['reportAdMetric'],
+        reportAdPlayerEvent: jest.fn() as Conviva.AdAnalytics['reportAdPlayerEvent'],
+        reportAdSkipped: jest.fn() as Conviva.AdAnalytics['reportAdSkipped'],
+        reportAdStarted: jest.fn() as Conviva.AdAnalytics['reportAdStarted'],
+        setAdInfo: jest.fn() as Conviva.AdAnalytics['setAdInfo'],
+        setAdListener: jest.fn() as Conviva.AdAnalytics['setAdListener'],
+        setAdPlayerInfo: jest.fn() as Conviva.AdAnalytics['setAdPlayerInfo'],
+        setCallback: jest.fn() as Conviva.AdAnalytics['setCallback'],
+      } as Conviva.AdAnalytics;
+
+      return latestAdAnalytics;
+    };
 
     return ConvivaMock;
   }
@@ -175,10 +178,13 @@ export namespace MockHelper {
     });
   }
 
-  export function getPlayerMock(): TestingPlayerAPI {
-    const eventHelper = new PlayerEventHelper();
+  export function createPlayerMock(): {
+    playerMock: PlayerAPI,
+    playerEventHelper: PlayerEventHelper
+  } {
+    const playerEventHelper = new PlayerEventHelper();
 
-    const PlayerMockClass: jest.Mock<TestingPlayerAPI> = jest.fn().mockImplementation(() => {
+    const PlayerMock: jest.Mock<PlayerAPI> = jest.fn().mockImplementation(() => {
       return {
         version: '8.0.0',
         getSource: jest.fn(),
@@ -218,76 +224,21 @@ export namespace MockHelper {
             return [];
           }),
         },
-
-        // Event faker
-        eventEmitter: eventHelper,
-        on: eventHelper.on.bind(eventHelper),
-        off: eventHelper.off.bind(eventHelper),
+        on: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.on(eventType, callback),
+        off: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.off(eventType, callback),
       };
     });
 
-    return new PlayerMockClass();
+    const playerMock = new PlayerMock();
+
+    return {
+      playerMock,
+      playerEventHelper
+    }
   }
 }
 
-export interface TestingPlayerAPI extends PlayerAPI {
-  eventEmitter: EventEmitter;
-}
-
-interface EventEmitter {
-  fireEvent<E extends PlayerEventBase>(event: E): void;
-
-  // Event Helper methods
-  firePlayEvent(): void;
-
-  firePauseEvent(): void;
-
-  firePlayingEvent(): void;
-
-  fireSourceUnloadedEvent(): void;
-
-  firePlaybackFinishedEvent(): void;
-
-  fireSeekEvent(seekTarget?: number): void;
-
-  fireSeekedEvent(): void;
-
-  fireTimeShiftEvent(): void;
-
-  fireTimeShiftedEvent(): void;
-
-  fireStallStartedEvent(): void;
-
-  fireStallEndedEvent(): void;
-
-  fireErrorEvent(): void;
-
-  fireAdBreakStartedEvent(startTime: number): void;
-
-  fireAdStartedEvent(): void;
-
-  fireAdBreakFinishedEvent(): void;
-
-  fireAdSkippedEvent(): void;
-
-  fireAdErrorEvent(): void;
-
-  fireVideoPlaybackQualityChangedEvent(bitrate: number): void;
-
-  fireCastStartedEvent(resuming?: boolean): void;
-
-  fireCastWaitingForDevice(resuming?: boolean): void;
-
-  fireCastStoppedEvent(): void;
-
-  fireAudioChanged(): void;
-
-  fireSubtitleEnabled(kind: string): void;
-
-  fireSubtitleDisabled(kind: string): void;
-}
-
-class PlayerEventHelper implements EventEmitter {
+export class PlayerEventHelper {
   private eventHandlers: { [eventType: string]: PlayerEventCallback[] } = {};
 
   public on(eventType: PlayerEvent, callback: PlayerEventCallback) {

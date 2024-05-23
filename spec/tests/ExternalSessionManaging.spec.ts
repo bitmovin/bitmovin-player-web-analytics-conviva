@@ -1,6 +1,6 @@
+import { PlayerAPI } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
-import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
-import * as Conviva from '@convivainc/conviva-js-coresdk';
+import { MockHelper, PlayerEventHelper } from '../helper/MockHelper';
 
 jest.mock('@convivainc/conviva-js-coresdk', () => {
   const { MockHelper } = jest.requireActual('../helper/MockHelper');
@@ -10,13 +10,11 @@ jest.mock('../../src/ts/Html5Logging');
 
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
-  let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalyticsMock: Conviva.VideoAnalytics;
+  let playerMock: PlayerAPI;
+  let playerEventHelper: PlayerEventHelper
 
   beforeEach(() => {
-    playerMock = MockHelper.getPlayerMock();
-
-    convivaVideoAnalyticsMock = Conviva.Analytics.buildVideoAnalytics();
+    ({ playerMock, playerEventHelper } = MockHelper.createPlayerMock());
 
     convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
 
@@ -41,7 +39,7 @@ describe('externally session managing', () => {
       convivaAnalytics.updateContentMetadata({ assetName: 'name to init' });
       convivaAnalytics.initializeSession();
 
-      expect(convivaVideoAnalyticsMock.getSessionId).toHaveBeenCalledTimes(1);
+      expect(MockHelper.latestVideoAnalytics.getSessionId).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -50,15 +48,15 @@ describe('externally session managing', () => {
       convivaAnalytics.initializeSession();
 
       // TODO: test content metadata
-      expect(convivaVideoAnalyticsMock.getSessionId).toHaveBeenCalledTimes(1);
+      expect(MockHelper.latestVideoAnalytics.getSessionId).toHaveBeenCalledTimes(1);
     });
   });
 
   it('should not init once initialized', () => {
-    playerMock.eventEmitter.firePlayEvent();
+    playerEventHelper.firePlayEvent();
 
-    (convivaVideoAnalyticsMock.getSessionId as any).mockClear();
+    (MockHelper.latestVideoAnalytics.getSessionId as any).mockClear();
     convivaAnalytics.initializeSession();
-    expect(convivaVideoAnalyticsMock.getSessionId).not.toHaveBeenCalled();
+    expect(MockHelper.latestVideoAnalytics.getSessionId).not.toHaveBeenCalled();
   });
 });

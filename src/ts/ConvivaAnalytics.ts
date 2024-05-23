@@ -256,6 +256,11 @@ export class ConvivaAnalytics {
     }
 
     this.convivaVideoAnalytics.reportPlaybackEnded();
+
+    if (this.isAdBreak) {
+      this.convivaAdAnalytics.reportAdSkipped();
+    }
+
     this.internalEndSession();
     this.resetContentMetadata();
     this.sessionEndedExternally = true;
@@ -348,6 +353,9 @@ export class ConvivaAnalytics {
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
     );
+    // this.convivaVideoAnalytics.reportPlaybackEvent(Conviva.Constants.Events.USER_WAIT_STARTED)
+    // this.convivaAdAnalytics.reportAdPlayerEvent(Conviva.Constants.Events.USER_WAIT_STARTED);
+    // TODO what to do with ad analytics?
     this.debugLog('[ ConvivaAnalytics ] Tracking paused.');
   }
 
@@ -357,6 +365,8 @@ export class ConvivaAnalytics {
   public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
     this.convivaVideoAnalytics.reportAdBreakEnded();
+    this.convivaVideoAnalytics.reportPlaybackEvent(Conviva.Constants.Events.USER_WAIT_ENDED);
+    // TODO what to do with ad analytics?
     this.debugLog('[ ConvivaAnalytics ] Tracking resumed.');
   }
 
@@ -450,6 +460,14 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
+    });
+
+    this.convivaAdAnalytics.setCallback(() => {
+      if (this.isAdBreak) {
+        const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
+
+        this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
+      }
     });
 
     this.debugLog('[ ConvivaAnalytics ] start session', this.sessionKey);
@@ -732,7 +750,12 @@ export class ConvivaAnalytics {
         adTitle = adData.adTitle;
       }
 
-      // if wrapperAdIds ???
+      if ('wrapperAdIds' in adData && adData.wrapperAdIds) {
+        // (TODO clarify it with the player devs)
+        if (adData.wrapperAdIds[0]) {
+          firstAdId = adData.wrapperAdIds[0];
+        }
+      }
     }
 
     const adInfo: Conviva.ConvivaMetadata = {
@@ -742,14 +765,15 @@ export class ConvivaAnalytics {
       'c3.ad.system': adSystemName,
       'c3.ad.creativeId': creativeId,
       'c3.ad.firstAdId': firstAdId,
-
-      // Should it be NA instead?
-      'c3.ad.isSlate': 'false',
-
+      // Not relevant for the client side
+      // 'c3.ad.isSlate': undefined,
+      // No way to get it reliably (TODO clarify it with the player devs)
       'c3.ad.mediaFileApiFramework': 'NA',
-      'c3.ad.adStitcher': 'NA',
-      'c3.ad.firstAdSystem': firstAdSystem,
-      'c3.ad.firstCreativeId': firstCreativeId,
+      // Not relevant for the client side
+      // 'c3.ad.adStitcher': undefined,
+      // TODO clarify it with the player devs
+      'c3.ad.firstAdSystem': 'NA',
+      'c3.ad.firstCreativeId': 'NA',
     };
 
     if (adTitle) {

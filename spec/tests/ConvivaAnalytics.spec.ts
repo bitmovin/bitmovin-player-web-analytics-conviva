@@ -1,6 +1,6 @@
+import { PlayerAPI } from 'bitmovin-player';
 import { ConvivaAnalytics } from '../../src/ts';
-import { MockHelper, TestingPlayerAPI } from '../helper/MockHelper';
-import * as Conviva from '@convivainc/conviva-js-coresdk';
+import { MockHelper, PlayerEventHelper } from '../helper/MockHelper';
 
 jest.mock('@convivainc/conviva-js-coresdk', () => {
   const { MockHelper } = jest.requireActual('../helper/MockHelper');
@@ -9,22 +9,20 @@ jest.mock('@convivainc/conviva-js-coresdk', () => {
 jest.mock('../../src/ts/Html5Logging');
 
 describe('content metadata spec', () => {
-  let convivaAnalytics: ConvivaAnalytics;
-  let playerMock: TestingPlayerAPI;
-  let convivaVideoAnalytics: Conviva.VideoAnalytics;
+  let playerMock: PlayerAPI;
+  let playerEventHelper: PlayerEventHelper
 
   beforeEach(() => {
-    playerMock = MockHelper.getPlayerMock();
-    convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
+    ({ playerMock, playerEventHelper } = MockHelper.createPlayerMock());
 
-    convivaAnalytics = new ConvivaAnalytics(playerMock, 'TEST-KEY');
+    new ConvivaAnalytics(playerMock, 'TEST-KEY');
   });
 
   describe('when initializing session', () => {
     it('set player info', () => {
-      playerMock.eventEmitter.firePlayEvent();
+      playerEventHelper.firePlayEvent();
 
-      expect(convivaVideoAnalytics.setPlayerInfo).toHaveBeenLastCalledWith(
+      expect(MockHelper.latestVideoAnalytics.setPlayerInfo).toHaveBeenLastCalledWith(
         expect.objectContaining({
           frameworkName: 'Bitmovin Player',
           frameworkVersion: '8.0.0',
