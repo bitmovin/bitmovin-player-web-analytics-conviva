@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Updated
+- `bitmovin-player` dependency to `^8.165.0`
+
 ## 5.0.0 - 2024-05-21
 ### Added
 - Send player info metadata (framework and framework version)
