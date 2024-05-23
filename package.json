@@ -30,7 +30,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^24.0.1",
-    "bitmovin-player": "^8.31.0",
+    "bitmovin-player": "8.165.0",
     "bitmovin-player-ui": "^3.3.1",
     "create-file-webpack": "^1.0.2",
     "husky": "^8.0.3",
@@ -50,6 +50,6 @@
   },
   "peerDependencies": {
     "@convivainc/conviva-js-coresdk": "^4.7.6",
-    "bitmovin-player": "^8.31.0"
+    "bitmovin-player": "^8.165.0"
   }
 }
