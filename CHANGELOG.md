@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Changed
-- Updated `bitmovin-player` dependency to `^8.165.0`
+- Update `bitmovin-player` dependency to `^8.165.0`
 
 ## 5.0.0 - 2024-05-21
 ### Added
