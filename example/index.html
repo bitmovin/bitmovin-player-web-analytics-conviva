@@ -1,212 +1,198 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bitmovin Player Analytics Conviva Integration</title>
+    <style>
+      .container {
+        color: white;
+        text-align: center;
+        padding: 1em;
+      }
 
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitmovin Player Analytics Conviva Integration</title>
-  <style>
-    .container {
-      color: white;
-      text-align: center;
-      padding: 1em;
-    }
+      .container a {
+        color: white;
+      }
 
-    .container a {
-      color: white;
-    }
+      .container h1 {
+        margin-bottom: 22px;
+        line-height: 66px;
+      }
 
-    .container h1 {
-      margin-bottom: 22px;
-      line-height: 66px;
-    }
+      .container h2 {
+        font-weight: normal;
+        margin-bottom: 36px;
+        line-height: 26px;
+      }
 
-    .container h2 {
-      font-weight: normal;
-      margin-bottom: 36px;
-      line-height: 26px;
-    }
+      .player-wrapper {
+        width: 95%;
+        margin: 20px auto;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+      }
+    </style>
+    <script src="//cdn.bitmovin.com/player/web/8.31.0/bitmovinplayer.js"></script>
+    <script src="./conviva-core-sdk.js"></script>
+    <script src="./dist/bitmovin-player-analytics-conviva.js"></script>
+  </head>
 
-    .player-wrapper {
-      width: 95%;
-      margin: 20px auto;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-    }
-  </style>
-  <script src="//cdn.bitmovin.com/player/web/8.31.0/bitmovinplayer.js"></script>
-  <script src="./conviva-core-sdk.js"></script>
-  <script src="./dist/bitmovin-player-analytics-conviva.js"></script>
-</head>
-
-<body>
-  <div class="container">
-    <div class="content">
-      <div class="player-wrapper">
-        <div id="player"></div>
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="player-wrapper">
+          <div id="player"></div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="container">
-    <button id="createPlayer">Create Player</button>
-    <button id="loadPlayer">Load Player</button>
-    <button id="unloadPlayer">Unload Player</button>
-    <button id="destroyPlayer">Destroy Player</button>
-  </div>
-  <script>
-    var player;
-    var conviva;
+    <div class="container">
+      <button id="createPlayer">Create Player</button>
+      <button id="loadPlayer">Load Player</button>
+      <button id="unloadPlayer">Unload Player</button>
+      <button id="destroyPlayer">Destroy Player</button>
+    </div>
+    <script>
+      var player;
+      var convivaAnalytics;
 
-    function createPlayer() {
-      if (player) {
-        alert('You must destroy the player before re-creating it.');
-        return;
+      function createPlayer() {
+        if (player) {
+          alert('You must destroy the player before re-creating it.');
+          return;
+        }
+
+        console.log('Creating Bitmovin Player');
+
+        player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
+
+        console.log('Creating Conviva Analytics');
+
+        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<convivaKey>', {
+          debugLoggingEnabled: true,
+          gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+          // This is inferred automatically, but can be overridden.
+          // deviceMetadata: { ... }
+        });
       }
 
-      console.log('Creating player');
+      function loadPlayer() {
+        console.log('Updating Conviva Analytics content metadata');
+        // Initialize metadata. It also can be used to update some data during playback.
+        convivaAnalytics.updateContentMetadata({
+          viewerId: 'bitmovin-player-web-conviva-integration-viewer',
+          // It's also referred as "Player name" on Conviva in some places.
+          applicationName: 'Bitmovin Web Player',
+          assetName: 'Art of Motion',
+          defaultResource: 'TEST-DEFAULT-RESOURCE',
+          custom: {
+            directors: 'Director 1, Director 2',
+          },
+          // Reserved Conviva tags can be placed here.
+          // Find the list:
+          // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
+          // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
+          //   under "Constants for Pre-defined Video and Content Metadata"
+          additionalStandardTags: {
+            'c3.app.version': '0.0.1',
+            'c3.cm.contentType': 'VOD',
+            'c3.cm.channel': 'Test Channel',
+            'c3.cm.brand': 'Test Brand',
+            'c3.cm.affiliate': 'Test Affiliate',
+            'c3.cm.categoryType': 'Test Category',
+            'c3.cm.name': 'Test CM Name',
+            'c3.cm.id': 'test-cm-id',
+            'c3.cm.seriesName': 'Test Series Name',
+            'c3.cm.seasonNumber': 'Test Season Number',
+            'c3.cm.showTitle': 'Test Show Title',
+            'c3.cm.episodeNumber': 'Test Episode Number',
+            'c3.cm.genre': 'Test Primary Genre',
+            'c3.cm.genreList': 'Test Genre List Item 1, Test Genre List Item 2',
+            'c3.cm.utmTrackingUrl': 'https://test-utm-tracking-url',
+            // Cannot be determined reliably, but if there is a need this approximation can be used.
+            // dcType: (navigator as Navigator & { connection?: { type: string } }).connection?.type
+            //   || (navigator as Navigator & { connection?: { effectiveType: string } }).connection?.effectiveType
+            //   || 'NA'
+          },
+        });
 
-      player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
-
-      console.log('Creating Conviva');
-
-      conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
-        debugLoggingEnabled: true,
-        gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
-        // This is inferred automatically, but can be overridden.
-        // deviceMetadata: { ... }
-      });
-
-      // Initialize metadata. It also can be used to update some data during playback.
-      convivaAnalytics.updateContentMetadata({
-        viewerId: 'bitmovin-player-web-conviva-integration-viewer',
-        // It's also referred as "Player name" on Conviva in some places.
-        applicationName: 'Bitmovin Web Player',
-        assetName: 'Sintel',
-        defaultResource: 'TEST-DEFAULT-RESOURCE',
-        custom: {
-          directors: 'Colin Levy',
-          year: '2010',
-        },
-        // Reserved Conviva tags can be placed here.
-        // Find the list:
-        // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
-        // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
-        //   under "Constants for Pre-defined Video and Content Metadata"
-        additionalStandardTags: {
-          'c3.app.version': '0.0.1',
-          'c3.cm.contentType': 'VOD',
-          'c3.cm.channel': 'Test Channel',
-          'c3.cm.brand': 'Test Brand',
-          'c3.cm.affiliate': 'Test Affiliate',
-          'c3.cm.categoryType': 'Test Category',
-          'c3.cm.name': 'Test CM Name',
-          'c3.cm.id': 'test-cm-id',
-          'c3.cm.seriesName': 'Test Series Name',
-          'c3.cm.seasonNumber': 'Test Season Number',
-          'c3.cm.showTitle': 'Test Show Title',
-          'c3.cm.episodeNumber': 'Test Episode Number',
-          'c3.cm.genre': 'Test Primary Genre',
-          'c3.cm.genreList': 'Test Genre List Item 1, Test Genre List Item 2',
-          'c3.cm.utmTrackingUrl': 'https://test-utm-tracking-url',
-          // Cannot be determined reliably, but if there is a need this approximation can be used.
-          // dcType: (navigator as Navigator & { connection?: { type: string } }).connection?.type
-          //   || (navigator as Navigator & { connection?: { effectiveType: string } }).connection?.effectiveType
-          //   || 'NA'
-        },
-      });
-    }
-
-    function loadPlayer() {
-      console.log('Updating Conviva content metadata');
-      conviva.updateContentMetadata({
-        applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
-        viewerId: 'uniqueViewerId',
-        custom: {
-          appVersion: '1.0',
-          contentId: 'someContentId',
-        },
-      });
-
-      console.log('Loading player');
-      player.load(getPlayerSource()).then(
-        function () {
-          console.log('Successfully loaded content');
-        },
-        function (reason) {
-          console.error('Error while loading content');
-          console.error(reason);
-        },
-      );
-    }
-
-    function unloadPlayer() {
-      console.log('Unloading Player');
-      player.unload();
-    }
-
-    function destroyPlayer() {
-      if (player) {
-        console.log('Destroying player');
-
-        player.destroy();
-        player = null;
-      } else {
-        console.log('No player to destroy');
+        console.log('Loading player');
+        player.load(getPlayerSource()).then(
+          function () {
+            console.log('Successfully loaded content');
+          },
+          function (reason) {
+            console.error('Error while loading content');
+            console.error(reason);
+          },
+        );
       }
-    }
 
-    const destroyPlayerButton = document.getElementById('destroyPlayer');
-    destroyPlayerButton.onclick = destroyPlayer;
+      function unloadPlayer() {
+        console.log('Unloading Player');
+        player.unload();
+      }
 
-    const createPlayerButton = document.getElementById('createPlayer');
-    createPlayerButton.onclick = createPlayer;
+      function destroyPlayer() {
+        if (player) {
+          console.log('Destroying player');
 
-    const loadPlayerButton = document.getElementById('loadPlayer');
-    loadPlayerButton.onclick = loadPlayer;
+          player.destroy();
+          player = null;
+        } else {
+          console.log('No player to destroy');
+        }
+      }
 
-    const unloadPlayerButton = document.getElementById('unloadPlayer');
-    unloadPlayerButton.onclick = unloadPlayer;
+      const destroyPlayerButton = document.getElementById('destroyPlayer');
+      destroyPlayerButton.onclick = destroyPlayer;
 
-    function getPlayerConfig() {
-      return {
-        key: 'YOUR-PLAYER-KEY',
-        playback: {
-          muted: true,
-        },
-        style: {},
-        cast: {
-          enable: true,
-        },
-        logs: {
-          level: 'debug',
-        },
-        events: {},
-        advertising: {},
-        remotecontrol: {
-          receiverApplicationId: 'FE832A8F', // Replace with your application id
-          type: 'googlecast',
-        },
-      };
-    }
+      const createPlayerButton = document.getElementById('createPlayer');
+      createPlayerButton.onclick = createPlayer;
 
-    function getPlayerSource() {
-      return {
-        title: 'Art of Motion',
-        description: 'What is this event... Parcour?',
-        dash: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
-        hls: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
-        progressive:
-          '//bitmovin-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4',
-        poster: '//bitmovin-a.akamaihd.net/content/art-of-motion_drm/art-of-motion_poster.jpg',
-        viewerId: 'uniqueViewerIdThatOverridesTheConvivaAnalyticsConfig', // Conviva viewerId
-        contentId: 'uniqueContentId', // Conviva contentId (will be prefixed to the title)
-      };
-    }
+      const loadPlayerButton = document.getElementById('loadPlayer');
+      loadPlayerButton.onclick = loadPlayer;
 
-    // Load up an initial player
-    createPlayer();
-    loadPlayer();
-  </script>
-</body>
+      const unloadPlayerButton = document.getElementById('unloadPlayer');
+      unloadPlayerButton.onclick = unloadPlayer;
 
+      function getPlayerConfig() {
+        return {
+          key: '<playerKey>',
+          playback: {
+            muted: true,
+          },
+          style: {},
+          cast: {
+            enable: true,
+          },
+          logs: {
+            level: 'debug',
+          },
+          events: {},
+          advertising: {},
+          remotecontrol: {
+            receiverApplicationId: 'FE832A8F', // Replace with your application id
+            type: 'googlecast',
+          },
+        };
+      }
+
+      function getPlayerSource() {
+        return {
+          title: 'Art of Motion',
+          description: 'What is this event... Parcour?',
+          dash: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+          hls: '//bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+          progressive:
+            '//bitmovin-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4',
+          poster: '//bitmovin-a.akamaihd.net/content/art-of-motion_drm/art-of-motion_poster.jpg',
+        };
+      }
+
+      // Load up an initial player
+      createPlayer();
+      loadPlayer();
+    </script>
+  </body>
 </html>
