@@ -110,8 +110,7 @@
             'c3.cm.genreList': 'Test Genre List Item 1, Test Genre List Item 2',
             'c3.cm.utmTrackingUrl': 'https://test-utm-tracking-url',
             // Cannot be determined reliably, but if there is a need this approximation can be used.
-            // dcType: (navigator as Navigator & { connection?: { type: string } }).connection?.type
-            //   || (navigator as Navigator & { connection?: { effectiveType: string } }).connection?.effectiveType
+            // dcType: navigator.connection?.type || navigator.connection?.effectiveType
             //   || 'NA'
           },
         });
