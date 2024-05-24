@@ -691,6 +691,11 @@ export class ConvivaAnalytics {
     // Example: 250000 / 1000 => 250 kbps (250000 / 1024 => 244kbps)
     const bitrateKbps = Math.round(event.targetQuality.bitrate / 1000);
 
+    this.debugLog('[ ConvivaAnalytics ] report bitrate', {
+      event,
+      bitrateKbps,
+    });
+
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, bitrateKbps);
   };
 
@@ -713,9 +718,7 @@ export class ConvivaAnalytics {
     this.isAdBreak = true;
     this.latestAdBreakEvent = event;
 
-    this.debugLog('[ ConvivaAnalytics ] report ad break started', {
-      event,
-    });
+    this.debugLog('[ ConvivaAnalytics ] report ad break started', event);
 
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
