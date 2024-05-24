@@ -355,6 +355,7 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.AdError,
       code: 1001,
       name: 'AdErrorEvent',
+      troubleShootLink: "http://troubleshoot-test-link"
     });
   }
 
@@ -388,6 +389,7 @@ class PlayerEventHelper implements EventEmitter {
       type: PlayerEvent.Error,
       code: 1000,
       name: 'ErrorEvent',
+      troubleShootLink: "http://troubleshoot-test-link"
     });
   }
 
