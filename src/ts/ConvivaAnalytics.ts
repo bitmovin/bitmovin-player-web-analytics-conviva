@@ -735,10 +735,17 @@ export class ConvivaAnalytics {
 
     let adSystemName = 'NA';
     let creativeId = 'NA';
-    let firstAdSystem = 'NA';
-    let firstCreativeId = 'NA';
     let adTitle: string | undefined;
     let firstAdId = ad.id;
+
+    // TODO these two are not exposed currently. Add them whenever the player
+    // exposes them similar to https://github.com/bitmovin-engineering/player-android/pull/3147.
+    // Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801796326889.
+    let firstAdSystem = 'NA';
+    let firstCreativeId = 'NA';
+
+    // No way to get it reliably, related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
+    let mediaFileApiFramework = 'NA';
 
     if (adData) {
       if ('adSystem' in adData && adData.adSystem?.name) {
@@ -753,11 +760,8 @@ export class ConvivaAnalytics {
         adTitle = adData.adTitle;
       }
 
-      if ('wrapperAdIds' in adData && adData.wrapperAdIds) {
-        // (TODO clarify it with the player devs)
-        if (adData.wrapperAdIds[0]) {
-          firstAdId = adData.wrapperAdIds[0];
-        }
+      if ('wrapperAdIds' in adData && adData.wrapperAdIds && adData.wrapperAdIds.length) {
+        firstAdId = adData.wrapperAdIds[adData.wrapperAdIds.length - 1];
       }
     }
 
@@ -768,15 +772,13 @@ export class ConvivaAnalytics {
       'c3.ad.system': adSystemName,
       'c3.ad.creativeId': creativeId,
       'c3.ad.firstAdId': firstAdId,
-      // Not relevant for the client side
-      // 'c3.ad.isSlate': undefined,
-      // No way to get it reliably (TODO clarify it with the player devs)
-      'c3.ad.mediaFileApiFramework': 'NA',
-      // Not relevant for the client side
+      'c3.ad.mediaFileApiFramework': mediaFileApiFramework,
+      'c3.ad.firstAdSystem': firstAdSystem,
+      'c3.ad.firstCreativeId': firstCreativeId,
+
+      // These two are not relevant for the client side (keep in the code for documentation purposes)
       // 'c3.ad.adStitcher': undefined,
-      // TODO clarify it with the player devs
-      'c3.ad.firstAdSystem': 'NA',
-      'c3.ad.firstCreativeId': 'NA',
+      // 'c3.ad.isSlate': undefined,
     };
 
     if (adTitle) {
