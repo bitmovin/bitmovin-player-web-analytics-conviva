@@ -327,6 +327,20 @@ export class PlayerEventHelper {
       timestamp: Date.now(),
       type: PlayerEvent.AdStarted,
       ad: {
+        id: 'Ad-ID',
+        isLinear: true,
+        width: 0,
+        height: 0,
+      },
+    });
+  }
+
+  fireAdFinishedEvent(): void {
+    this.fireEvent<AdEvent>({
+      timestamp: Date.now(),
+      type: PlayerEvent.AdFinished,
+      ad: {
+        id: 'Ad-ID',
         isLinear: true,
         width: 0,
         height: 0,

@@ -134,7 +134,7 @@ export class ConvivaAnalytics {
    */
   private isAdBreak: boolean;
 
-  private latestAdBreakEvent: AdBreakEvent;
+  private lastAdBreakEvent: AdBreakEvent;
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
@@ -480,15 +480,6 @@ export class ConvivaAnalytics {
       );
     }
 
-    this.convivaVideoAnalytics.reportPlaybackMetric(
-      Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.STOPPED,
-    );
-    this.convivaAdAnalytics.reportAdMetric(
-      Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.STOPPED,
-    );
-
     // Send the session init audio language values.
     this.updateAudioTrack(this.player.getAudio());
 
@@ -566,7 +557,7 @@ export class ConvivaAnalytics {
     this.convivaAdAnalytics.release();
     this.convivaAdAnalytics = null;
 
-    this.latestAdBreakEvent = null;
+    this.lastAdBreakEvent = null;
   };
 
   private resetContentMetadata(): void {
@@ -716,7 +707,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ Player Event ] adbreak started', event);
 
     this.isAdBreak = true;
-    this.latestAdBreakEvent = event;
+    this.lastAdBreakEvent = event;
 
     this.debugLog('[ ConvivaAnalytics ] report ad break started', event);
 
@@ -729,7 +720,7 @@ export class ConvivaAnalytics {
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad started', event);
 
-    const adPosition = AdBreakHelper.mapAdPosition(this.latestAdBreakEvent.adBreak, this.player);
+    const adPosition = AdBreakHelper.mapAdPosition(this.lastAdBreakEvent.adBreak, this.player);
     const ad = event.ad as Ad | LinearAd;
     const adData = ad.data as undefined | AdData | VastAdData;
 
