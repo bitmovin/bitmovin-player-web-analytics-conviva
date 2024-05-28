@@ -27,6 +27,7 @@ export class AdHelper {
     const message = event?.message || 'Unknown message';
     const name = event?.name || 'Unknown name';
     const formattedErrorParts = [
+      'Ad error:',
       `${name}:`,
       `${message};`,
       `Error code: ${event.code};`,

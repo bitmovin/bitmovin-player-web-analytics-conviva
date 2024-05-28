@@ -143,6 +143,7 @@ export class ConvivaAnalytics {
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
+    this.debugLog('[ ConvivaAnalytics ] report buffering playback state');
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
       Conviva.Constants.PlayerState.BUFFERING,
@@ -259,9 +260,11 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report playback ended state');
     this.convivaVideoAnalytics.reportPlaybackEnded();
 
     if (this.isAdBreak) {
+      this.debugLog('[ ConvivaAdAnalytics ] report ad skipped');
       this.convivaAdAnalytics.reportAdSkipped();
     }
 
@@ -285,6 +288,10 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report custom app event', {
+      eventName,
+      eventAttributes,
+    });
     // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
     // in monitoring session if greater than 256 bytes
     this.convivaVideoAnalytics.reportAppEvent(eventName, eventAttributes);
@@ -305,6 +312,10 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report custom playback event', {
+      eventName,
+      eventAttributes,
+    });
     // NOTE Conviva has event attribute capped and 256 bytes for custom events and will show up as a warning
     // in monitoring session if greater than 256 bytes
     this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes);
@@ -341,6 +352,9 @@ export class ConvivaAnalytics {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalytics ] report playback failed', {
+      message,
+    });
     this.convivaVideoAnalytics.reportPlaybackFailed(message);
     if (endSession) {
       this.internalEndSession();
@@ -352,22 +366,21 @@ export class ConvivaAnalytics {
    * Puts the session state in a notMonitored state.
    */
   public pauseTracking(): void {
+    this.debugLog('[ ConvivaAnalytics ] pause tracking via ad break started reporting');
     // AdStart is the right way to pause monitoring according to conviva.
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
     );
-
-    this.debugLog('[ ConvivaAnalytics ] Tracking paused.');
   }
 
   /**
    * Puts the session state from a notMonitored state into the last one tracked.
    */
   public resumeTracking(): void {
+    this.debugLog('[ ConvivaAnalytics ] resume tracking via ad break ended reporting');
     // AdEnd is the right way to resume monitoring according to conviva.
     this.convivaVideoAnalytics.reportAdBreakEnded();
-    this.debugLog('[ ConvivaAnalytics ] Tracking resumed.');
   }
 
   public release(): void {
@@ -455,16 +468,19 @@ export class ConvivaAnalytics {
     this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
     this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
 
+    this.debugLog('[ ConvivaAnalytics ] report playback requested');
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
+
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
+
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
 
       if (this.isAdBreak) {
-        console.log('[ ConvivaAnalytics ] report ad player head time', playheadTimeMs);
+        this.debugLog('[ ConvivaAdAnalytics ] report ad player head time', playheadTimeMs);
         this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
       } else {
-        console.log('[ ConvivaAnalytics ] report player head time', playheadTimeMs);
+        this.debugLog('[ ConvivaAnalytics ] report player head time', playheadTimeMs);
         this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
       }
     });
@@ -572,55 +588,69 @@ export class ConvivaAnalytics {
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
     this.debugLog('[ Player Event ] playback state change related event', event);
 
-    // Do not track playback state changes during ads, (e.g. triggered from IMA)
-    // or if there is no active session.
-    if (this.isAdBreak || !this.isSessionActive()) {
+    if (!this.isSessionActive()) {
       return;
     }
 
     let playerState;
 
     switch (event.type) {
-      case this.events.Play:
-      case this.events.Seek:
-      case this.events.TimeShift:
-        this.stallTrackingTimout.start();
-        break;
       case this.events.StallStarted:
-        this.stallTrackingTimout.clear();
         playerState = Conviva.Constants.PlayerState.BUFFERING;
         break;
       case this.events.Playing:
-        this.stallTrackingTimout.clear();
-
         playerState = Conviva.Constants.PlayerState.PLAYING;
         break;
       case this.events.Paused:
-        this.stallTrackingTimout.clear();
         playerState = Conviva.Constants.PlayerState.PAUSED;
         break;
       case this.events.Seeked:
       case this.events.TimeShifted:
       case this.events.StallEnded:
-        this.stallTrackingTimout.clear();
         if (this.player.isPlaying()) {
           playerState = Conviva.Constants.PlayerState.PLAYING;
         } else {
           playerState = Conviva.Constants.PlayerState.PAUSED;
         }
         break;
-      case this.events.PlaybackFinished:
-        this.stallTrackingTimout.clear();
-        this.convivaVideoAnalytics.reportPlaybackEnded();
-        break;
     }
 
-    if (playerState) {
-      this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
-      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
+    if (!this.isAdBreak) {
+      const stallTrackingStartEvents = [
+        this.events.Play,
+        this.events.Seek,
+        this.events.TimeShift,
+      ];
+      const stallTrackingClearEvents = [
+        this.events.StallStarted,
+        this.events.Playing,
+        this.events.Paused,
+        this.events.Seeked,
+        this.events.TimeShifted,
+        this.events.StallEnded,
+        this.events.PlaybackFinished,
+      ];
 
+      if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
+        this.stallTrackingTimout.start();
+      } else if (stallTrackingClearEvents.indexOf(event.type) !== -1) {
+        this.stallTrackingTimout.clear();
+      }
+
+      if (event.type === this.events.PlaybackFinished) {
+        this.debugLog('[ ConvivaAnalytics ] report playback ended');
+        this.convivaVideoAnalytics.reportPlaybackEnded();
+      }
+    }
+
+
+    if (playerState) {
       if (this.isAdBreak) {
+        this.debugLog('[ ConvivaAdAnalytics ] report ad playback state', playerState);
         this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
+      } else {
+        this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
+        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
       }
     }
   };
@@ -687,7 +717,6 @@ export class ConvivaAnalytics {
       event,
       bitrateKbps,
     });
-
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, bitrateKbps);
   };
 
@@ -711,7 +740,6 @@ export class ConvivaAnalytics {
     this.lastAdBreakEvent = event;
 
     this.debugLog('[ ConvivaAnalytics ] report ad break started', event);
-
     this.convivaVideoAnalytics.reportAdBreakStarted(
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
@@ -723,12 +751,13 @@ export class ConvivaAnalytics {
 
     const adInfo = AdHelper.extractConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
 
-    this.debugLog('[ ConvivaAnalytics ] report ad started', {
+    this.debugLog('[ ConvivaAdAnalytics ] report ad started', {
       event,
       adInfo,
     });
-
     this.convivaAdAnalytics.reportAdStarted(adInfo);
+
+    this.debugLog('[ ConvivaAdAnalytics ] report playing ad playback state');
     this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
   }
 
@@ -736,10 +765,9 @@ export class ConvivaAnalytics {
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad finished', event);
 
-    this.debugLog('[ ConvivaAnalytics ] report ad ended', {
+    this.debugLog('[ ConvivaAdAnalytics ] report ad ended', {
       event,
     });
-
     this.convivaAdAnalytics.reportAdEnded();
   }
 
@@ -747,7 +775,7 @@ export class ConvivaAnalytics {
   private onAdSkipped = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad skipped', event);
 
-    this.debugLog('[ ConvivaAnalytics ] report ad skipped', event);
+    this.debugLog('[ ConvivaAdAnalytics ] report ad skipped', event);
     this.convivaAdAnalytics.reportAdSkipped();
 
     this.onCustomEvent(event);
@@ -757,10 +785,10 @@ export class ConvivaAnalytics {
     this.debugLog('[ Player Event ] adbreak finished', event);
     this.isAdBreak = false;
 
-    this.debugLog('[ ConvivaAnalytics ] report ad break ended', {
-      event,
-    });
+    this.debugLog('[ ConvivaAnalytics ] report ad break ended', event);
     this.convivaVideoAnalytics.reportAdBreakEnded();
+
+    this.debugLog('[ ConvivaAnalytics ] report playing playback state');
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
       Conviva.Constants.PlayerState.PLAYING,
@@ -772,11 +800,11 @@ export class ConvivaAnalytics {
 
     const formattedError = AdHelper.formatAdErrorEvent(event);
 
-    this.debugLog('[ ConvivaAnalytics ] report ad error', {
+    this.debugLog('[ ConvivaAdAnalytics ] report ad error', {
       event,
       formattedError,
     });
-    this.convivaAdAnalytics.reportAdError(`Ad error: ${formattedError}`, Conviva.Constants.ErrorSeverity.WARNING);
+    this.convivaAdAnalytics.reportAdError(formattedError, Conviva.Constants.ErrorSeverity.WARNING);
 
     this.onCustomEvent(event);
   };
@@ -832,10 +860,12 @@ export class ConvivaAnalytics {
   };
 
   private trackSeekStart(target: number) {
+    this.debugLog('[ ConvivaAnalytics ] report seek started');
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_STARTED);
   }
 
   private trackSeekEnd() {
+    this.debugLog('[ ConvivaAnalytics ] report seek ended');
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
   private onAudioChanged = (event: AudioChangedEvent) => {
@@ -852,6 +882,10 @@ export class ConvivaAnalytics {
   private updateAudioTrack(audioTrack: AudioTrack) {
     const formattedAudio =
       audioTrack.lang !== 'unknown' ? '[' + audioTrack.lang + ']:' + audioTrack.label : audioTrack.label;
+
+    this.debugLog('[ ConvivaAnalytics ] report audio language', {
+      formattedAudio,
+    });
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.AUDIO_LANGUAGE, formattedAudio);
   }
 
@@ -870,15 +904,23 @@ export class ConvivaAnalytics {
       subtitleTrack.lang !== 'unknown' ? '[' + subtitleTrack.lang + ']:' + subtitleTrack.label : subtitleTrack.label;
 
     if (subtitleTrack.kind === 'subtitles') {
+      this.debugLog('[ ConvivaAnalytics ] report subtitles language', {
+        formattedSubtitle,
+      });
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, formattedSubtitle);
 
+      this.debugLog('[ ConvivaAnalytics ] report off closed captions language');
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
     } else if (subtitleTrack.kind === 'captions') {
+      this.debugLog('[ ConvivaAnalytics ] report closed captions language', {
+        formattedSubtitle,
+      });
       this.convivaVideoAnalytics.reportPlaybackMetric(
         Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE,
         formattedSubtitle,
       );
 
+      this.debugLog('[ ConvivaAnalytics ] report off subtitles language');
       this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
     } else {
       this.turnOffSubtitles();
@@ -911,8 +953,10 @@ export class ConvivaAnalytics {
   }
 
   private turnOffSubtitles() {
+    this.debugLog('[ ConvivaAnalytics ] report off subtitles language');
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SUBTITLES_LANGUAGE, 'off');
 
+    this.debugLog('[ ConvivaAnalytics ] report off closed captions language');
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, 'off');
   }
 
