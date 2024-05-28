@@ -31,7 +31,7 @@ import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { BrowserUtils } from './helper/BrowserUtils';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
-import { AdBreakHelper } from './helper/AdBreakHelper';
+import { AdHelper } from './helper/AdHelper';
 
 type Player = PlayerAPI;
 
@@ -129,11 +129,15 @@ export class ConvivaAnalytics {
   private convivaAdAnalytics: Conviva.AdAnalytics;
 
   /**
-   * Tracks the ad playback status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
+   * Tracks the ad break status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
    * This flag is required because player.isAd() is unreliable and not always true between the events.
    */
   private isAdBreak: boolean;
 
+  /**
+   * Tracks the last ad break event to get the ad position and other ad break related information
+   * in the ad started event to report it to Conviva.
+   */
   private lastAdBreakEvent: AdBreakEvent;
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
@@ -353,9 +357,7 @@ export class ConvivaAnalytics {
       Conviva.Constants.AdType.CLIENT_SIDE,
       Conviva.Constants.AdPlayer.SEPARATE,
     );
-    // this.convivaVideoAnalytics.reportPlaybackEvent(Conviva.Constants.Events.USER_WAIT_STARTED)
-    // this.convivaAdAnalytics.reportAdPlayerEvent(Conviva.Constants.Events.USER_WAIT_STARTED);
-    // TODO what to do with ad analytics?
+
     this.debugLog('[ ConvivaAnalytics ] Tracking paused.');
   }
 
@@ -365,8 +367,6 @@ export class ConvivaAnalytics {
   public resumeTracking(): void {
     // AdEnd is the right way to resume monitoring according to conviva.
     this.convivaVideoAnalytics.reportAdBreakEnded();
-    this.convivaVideoAnalytics.reportPlaybackEvent(Conviva.Constants.Events.USER_WAIT_ENDED);
-    // TODO what to do with ad analytics?
     this.debugLog('[ ConvivaAnalytics ] Tracking resumed.');
   }
 
@@ -459,14 +459,13 @@ export class ConvivaAnalytics {
     this.sessionKey = this.convivaVideoAnalytics.getSessionId();
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
-      this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
-    });
 
-    this.convivaAdAnalytics.setCallback(() => {
       if (this.isAdBreak) {
-        const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
-
+        console.log('[ ConvivaAnalytics ] report ad player head time', playheadTimeMs);
         this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
+      } else {
+        console.log('[ ConvivaAnalytics ] report player head time', playheadTimeMs);
+        this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
       }
     });
 
@@ -558,6 +557,8 @@ export class ConvivaAnalytics {
     this.convivaAdAnalytics = null;
 
     this.lastAdBreakEvent = null;
+
+    this.isAdBreak = false;
   };
 
   private resetContentMetadata(): void {
@@ -720,70 +721,7 @@ export class ConvivaAnalytics {
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad started', event);
 
-    const adPosition = AdBreakHelper.mapAdPosition(this.lastAdBreakEvent.adBreak, this.player);
-    const ad = event.ad as Ad | LinearAd;
-    const adData = ad.data as undefined | AdData | VastAdData;
-
-    let adSystemName = 'NA';
-    let creativeId = 'NA';
-    let adTitle: string | undefined;
-    let firstAdId = ad.id;
-
-    // TODO these two are not exposed currently. Add them whenever the player
-    // exposes them similar to https://github.com/bitmovin-engineering/player-android/pull/3147.
-    // Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801796326889.
-    let firstAdSystem = 'NA';
-    let firstCreativeId = 'NA';
-
-    // TODO This is not exposed currently. Add it whenever the player
-    // exposes it. Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
-    let mediaFileApiFramework = 'NA';
-
-    if (adData) {
-      if ('adSystem' in adData && adData.adSystem?.name) {
-        adSystemName = adData.adSystem.name;
-      }
-
-      if ('creative' in adData && adData?.creative?.id) {
-        creativeId = adData.creative.id;
-      }
-
-      if ('adTitle' in adData && adData.adTitle) {
-        adTitle = adData.adTitle;
-      }
-
-      if ('wrapperAdIds' in adData && adData.wrapperAdIds && adData.wrapperAdIds.length) {
-        firstAdId = adData.wrapperAdIds[adData.wrapperAdIds.length - 1];
-      }
-    }
-
-    const adInfo: Conviva.ConvivaMetadata = {
-      'c3.ad.id': ad.id,
-      'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
-      'c3.ad.position': adPosition,
-      'c3.ad.system': adSystemName,
-      'c3.ad.creativeId': creativeId,
-      'c3.ad.firstAdId': firstAdId,
-      'c3.ad.mediaFileApiFramework': mediaFileApiFramework,
-      'c3.ad.firstAdSystem': firstAdSystem,
-      'c3.ad.firstCreativeId': firstCreativeId,
-
-      // These two are not relevant for the client side (keep in the code for documentation purposes)
-      // 'c3.ad.adStitcher': undefined,
-      // 'c3.ad.isSlate': undefined,
-    };
-
-    if (adTitle) {
-      adInfo[Conviva.Constants.ASSET_NAME] = adTitle;
-    }
-
-    if (event.ad.mediaFileUrl) {
-      adInfo[Conviva.Constants.STREAM_URL] = event.ad.mediaFileUrl;
-    }
-
-    if ('duration' in ad && ad.duration) {
-      adInfo[Conviva.Constants.DURATION] = ad.duration;
-    }
+    const adInfo = AdHelper.extractConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
 
     this.debugLog('[ ConvivaAnalytics ] report ad started', {
       event,
@@ -829,27 +767,11 @@ export class ConvivaAnalytics {
     );
   };
 
-  private onAdError = (
-    event: ErrorEvent & {
-      message?: string,
-      troubleShootLink?: string,
-      data?: {
-        code?: number,
-      },
-    },
-  ) => {
+  private onAdError = (event: ErrorEvent) => {
     this.debugLog('[ Player Event ] ad error', event);
 
-    const message = event?.message || 'Unknown message';
-    const name = event?.name || 'Unknown name';
-    const formattedErrorParts = [
-      `${name}:`,
-      `${message};`,
-      `Error code: ${event.code};`,
-      event.data?.code ? `Ad error code: ${event.data?.code};` : undefined,
-      event.troubleShootLink ? `Troubleshoot link: ${event.troubleShootLink}` : undefined,
-    ].filter(Boolean);
-    const formattedError = formattedErrorParts.join(' ');
+    const formattedError = AdHelper.formatAdErrorEvent(event);
+
     this.debugLog('[ ConvivaAnalytics ] report ad error', {
       event,
       formattedError,
