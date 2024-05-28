@@ -735,7 +735,8 @@ export class ConvivaAnalytics {
     let firstAdSystem = 'NA';
     let firstCreativeId = 'NA';
 
-    // No way to get it reliably, related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
+    // TODO This is not exposed currently. Add it whenever the player
+    // exposes it. Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
     let mediaFileApiFramework = 'NA';
 
     if (adData) {
