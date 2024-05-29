@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Basic client ad tracking support
+
 ### Changed
 - Update `bitmovin-player` dependency to `^8.165.0`
 
