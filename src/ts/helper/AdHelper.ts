@@ -18,8 +18,6 @@ export class AdHelper {
   }
 
   public static formatAdErrorEvent(event: ErrorEvent & {
-    message?: string,
-    troubleShootLink?: string,
     data?: {
       code?: number,
     },
@@ -28,10 +26,11 @@ export class AdHelper {
     const name = event?.name || 'Unknown name';
     const formattedErrorParts = [
       'Ad error:',
-      `${name}:`,
+      `${name};`,
+      event.data?.code ? `Ad error code: ${event.data?.code};` : undefined,
+      `Message:`,
       `${message};`,
       `Error code: ${event.code};`,
-      event.data?.code ? `Ad error code: ${event.data?.code};` : undefined,
       event.troubleShootLink ? `Troubleshoot link: ${event.troubleShootLink}` : undefined,
     ].filter(Boolean);
 
