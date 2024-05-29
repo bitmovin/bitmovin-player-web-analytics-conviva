@@ -350,6 +350,11 @@ describe(ConvivaAnalytics, () => {
         playerEventHelper.firePlayingEvent();
       });
 
+      it('reports player state', () => {
+        playerEventHelper.firePauseEvent();
+        expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PAUSED);
+      })
+
       describe('it does not updated', () => {
         it('viewerId', () => {
           convivaAnalytics.updateContentMetadata({ viewerId: 'newId' });
@@ -460,8 +465,18 @@ describe(ConvivaAnalytics, () => {
     });
 
     describe('after playback started', () => {
-      it('reports ad started', () => {
+      beforeEach(() => {
         playerEventHelper.firePlayEvent();
+        playerEventHelper.firePlayingEvent();
+      });
+
+      it('reports ad player state', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
+        playerEventHelper.firePauseEvent();
+        expect(MockHelper.latestAdAnalytics.reportAdMetric).toHaveBeenLastCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PAUSED);
+      })
+
+      it('reports ad started', () => {
         playerEventHelper.fireAdBreakStartedEvent(0);
         playerEventHelper.fireAdStartedEvent();
 
@@ -479,10 +494,24 @@ describe(ConvivaAnalytics, () => {
       });
 
       it('reports ad finished', () => {
-        playerEventHelper.firePlayEvent();
         playerEventHelper.fireAdFinishedEvent();
 
         expect(MockHelper.latestAdAnalytics.reportAdEnded).toHaveBeenCalled();
+      })
+
+      it('reports ad skipped', () => {
+        playerEventHelper.fireAdSkippedEvent();
+
+        expect(MockHelper.latestAdAnalytics.reportAdSkipped).toHaveBeenCalled();
+      })
+
+      it('reports ad error', () => {
+        playerEventHelper.fireAdErrorEvent();
+
+        expect(MockHelper.latestAdAnalytics.reportAdError).toHaveBeenCalledWith(
+          'Ad error: AdErrorEvent; Message: Unknown message; Error code: 1001; Troubleshoot link: http://troubleshoot-test-link',
+          Conviva.Constants.ErrorSeverity.WARNING
+        );
       })
     });
   })
