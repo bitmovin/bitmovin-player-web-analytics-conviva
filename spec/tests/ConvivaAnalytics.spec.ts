@@ -493,6 +493,13 @@ describe(ConvivaAnalytics, () => {
         });
       });
 
+      it('reports ad bitrate', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
+        playerEventHelper.fireAdStartedEvent();
+
+        expect(MockHelper.latestAdAnalytics.reportAdMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.BITRATE, 1000);
+      })
+
       it('reports ad finished', () => {
         playerEventHelper.fireAdFinishedEvent();
 

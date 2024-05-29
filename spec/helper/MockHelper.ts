@@ -329,6 +329,9 @@ export class PlayerEventHelper {
       ad: {
         id: 'Ad-ID',
         isLinear: true,
+        data: {
+          bitrate: 1000,
+        },
         width: 0,
         height: 0,
       },
