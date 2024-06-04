@@ -247,7 +247,7 @@ export class ConvivaAnalytics {
   }
 
   /**
-   * Ends the current conviva tracking session.
+   * Ends the current conviva tracking session. If there an ad break is active it will also report the ad as skipped.
    * Results in a no-opt if there is no active session.
    *
    * Warning: Sessions will no longer be created automatically after this method has been called.
