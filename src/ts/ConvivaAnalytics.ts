@@ -142,12 +142,21 @@ export class ConvivaAnalytics {
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
-  private stallTrackingTimout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
+  private stallTrackingTimeout: Timeout = new Timeout(ConvivaAnalytics.STALL_TRACKING_DELAY_MS, () => {
+    if (this.isAdBreak) {
+      this.debugLog('[ ConvivaAnalytics ] report buffering ad playback state');
+      this.convivaAdAnalytics.reportAdMetric(
+        Conviva.Constants.Playback.PLAYER_STATE,
+        Conviva.Constants.PlayerState.BUFFERING,
+      );
+    } else {
     this.debugLog('[ ConvivaAnalytics ] report buffering playback state');
-    this.convivaVideoAnalytics.reportPlaybackMetric(
-      Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.BUFFERING,
-    );
+      this.convivaVideoAnalytics.reportPlaybackMetric(
+        Conviva.Constants.Playback.PLAYER_STATE,
+        Conviva.Constants.PlayerState.BUFFERING,
+      );
+    }
+
   });
 
   /**
@@ -616,27 +625,25 @@ export class ConvivaAnalytics {
         break;
     }
 
-    if (!this.isAdBreak) {
-      const stallTrackingStartEvents = [
-        this.events.Play,
-        this.events.Seek,
-        this.events.TimeShift,
-      ];
-      const stallTrackingClearEvents = [
-        this.events.StallStarted,
-        this.events.Playing,
-        this.events.Paused,
-        this.events.Seeked,
-        this.events.TimeShifted,
-        this.events.StallEnded,
-        this.events.PlaybackFinished,
-      ];
+    const stallTrackingStartEvents = [
+      this.events.Play,
+      this.events.Seek,
+      this.events.TimeShift,
+    ];
+    const stallTrackingClearEvents = [
+      this.events.StallStarted,
+      this.events.Playing,
+      this.events.Paused,
+      this.events.Seeked,
+      this.events.TimeShifted,
+      this.events.StallEnded,
+      this.events.PlaybackFinished,
+    ];
 
-      if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
-        this.stallTrackingTimout.start();
-      } else if (stallTrackingClearEvents.indexOf(event.type) !== -1) {
-        this.stallTrackingTimout.clear();
-      }
+    if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
+      this.stallTrackingTimeout.start();
+    } else if (stallTrackingClearEvents.indexOf(event.type) !== -1) {
+      this.stallTrackingTimeout.clear();
     }
 
 
