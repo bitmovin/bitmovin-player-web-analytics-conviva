@@ -732,7 +732,6 @@ export class ConvivaAnalytics {
     this.sendCustomPlaybackEvent(event.type, eventAttributes);
   };
 
-  // Fires before `onAdStarted`
   private onAdBreakStarted = (event: AdBreakEvent) => {
     this.debugLog('[ Player Event ] adbreak started', event);
 
@@ -750,7 +749,6 @@ export class ConvivaAnalytics {
     this.debugLog('[ Player Event ] ad started', event);
 
     const adInfo = AdHelper.extractConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
-    // It's already in kbps
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.debugLog('[ ConvivaAdAnalytics ] report ad started', {
@@ -768,7 +766,6 @@ export class ConvivaAnalytics {
     }
   }
 
-  // Fires before `onAdBreakFinished`
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad finished', event);
 
@@ -778,7 +775,6 @@ export class ConvivaAnalytics {
     this.convivaAdAnalytics.reportAdEnded();
   }
 
-  // Fires before `onAdBreakFinished`
   private onAdSkipped = (event: AdEvent) => {
     this.debugLog('[ Player Event ] ad skipped', event);
 
