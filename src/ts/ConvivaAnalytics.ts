@@ -261,12 +261,13 @@ export class ConvivaAnalytics {
     }
 
     this.debugLog('[ ConvivaAnalytics ] report playback ended state');
-    this.convivaVideoAnalytics.reportPlaybackEnded();
 
     if (this.isAdBreak) {
       this.debugLog('[ ConvivaAdAnalytics ] report ad skipped');
       this.convivaAdAnalytics.reportAdSkipped();
     }
+
+    this.convivaVideoAnalytics.reportPlaybackEnded();
 
     this.internalEndSession();
     this.resetContentMetadata();
