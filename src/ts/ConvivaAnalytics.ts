@@ -637,11 +637,6 @@ export class ConvivaAnalytics {
       } else if (stallTrackingClearEvents.indexOf(event.type) !== -1) {
         this.stallTrackingTimout.clear();
       }
-
-      if (event.type === this.events.PlaybackFinished) {
-        this.debugLog('[ ConvivaAnalytics ] report playback ended');
-        this.convivaVideoAnalytics.reportPlaybackEnded();
-      }
     }
 
 
@@ -652,6 +647,13 @@ export class ConvivaAnalytics {
       } else {
         this.debugLog('[ ConvivaAnalytics ] report playback state', playerState);
         this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
+      }
+    }
+
+    if (!this.isAdBreak) {
+      if (event.type === this.events.PlaybackFinished) {
+        this.debugLog('[ ConvivaAnalytics ] report playback ended');
+        this.convivaVideoAnalytics.reportPlaybackEnded();
       }
     }
   };
