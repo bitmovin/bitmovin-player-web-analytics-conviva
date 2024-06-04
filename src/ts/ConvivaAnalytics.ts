@@ -657,11 +657,9 @@ export class ConvivaAnalytics {
       }
     }
 
-    if (!this.isAdBreak) {
-      if (event.type === this.events.PlaybackFinished) {
-        this.debugLog('[ ConvivaAnalytics ] report playback ended');
-        this.convivaVideoAnalytics.reportPlaybackEnded();
-      }
+    if (event.type === this.events.PlaybackFinished) {
+      this.debugLog('[ ConvivaAnalytics ] report playback ended');
+      this.convivaVideoAnalytics.reportPlaybackEnded();
     }
   };
 
