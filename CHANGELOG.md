@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 5.1.0 - 2024-06-13
+### Added
+- Basic client ad tracking using `Conviva.AdAnalytics`
+
+### Changed
+- Update `bitmovin-player` dependency to `^8.165.0`
+
 ## 5.0.0 - 2024-05-21
 ### Added
 - Send player info metadata (framework and framework version)

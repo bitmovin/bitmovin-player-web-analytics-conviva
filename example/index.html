@@ -11,18 +11,22 @@
         text-align: center;
         padding: 1em;
       }
+
       .container a {
         color: white;
       }
+
       .container h1 {
         margin-bottom: 22px;
         line-height: 66px;
       }
+
       .container h2 {
         font-weight: normal;
         margin-bottom: 36px;
         line-height: 26px;
       }
+
       .player-wrapper {
         width: 95%;
         margin: 20px auto;
@@ -33,6 +37,7 @@
     <script src="./conviva-core-sdk.js"></script>
     <script src="./dist/bitmovin-player-analytics-conviva.js"></script>
   </head>
+
   <body>
     <div class="container">
       <div class="content">
@@ -49,7 +54,7 @@
     </div>
     <script>
       var player;
-      var conviva;
+      var convivaAnalytics;
 
       function createPlayer() {
         if (player) {
@@ -57,48 +62,62 @@
           return;
         }
 
-        console.log('Creating player');
+        console.log('Creating Bitmovin Player');
 
         player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
 
-        console.log('Creating Conviva');
+        console.log('Creating Conviva Analytics');
 
-        conviva = new bitmovin.player.analytics.ConvivaAnalytics(player, 'CUSTOMER_KEY', {
+        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<CONVIVA_CUSTOMER_KEY>', {
           debugLoggingEnabled: true,
           gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
-          custom: {
-            directors: 'Test director 1, Test director 2',
-            year: '2010',
-          },
-          additionalStandardTags: {
-            'c3.cm.brand': 'Test Brand',
-          }
+          // This is inferred automatically, but can be overridden.
+          // deviceMetadata: { ... }
         });
       }
 
       function loadPlayer() {
-        console.log('Updating Conviva content metadata');
-        conviva.updateContentMetadata({
-          applicationName: 'Bitmovin Player Conviva Analytics Integration Test Page',
-          viewerId: 'uniqueViewerId',
+        console.log('Updating Conviva Analytics content metadata');
+        // Initialize metadata. It also can be used to update some data during playback.
+        convivaAnalytics.updateContentMetadata({
+          viewerId: 'bitmovin-player-web-conviva-integration-viewer',
+          // It's also referred as "Player name" on Conviva in some places.
+          applicationName: 'Bitmovin Web Player',
+          assetName: 'Art of Motion',
+          defaultResource: 'TEST-DEFAULT-RESOURCE',
           custom: {
-            appVersion: '1.0',
-            contentId: 'someContentId',
+            directors: 'Director 1, Director 2',
+          },
+          // Reserved Conviva tags can be placed here.
+          // Find the list:
+          // - Here https://pulse.conviva.com/app/appmanager/meta-data (Required Metadata tab)
+          // - Or here https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/js_quick_integration.htm
+          //   under "Constants for Pre-defined Video and Content Metadata"
+          additionalStandardTags: {
+            'c3.app.version': '0.0.1',
+            'c3.cm.contentType': 'VOD',
+            'c3.cm.channel': 'Test Channel',
+            'c3.cm.brand': 'Test Brand',
+            'c3.cm.affiliate': 'Test Affiliate',
+            'c3.cm.categoryType': 'Test Category',
+            'c3.cm.name': 'Test CM Name',
+            'c3.cm.id': 'test-cm-id',
+            'c3.cm.seriesName': 'Test Series Name',
+            'c3.cm.seasonNumber': 'Test Season Number',
+            'c3.cm.showTitle': 'Test Show Title',
+            'c3.cm.episodeNumber': 'Test Episode Number',
+            'c3.cm.genre': 'Test Primary Genre',
+            'c3.cm.genreList': 'Test Genre List Item 1, Test Genre List Item 2',
+            'c3.cm.utmTrackingUrl': 'https://test-utm-tracking-url',
+            // Cannot be determined reliably, but if there is a need this approximation can be used.
+            // dcType: navigator.connection?.type || navigator.connection?.effectiveType
+            //   || 'NA'
           },
         });
 
         console.log('Loading player');
         player.load(getPlayerSource()).then(
           function () {
-            scheduleAds()
-              .then(function () {
-                console.log('Ads scheduled successfully');
-              })
-              .catch(function (reason) {
-                console.error('Error scheduling ads');
-                console.error(reason);
-              });
-
             console.log('Successfully loaded content');
           },
           function (reason) {
@@ -138,7 +157,7 @@
 
       function getPlayerConfig() {
         return {
-          key: 'YOUR-PLAYER-KEY',
+          key: '<PLAYER_LICENSE_KEY>',
           playback: {
             muted: true,
           },
@@ -155,6 +174,18 @@
             receiverApplicationId: 'FE832A8F', // Replace with your application id
             type: 'googlecast',
           },
+          advertising: {
+            adBreaks: [
+              {
+                tag: {
+                  url: 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dredirectlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=',
+                  type: bitmovin.player.AdTagType.VAST,
+                },
+                id: 'ad-pre-skippable',
+                position: 'pre',
+              }
+            ]
+          }
         };
       }
 
@@ -167,39 +198,7 @@
           progressive:
             '//bitmovin-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4',
           poster: '//bitmovin-a.akamaihd.net/content/art-of-motion_drm/art-of-motion_poster.jpg',
-          viewerId: 'uniqueViewerIdThatOverridesTheConvivaAnalyticsConfig', // Conviva viewerId
-          contentId: 'uniqueContentId', // Conviva contentId (will be prefixed to the title)
         };
-      }
-
-      function scheduleAds() {
-        console.log('Scheduling Ads');
-        return Promise.all([
-          player.ads.schedule({
-            tag: {
-              url: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/skippable_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=http%3A%2F%2Freleasetest.dash-player.com%2Fads%2F&description_url=[description_url]&correlator=[random]',
-              type: 'vast',
-            },
-            id: 'ad-pre-skippable',
-            position: 'pre',
-          }),
-          player.ads.schedule({
-            tag: {
-              url: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/skippable_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=http%3A%2F%2Freleasetest.dash-player.com%2Fads%2F&description_url=[description_url]&correlator=[random]',
-              type: 'vast',
-            },
-            id: 'ad-30-skippable',
-            position: '30%',
-          }),
-          player.ads.schedule({
-            tag: {
-              url: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&ciu_szs=300x100&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]',
-              type: 'vast',
-            },
-            id: 'ad-post-skippable',
-            position: 'post',
-          }),
-        ]);
       }
 
       // Load up an initial player
