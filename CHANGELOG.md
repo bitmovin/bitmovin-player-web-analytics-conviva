@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 5.1.0 - 2024-06-13
 ### Added
 - Basic client ad tracking using `Conviva.AdAnalytics`
 
