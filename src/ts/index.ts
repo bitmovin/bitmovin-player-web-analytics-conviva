@@ -1,5 +1,6 @@
 // Import to extend Conviva types.
 import './conviva/ConvivaExtension';
 
-export { ConvivaAnalytics, ConvivaAnalyticsConfiguration, EventAttributes } from './ConvivaAnalytics';
+export { ConvivaAnalyticsConfiguration, EventAttributes } from './ConvivaAnalyticsTracker';
+export { ConvivaAnalytics } from './ConvivaAnalytics';
 export { Metadata } from './ContentMetadataBuilder';
