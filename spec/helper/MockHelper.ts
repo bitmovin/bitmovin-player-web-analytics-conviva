@@ -208,8 +208,9 @@ export namespace MockHelper {
         getConfig: jest.fn(() => {
           return {};
         }),
-        isPlaying: jest.fn(),
-        isPaused: jest.fn(),
+        isPlaying: jest.fn().mockReturnValue(true),
+        isPaused: jest.fn().mockReturnValue(false),
+        isStalled: jest.fn().mockReturnValue(false),
         isCasting: jest.fn(),
         getPlayerType: jest.fn(),
         getStreamType: jest.fn(() => 'hls'),

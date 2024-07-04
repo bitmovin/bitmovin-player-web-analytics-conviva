@@ -39,7 +39,7 @@ describe(AdHelper, () => {
   })
 
   describe('formatAdErrorEvent', () => {
-    it('should format minimal error message', () => {
+    it('should format error message', () => {
       expect(AdHelper.formatClientSideAdError({
         code: ErrorCode.NETWORK_ERROR,
         name: 'Test error',
@@ -89,6 +89,8 @@ describe(AdHelper, () => {
         "c3.ad.position": "Pre-roll",
         "c3.ad.system": "NA",
         "c3.ad.technology": "Client Side",
+        [Conviva.Constants.ASSET_NAME]: 'NA',
+        [Conviva.Constants.STREAM_URL]: 'NA',
       })
     })
 
