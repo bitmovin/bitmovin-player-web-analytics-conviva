@@ -33,7 +33,7 @@ export interface ServerSideAdInfo {
   adStitcher?: string;
   /**
    * Additional ad metadata. This is a map of key-value pairs that can be used to pass additional metadata about the ad.
-   * A list of ad metadata can be found here: <a href="https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/android/android_stream_sensor.htm#IntegrateAdManagers">Conviva documentation</a>
+   * A list of ad metadata can be found here: <a href="https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/javascript/javascript_stream_sensor.htm#IntegrateAdManagers">Conviva documentation</a>
    * <p>
    * Metadata provided here will supersede any data provided in the ad break info.
    */
