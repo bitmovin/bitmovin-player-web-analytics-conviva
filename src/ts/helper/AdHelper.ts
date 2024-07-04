@@ -1,8 +1,46 @@
 import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, PlayerAPI, VastAdData } from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 
+export interface ServerSideAdInfo {
+  /**
+   * The ad ID extracted from the ad server that contains the ad creative.
+   */
+  id: string;
+  /**
+   * The title of the ad.
+   */
+  title?: string;
+  /**
+   * Duration of the ad, in seconds.
+   */
+  duration?: number;
+  /**
+   * The name of the ad system (i.e., the ad server).
+   */
+  adSystem?: string;
+  /**
+   * The position of the ad.
+   */
+  position?: Conviva.valueof<Conviva.ConvivaConstants['AdPosition']>;
+  /**
+   * Indicates whether this ad is a slate or not. Set to <code>true</code> for slate and <code>false</code> for a regular ad.
+   */
+  isSlate?: boolean;
+  /**
+   * The name of the ad stitcher.
+   */
+  adStitcher?: string;
+  /**
+   * Additional ad metadata. This is a map of key-value pairs that can be used to pass additional metadata about the ad.
+   * A list of ad metadata can be found here: <a href="https://pulse.conviva.com/learning-center/content/sensor_developer_center/sensor_integration/android/android_stream_sensor.htm#IntegrateAdManagers">Conviva documentation</a>
+   * <p>
+   * Metadata provided here will supersede any data provided in the ad break info.
+   */
+  additionalMetadata?: Record<string, string>;
+}
+
 export class AdHelper {
-  public static mapAdPosition(
+  public static mapClientSideAdPosition(
     adBreak: AdBreak,
     player: PlayerAPI,
   ): Conviva.valueof<Conviva.ConvivaConstants['AdPosition']> {
@@ -17,7 +55,7 @@ export class AdHelper {
     return Conviva.Constants.AdPosition.MIDROLL;
   }
 
-  public static formatAdErrorEvent(event: ErrorEvent & {
+  public static formatClientSideAdError(event: ErrorEvent & {
     data?: {
       code?: number,
     },
@@ -37,25 +75,15 @@ export class AdHelper {
     return formattedErrorParts.join(' ');
   }
 
-  public static extractConvivaAdInfo(player: PlayerAPI, adBreakEvent: AdBreakEvent, adEvent: AdEvent): Conviva.ConvivaMetadata {
-    const adPosition = AdHelper.mapAdPosition(adBreakEvent.adBreak, player);
+  public static extractClientSideConvivaAdInfo(player: PlayerAPI, adBreakEvent: AdBreakEvent, adEvent: AdEvent): Conviva.ConvivaMetadata {
     const ad = adEvent.ad as Ad | LinearAd;
     const adData = ad.data as undefined | AdData | VastAdData;
 
     let adSystemName = 'NA';
     let creativeId = 'NA';
-    let adTitle: string | undefined;
+    let adTitle = 'NA';
     let firstAdId = ad.id;
 
-    // TODO these two are not exposed currently. Add them whenever the player
-    // exposes them similar to https://github.com/bitmovin-engineering/player-android/pull/3147.
-    // Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801796326889.
-    let firstAdSystem = 'NA';
-    let firstCreativeId = 'NA';
-
-    // TODO This is not exposed currently. Add it whenever the player
-    // exposes it. Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
-    let mediaFileApiFramework = 'NA';
 
     if (adData) {
       if ('adSystem' in adData && adData.adSystem?.name) {
@@ -78,29 +106,58 @@ export class AdHelper {
     const adInfo: Conviva.ConvivaMetadata = {
       'c3.ad.id': ad.id,
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
-      'c3.ad.position': adPosition,
+      'c3.ad.position': AdHelper.mapClientSideAdPosition(adBreakEvent.adBreak, player),
       'c3.ad.system': adSystemName,
       'c3.ad.creativeId': creativeId,
       'c3.ad.firstAdId': firstAdId,
-      'c3.ad.mediaFileApiFramework': mediaFileApiFramework,
-      'c3.ad.firstAdSystem': firstAdSystem,
-      'c3.ad.firstCreativeId': firstCreativeId,
+      [Conviva.Constants.ASSET_NAME]: adTitle,
+      [Conviva.Constants.STREAM_URL]: ad.mediaFileUrl || 'NA',
 
-      // These two are not relevant for the client side (keep in the code for documentation purposes)
+      // TODO This is not exposed currently. Add it whenever the player
+      // exposes it. Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801970037469.
+      'c3.ad.mediaFileApiFramework': 'NA',
+
+      // TODO these two are not exposed currently. Add them whenever the player
+      // exposes them similar to https://github.com/bitmovin-engineering/player-android/pull/3147.
+      // Related discussion https://bitmovin.slack.com/archives/C0LJ16JBS/p1716801796326889.
+      'c3.ad.firstAdSystem': 'NA',
+      'c3.ad.firstCreativeId': 'NA',
+
+
+      // These are not relevant for the client side (keep in the code for documentation purposes)
       // 'c3.ad.adStitcher': undefined,
       // 'c3.ad.isSlate': undefined,
     };
 
-    if (adTitle) {
-      adInfo[Conviva.Constants.ASSET_NAME] = adTitle;
-    }
-
-    if (ad.mediaFileUrl) {
-      adInfo[Conviva.Constants.STREAM_URL] = ad.mediaFileUrl;
-    }
-
     if ('duration' in ad && ad.duration) {
       adInfo[Conviva.Constants.DURATION] = ad.duration;
+    }
+
+    return adInfo;
+  }
+
+  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: ServerSideAdInfo): Conviva.ConvivaMetadata {
+    const adInfo: Conviva.ConvivaMetadata = {
+      ...serverSideAdInfo.additionalMetadata,
+      'c3.ad.id': serverSideAdInfo.id,
+      'c3.ad.technology': Conviva.Constants.AdType.SERVER_SIDE,
+      'c3.ad.position': serverSideAdInfo.position || 'NA',
+      'c3.ad.system': serverSideAdInfo.adSystem || 'NA',
+      [Conviva.Constants.ASSET_NAME]: serverSideAdInfo.title || 'NA',
+      'c3.ad.adStitcher': serverSideAdInfo.adStitcher || 'NA',
+      'c3.ad.isSlate': serverSideAdInfo.isSlate === undefined ? 'NA' : serverSideAdInfo.isSlate.toString(),
+
+      // These are not relevant for the server side (keep in the code for documentation purposes)
+      // 'c3.ad.creativeId': undefined,
+      // 'c3.ad.firstAdId': undefined,
+      // [Conviva.Constants.STREAM_URL]: undefined,
+      // 'c3.ad.firstAdSystem': undefined,
+      // 'c3.ad.firstCreativeId': undefined,
+      // 'c3.ad.mediaFileApiFramework': undefined
+    };
+
+    if (serverSideAdInfo.duration) {
+      adInfo[Conviva.Constants.DURATION] = serverSideAdInfo.duration;
     }
 
     return adInfo;

@@ -18,30 +18,49 @@ import { ObjectUtils } from './helper/ObjectUtils';
 import { ConvivaAnalyticsConfiguration, ConvivaAnalyticsTracker, EventAttributes } from './ConvivaAnalyticsTracker';
 import { ConvivaSsaiAnalytics } from './ConvivaSsaiAnalytics';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
+import { AdHelper } from './helper/AdHelper';
 
 export class ConvivaAnalytics {
   private readonly events: typeof PlayerEvent;
   private readonly handlers: PlayerEventWrapper;
   private readonly convivaAnalyticsTracker: ConvivaAnalyticsTracker;
+  private readonly player: PlayerAPI;
 
   private readonly debugLoggingEnabled: boolean;
 
-  public readonly ssai: ConvivaSsaiAnalytics;
+  /**
+   * Tracks the last ad break event to get the ad position and other ad break related information
+   * in the ad started event to report it to Conviva.
+   */
+  private lastAdBreakEvent: AdBreakEvent;
+
+  private convivaSsaiAnalytics: ConvivaSsaiAnalytics;
+
+  public readonly ssai: Omit<ConvivaSsaiAnalytics, 'reset'>;
 
   constructor(player: PlayerAPI, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     this.convivaAnalyticsTracker = new ConvivaAnalyticsTracker(player, customerKey, config);
-
     this.debugLoggingEnabled = config.debugLoggingEnabled || false;
-
-
+    this.player = player;
     // TODO: Use alternative to deprecated player.exports
     this.events = player.exports.PlayerEvent;
-
     this.handlers = new PlayerEventWrapper(player);
 
     this.registerPlayerEvents();
 
-    this.ssai = new ConvivaSsaiAnalytics(this.convivaAnalyticsTracker);
+    this.convivaSsaiAnalytics = new ConvivaSsaiAnalytics(this.convivaAnalyticsTracker);
+
+    // Do not expose `reset` method to the public API.
+    this.ssai = {
+      get isAdBreakActive() {
+        return this.convivaSsaiAnalytics.isAdBreakActive;
+      },
+      reportAdBreakStarted: this.convivaSsaiAnalytics.reportAdBreakStarted.bind(this.convivaSsaiAnalytics),
+      reportAdStarted: this.convivaSsaiAnalytics.reportAdStarted.bind(this.convivaSsaiAnalytics),
+      reportAdFinished: this.convivaSsaiAnalytics.reportAdFinished.bind(this.convivaSsaiAnalytics),
+      reportAdSkipped: this.convivaSsaiAnalytics.reportAdSkipped.bind(this.convivaSsaiAnalytics),
+      reportAdBreakFinished: this.convivaSsaiAnalytics.reportAdBreakFinished.bind(this.convivaSsaiAnalytics),
+    };
   }
 
   public initializeSession(): void {
@@ -49,7 +68,13 @@ export class ConvivaAnalytics {
   }
 
   public endSession(): void {
+    this.reset();
     this.convivaAnalyticsTracker.endSession();
+  }
+
+  private reset(): void {
+    this.lastAdBreakEvent = null;
+    this.convivaSsaiAnalytics.reset();
   }
 
   public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
@@ -86,6 +111,7 @@ export class ConvivaAnalytics {
   }
 
   private destroy(event?: PlayerEventBase): void {
+    this.reset();
     this.unregisterPlayerEvents();
     this.convivaAnalyticsTracker.release(event);
   }
@@ -134,28 +160,33 @@ export class ConvivaAnalytics {
 
   private onAdBreakStarted = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak started', event);
-    this.convivaAnalyticsTracker.trackAdBreakStarted(event);
+    this.lastAdBreakEvent = event;
+    this.convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
   };
 
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad started', event);
-    this.convivaAnalyticsTracker.trackAdStarted(event);
+
+    const adInfo = AdHelper.extractClientSideConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
+    const bitrateKbps = event.ad.data?.bitrate;
+
+    this.convivaAnalyticsTracker.trackAdStarted(adInfo, bitrateKbps);
   }
 
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
-    this.convivaAnalyticsTracker.trackAdFinished(event);
+    this.convivaAnalyticsTracker.trackAdFinished();
   }
 
   private onAdSkipped = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad skipped', event);
-    this.convivaAnalyticsTracker.trackAdSkipped(event);
+    this.convivaAnalyticsTracker.trackAdSkipped();
     this.onCustomEvent(event);
   };
 
   private onAdBreakFinished = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak finished', event);
-    this.convivaAnalyticsTracker.trackAdBreakFinished(event);
+    this.convivaAnalyticsTracker.trackAdBreakFinished();
   };
 
   private onAdError = (event: ErrorEvent) => {

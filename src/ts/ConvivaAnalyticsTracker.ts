@@ -1,7 +1,5 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import type {
-  AdBreakEvent,
-  AdEvent,
   AudioTrack,
   ErrorEvent,
   PlaybackEvent,
@@ -23,6 +21,7 @@ import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
 import { AdHelper } from './helper/AdHelper';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { PlayerConfigHelper } from './helper/PlayerConfigHelper';
+import { PlayerStateHelper } from './helper/PlayerStateHelper';
 
 export interface ConvivaAnalyticsConfiguration {
   /**
@@ -121,25 +120,23 @@ export class ConvivaAnalyticsTracker {
    * Tracks the ad break status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
    * This flag is required because player.isAd() is unreliable and not always true between the events.
    */
-  private isAdBreak: boolean;
+  private _isAdBreakActive: boolean;
+
+  public get isAdBreakActive(): boolean {
+    return this._isAdBreakActive;
+  }
 
   /**
    * Do not track play event during ad (e.g. triggered from IMA)
    */
   public get canTrackPlayEvent(): boolean {
-    return !this.isAdBreak;
+    return !this._isAdBreakActive;
   }
-
-  /**
-   * Tracks the last ad break event to get the ad position and other ad break related information
-   * in the ad started event to report it to Conviva.
-   */
-  private lastAdBreakEvent: AdBreakEvent;
 
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimeout: Timeout = new Timeout(ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS, () => {
-    if (this.isAdBreak) {
+    if (this._isAdBreakActive) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report buffering ad playback state');
       this.convivaAdAnalytics.reportAdMetric(
         Conviva.Constants.Playback.PLAYER_STATE,
@@ -187,7 +184,7 @@ export class ConvivaAnalyticsTracker {
 
     this.logger = new Html5Logging();
     this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
-    this.isAdBreak = false;
+    this._isAdBreakActive = false;
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
     const deviceMetadata: Conviva.ConvivaDeviceMetadata = {
@@ -265,7 +262,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    if (this.isAdBreak) {
+    if (this._isAdBreakActive) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report ad skipped');
       this.convivaAdAnalytics.reportAdSkipped();
     }
@@ -483,7 +480,7 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.setCallback(() => {
       const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
 
-      if (this.isAdBreak) {
+      if (this._isAdBreakActive) {
         this.debugLog('[ ConvivaAnalyticsTracker ] report ad player head time', playheadTimeMs);
         this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAY_HEAD_TIME, playheadTimeMs);
       } else {
@@ -577,9 +574,7 @@ export class ConvivaAnalyticsTracker {
     this.convivaAdAnalytics.release();
     this.convivaAdAnalytics = null;
 
-    this.lastAdBreakEvent = null;
-
-    this.isAdBreak = false;
+    this._isAdBreakActive = false;
   };
 
   private resetContentMetadata(): void {
@@ -606,29 +601,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    let playerState;
-
-    switch (event.type) {
-      case this.events.StallStarted:
-        playerState = Conviva.Constants.PlayerState.BUFFERING;
-        break;
-      case this.events.Playing:
-        playerState = Conviva.Constants.PlayerState.PLAYING;
-        break;
-      case this.events.Paused:
-        playerState = Conviva.Constants.PlayerState.PAUSED;
-        break;
-      case this.events.Seeked:
-      case this.events.TimeShifted:
-      case this.events.StallEnded:
-        if (this.player.isPlaying()) {
-          playerState = Conviva.Constants.PlayerState.PLAYING;
-        } else {
-          playerState = Conviva.Constants.PlayerState.PAUSED;
-        }
-        break;
-    }
-
+    const playerState = PlayerStateHelper.getPlayerStateFromEvent(event, this.events, this.player);
     const stallTrackingStartEvents = [
       this.events.Play,
       this.events.Seek,
@@ -652,7 +625,7 @@ export class ConvivaAnalyticsTracker {
 
 
     if (playerState) {
-      if (this.isAdBreak) {
+      if (this._isAdBreakActive) {
         this.debugLog('[ ConvivaAnalyticsTracker ] report ad playback state', playerState);
         this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
       } else {
@@ -721,45 +694,33 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.BITRATE, bitrateKbps);
   };
 
-  private onAdBreakStarted = (event: AdBreakEvent) => {
-    this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] adbreak started', event);
-
+  public trackAdBreakStarted = (type: Conviva.valueof<Conviva.ConvivaConstants['AdType']>) => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.isAdBreak = true;
-    this.lastAdBreakEvent = event;
-  }
+    this._isAdBreakActive = true;
 
-  public trackAdBreakStarted = (event: AdBreakEvent) => {
-    if (!this.isSessionActive()) {
-      return;
-    }
-
-    this.debugLog('[ ConvivaAnalyticsTracker ] report ad break started', event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] report ad break started', { type });
     this.convivaVideoAnalytics.reportAdBreakStarted(
-      Conviva.Constants.AdType.CLIENT_SIDE,
-      Conviva.Constants.AdPlayer.SEPARATE,
+      type,
+      type == Conviva.Constants.AdType.CLIENT_SIDE ? Conviva.Constants.AdPlayer.SEPARATE : Conviva.Constants.AdPlayer.CONTENT,
     );
   };
 
-  public trackAdStarted = (event: AdEvent) => {
+  public trackAdStarted = (adInfo?: Conviva.ConvivaMetadata, bitrateKbps?: number) => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    const adInfo = AdHelper.extractConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
-    const bitrateKbps = event.ad.data?.bitrate;
-
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad started', {
-      event,
       adInfo,
+      bitrateKbps,
     });
     this.convivaAdAnalytics.reportAdStarted(adInfo);
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] report playing ad playback state');
-    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} ad playback state`);
+    this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, PlayerStateHelper.getPlayerState(this.player));
 
     if (bitrateKbps) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report ad bitrate', bitrateKbps);
@@ -767,48 +728,38 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  public trackAdFinished = (event: AdEvent) => {
+  public trackAdFinished = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] report ad ended', {
-      event,
-    });
+    this.debugLog('[ ConvivaAnalyticsTracker ] report ad ended');
     this.convivaAdAnalytics.reportAdEnded();
   }
 
-  public trackAdSkipped = (event: AdEvent) => {
+  public trackAdSkipped = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] report ad skipped', event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] report ad skipped');
     this.convivaAdAnalytics.reportAdSkipped();
   };
 
-  private onAdBreakFinished = (event: AdBreakEvent) => {
-    this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] adbreak finished', event);
-
+  public trackAdBreakFinished = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.isAdBreak = false;
-  }
+    this._isAdBreakActive = false;
 
-  public trackAdBreakFinished = (event: AdBreakEvent) => {
-    if (!this.isSessionActive()) {
-      return;
-    }
-
-    this.debugLog('[ ConvivaAnalyticsTracker ] report ad break ended', event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] report ad break ended');
     this.convivaVideoAnalytics.reportAdBreakEnded();
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] report playing playback state');
+    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} playback state`);
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
-      Conviva.Constants.PlayerState.PLAYING,
+      PlayerStateHelper.getPlayerState(this.player),
     );
   };
 
@@ -817,7 +768,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    const formattedError = AdHelper.formatAdErrorEvent(event);
+    const formattedError = AdHelper.formatClientSideAdError(event);
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad error', {
       event,
@@ -933,7 +884,7 @@ export class ConvivaAnalyticsTracker {
   private onSourceUnloaded = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] source unloaded', event);
 
-    if (this.isAdBreak) {
+    if (this._isAdBreakActive) {
       // Ignore sourceUnloaded events during ads
       return;
     } else {
@@ -955,8 +906,6 @@ export class ConvivaAnalyticsTracker {
     this.handlers.add(this.events.PlaybackFinished, this.onPlaybackFinished);
     this.handlers.add(this.events.SourceUnloaded, this.onSourceUnloaded);
     this.handlers.add(this.events.Destroy, this.onDestroy);
-    this.handlers.add(this.events.AdBreakStarted, this.onAdBreakStarted);
-    this.handlers.add(this.events.AdBreakFinished, this.onAdBreakFinished);
   }
 
   private unregisterPlayerEvents(): void {
