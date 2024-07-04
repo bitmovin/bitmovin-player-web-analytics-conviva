@@ -29,7 +29,7 @@ export class PlayerStateHelper {
     return playerState;
   }
 
-  public static getPlayerState(player: PlayerAPI): Conviva.valueof<Conviva.ConvivaConstants["PlayerState"]> {
+  public static getPlayerState(player: PlayerAPI): Conviva.valueof<Conviva.ConvivaConstants['PlayerState']> {
     if (player.isStalled()) {
       return Conviva.Constants.PlayerState.BUFFERING;
     }

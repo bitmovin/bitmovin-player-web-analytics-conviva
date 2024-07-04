@@ -23,6 +23,10 @@ import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { PlayerConfigHelper } from './helper/PlayerConfigHelper';
 import { PlayerStateHelper } from './helper/PlayerStateHelper';
 
+export const AUTOPLAY_CONTENT_METADATA_CUSTOM_TAG = 'autoplay';
+export const PRELOAD_CONTENT_METADATA_CUSTOM_TAG = 'preload';
+export const INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG = 'integrationVersion';
+
 export interface ConvivaAnalyticsConfiguration {
   /**
    * Enables debug logging when set to true (default: false).
@@ -133,6 +137,10 @@ export class ConvivaAnalyticsTracker {
     return !this._isAdBreakActive;
   }
 
+  public getContentMetadata() {
+    return this.contentMetadataBuilder.build();
+  }
+
   // Since there are no stall events during play / playing; seek / seeked; timeShift / timeShifted we need
   // to track stalling state between those events. To prevent tracking eg. when seeking in buffer we delay it.
   private stallTrackingTimeout: Timeout = new Timeout(ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS, () => {
@@ -143,13 +151,12 @@ export class ConvivaAnalyticsTracker {
         Conviva.Constants.PlayerState.BUFFERING,
       );
     } else {
-    this.debugLog('[ ConvivaAnalyticsTracker ] report buffering playback state');
+      this.debugLog('[ ConvivaAnalyticsTracker ] report buffering playback state');
       this.convivaVideoAnalytics.reportPlaybackMetric(
         Conviva.Constants.Playback.PLAYER_STATE,
         Conviva.Constants.PlayerState.BUFFERING,
       );
     }
-
   });
 
   /**
@@ -515,9 +522,9 @@ export class ConvivaAnalyticsTracker {
 
     this.contentMetadataBuilder.addToCustom({
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
-      autoplay: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
-      preload: PlayerConfigHelper.getPreloadConfig(this.player) + '',
-      integrationVersion: ConvivaAnalyticsTracker.VERSION,
+      [AUTOPLAY_CONTENT_METADATA_CUSTOM_TAG]: PlayerConfigHelper.getAutoplayConfig(this.player) + '',
+      [PRELOAD_CONTENT_METADATA_CUSTOM_TAG]: PlayerConfigHelper.getPreloadConfig(this.player) + '',
+      [INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG]: ConvivaAnalyticsTracker.VERSION,
     });
 
     const source = this.player.getSource();
@@ -704,23 +711,37 @@ export class ConvivaAnalyticsTracker {
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad break started', { type });
     this.convivaVideoAnalytics.reportAdBreakStarted(
       type,
-      type == Conviva.Constants.AdType.CLIENT_SIDE ? Conviva.Constants.AdPlayer.SEPARATE : Conviva.Constants.AdPlayer.CONTENT,
+      type === Conviva.Constants.AdType.CLIENT_SIDE ? Conviva.Constants.AdPlayer.SEPARATE : Conviva.Constants.AdPlayer.CONTENT,
     );
   };
 
-  public trackAdStarted = (adInfo?: Conviva.ConvivaMetadata, bitrateKbps?: number) => {
+  public trackAdStarted = (adInfo: Conviva.ConvivaMetadata, type: Conviva.valueof<Conviva.ConvivaConstants['AdType']>, bitrateKbps?: number) => {
     if (!this.isSessionActive()) {
       return;
     }
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad started', {
       adInfo,
+      type,
       bitrateKbps,
     });
     this.convivaAdAnalytics.reportAdStarted(adInfo);
 
     this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} ad playback state`);
     this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, PlayerStateHelper.getPlayerState(this.player));
+
+    if (type === Conviva.Constants.AdType.SERVER_SIDE) {
+      const playbackVideoData = this.player.getPlaybackVideoData();
+      const resolution = `${playbackVideoData.width}x${playbackVideoData.height}`;
+
+      this.debugLog('[ ConvivaAnalyticsTracker ] report ad resolution', resolution);
+      this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.RESOLUTION, resolution);
+
+      if (playbackVideoData.frameRate) {
+        this.debugLog('[ ConvivaAnalyticsTracker ] report framerate', playbackVideoData.frameRate);
+        this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.RENDERED_FRAMERATE, playbackVideoData.frameRate);
+      }
+    }
 
     if (bitrateKbps) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report ad bitrate', bitrateKbps);

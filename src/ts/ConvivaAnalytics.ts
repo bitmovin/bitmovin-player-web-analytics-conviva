@@ -16,7 +16,7 @@ import type {
 import { Metadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { ConvivaAnalyticsConfiguration, ConvivaAnalyticsTracker, EventAttributes } from './ConvivaAnalyticsTracker';
-import { ConvivaSsaiAnalytics } from './ConvivaSsaiAnalytics';
+import { ConvivaAnalyticsSsai } from './ConvivaAnalyticsSsai';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { AdHelper } from './helper/AdHelper';
 
@@ -34,9 +34,9 @@ export class ConvivaAnalytics {
    */
   private lastAdBreakEvent: AdBreakEvent;
 
-  private convivaSsaiAnalytics: ConvivaSsaiAnalytics;
+  private convivaSsaiAnalytics: ConvivaAnalyticsSsai;
 
-  public readonly ssai: Omit<ConvivaSsaiAnalytics, 'reset'>;
+  public readonly ssai: Omit<ConvivaAnalyticsSsai, 'reset'>;
 
   constructor(player: PlayerAPI, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     this.convivaAnalyticsTracker = new ConvivaAnalyticsTracker(player, customerKey, config);
@@ -48,7 +48,7 @@ export class ConvivaAnalytics {
 
     this.registerPlayerEvents();
 
-    this.convivaSsaiAnalytics = new ConvivaSsaiAnalytics(this.convivaAnalyticsTracker);
+    this.convivaSsaiAnalytics = new ConvivaAnalyticsSsai(this.convivaAnalyticsTracker);
 
     // Do not expose `reset` method to the public API.
     this.ssai = {
@@ -170,7 +170,7 @@ export class ConvivaAnalytics {
     const adInfo = AdHelper.extractClientSideConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
     const bitrateKbps = event.ad.data?.bitrate;
 
-    this.convivaAnalyticsTracker.trackAdStarted(adInfo, bitrateKbps);
+    this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
   }
 
   private onAdFinished = (event: AdEvent) => {
@@ -279,9 +279,5 @@ export class ConvivaAnalytics {
 
   private unregisterPlayerEvents(): void {
     this.handlers.clear();
-  }
-
-  static get version(): string {
-    return ConvivaAnalyticsTracker.version;
   }
 }

@@ -13,6 +13,7 @@ import {
   CastStartedEvent,
   AudioChangedEvent,
   SubtitleEvent,
+  VideoQuality,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
@@ -227,6 +228,16 @@ export namespace MockHelper {
         },
         on: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.on(eventType, callback),
         off: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.off(eventType, callback),
+        getPlaybackVideoData: jest.fn(() => {
+          const data: VideoQuality = {
+            bitrate: 1024,
+            id: 'test-video-quality',
+            width: 100,
+            height: 100,
+            frameRate: 60
+          }
+          return data;
+        })
       };
     });
 

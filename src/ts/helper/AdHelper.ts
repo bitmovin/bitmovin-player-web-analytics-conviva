@@ -1,5 +1,6 @@
 import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, PlayerAPI, VastAdData } from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
+import { INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from '../ConvivaAnalyticsTracker';
 
 export interface ServerSideAdInfo {
   /**
@@ -136,14 +137,31 @@ export class AdHelper {
     return adInfo;
   }
 
-  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: ServerSideAdInfo): Conviva.ConvivaMetadata {
+  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: ServerSideAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
+    const keysToPick = [
+      INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
+      Conviva.Constants.ASSET_NAME,
+      Conviva.Constants.IS_LIVE,
+      Conviva.Constants.DEFAULT_RESOURCE,
+      Conviva.Constants.ENCODED_FRAMERATE,
+      Conviva.Constants.VIEWER_ID,
+      Conviva.Constants.PLAYER_NAME,
+    ];
+    const selectedCurrentContentMetadata: Record<string, string> = {};
+
+    keysToPick.forEach(key => {
+      selectedCurrentContentMetadata[key] = allCurrentContentMetadata[key];
+    });
+
+
     const adInfo: Conviva.ConvivaMetadata = {
+      ...selectedCurrentContentMetadata,
       ...serverSideAdInfo.additionalMetadata,
       'c3.ad.id': serverSideAdInfo.id,
       'c3.ad.technology': Conviva.Constants.AdType.SERVER_SIDE,
       'c3.ad.position': serverSideAdInfo.position || 'NA',
       'c3.ad.system': serverSideAdInfo.adSystem || 'NA',
-      [Conviva.Constants.ASSET_NAME]: serverSideAdInfo.title || 'NA',
+      [Conviva.Constants.ASSET_NAME]: serverSideAdInfo.title || selectedCurrentContentMetadata[Conviva.Constants.ASSET_NAME] || 'NA',
       'c3.ad.adStitcher': serverSideAdInfo.adStitcher || 'NA',
       'c3.ad.isSlate': serverSideAdInfo.isSlate === undefined ? 'NA' : serverSideAdInfo.isSlate.toString(),
 

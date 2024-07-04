@@ -1,8 +1,8 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import { ConvivaAnalyticsTracker } from './ConvivaAnalyticsTracker';
+import { ConvivaAnalyticsTracker, INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from './ConvivaAnalyticsTracker';
 import { AdHelper, ServerSideAdInfo } from './helper/AdHelper';
 
-export class ConvivaSsaiAnalytics {
+export class ConvivaAnalyticsSsai {
   private readonly convivaAnalyticsTracker: ConvivaAnalyticsTracker;
 
   constructor(convivaAnalyticsTracker: ConvivaAnalyticsTracker) {
@@ -49,7 +49,10 @@ export class ConvivaSsaiAnalytics {
         return;
     }
 
-    this.convivaAnalyticsTracker.trackAdStarted(AdHelper.convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo));
+    this.convivaAnalyticsTracker.trackAdStarted(
+      AdHelper.convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo, this.convivaAnalyticsTracker.getContentMetadata()),
+      Conviva.Constants.AdType.SERVER_SIDE
+    );
   }
 
   /**
