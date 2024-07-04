@@ -74,6 +74,36 @@
           // This is inferred automatically, but can be overridden.
           // deviceMetadata: { ... }
         });
+
+        const simulateServerSideAd = () => {
+          // To avoid cyclic calls.
+          player.off(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd);
+
+          // Simulate server-side ad break with a little delay after the previous client side ad.
+          setTimeout(() => {
+            convivaAnalytics.ssai.reportAdBreakStarted();
+            convivaAnalytics.ssai.reportAdStarted({
+              id: 'dummy-web-server-side-ad',
+              title: 'Dummy web server side AD',
+              duration: 20,
+              adSystem: 'dummy-server-side-ad-system',
+              position: Conviva.Constants.AdPosition.PREROLL,
+              isSlate: false,
+              adStitcher: 'Dummy AD stitcher',
+              additionalMetadata: {
+                dummyKey: 'dummy-value'
+              }
+            });
+
+            // "Player" the server sie ad for 20 seconds.
+            setTimeout(() => {
+              convivaAnalytics.ssai.reportAdFinished();
+              convivaAnalytics.ssai.reportAdBreakFinished();
+            }, 20_000);
+          }, 2_000);
+        }
+
+        player.on(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd)
       }
 
       function loadPlayer() {
