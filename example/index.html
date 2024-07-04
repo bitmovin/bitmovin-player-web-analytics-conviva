@@ -70,7 +70,8 @@
 
         convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<CONVIVA_CUSTOMER_KEY>', {
           debugLoggingEnabled: true,
-          gatewayUrl: 'https://youraccount-test.testonly.conviva.com', // TOUCHSTONE_SERVICE_URL for testing
+          // TOUCHSTONE_SERVICE_URL for testing (DO NOT USE IN PRODUCTION)
+          gatewayUrl: 'https://youraccount-test.testonly.conviva.com',
           // This is inferred automatically, but can be overridden.
           // deviceMetadata: { ... }
         });
@@ -95,7 +96,7 @@
               }
             });
 
-            // "Player" the server sie ad for 20 seconds.
+            // "Play" the server side ad for 20 seconds.
             setTimeout(() => {
               convivaAnalytics.ssai.reportAdFinished();
               convivaAnalytics.ssai.reportAdBreakFinished();
