@@ -80,8 +80,7 @@
           // To avoid cyclic calls.
           player.off(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd);
 
-          // Simulate server-side ad break with a little delay after the previous client side ad.
-          setTimeout(() => {
+          const playServerSideAd = () => {
             convivaAnalytics.ssai.reportAdBreakStarted();
             convivaAnalytics.ssai.reportAdStarted({
               id: 'dummy-web-server-side-ad',
@@ -101,7 +100,10 @@
               convivaAnalytics.ssai.reportAdFinished();
               convivaAnalytics.ssai.reportAdBreakFinished();
             }, 20_000);
-          }, 2_000);
+          }
+
+          // Simulate server-side ad break with a little delay after the previous client side ad.
+          setTimeout(playServerSideAd, 2_000);
         }
 
         player.on(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd)
