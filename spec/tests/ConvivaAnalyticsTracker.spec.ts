@@ -23,7 +23,7 @@ describe(ConvivaAnalyticsTracker, () => {
     expect(MockHelper.latestAdAnalytics.reportAdMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.RENDERED_FRAMERATE, 60);
   })
 
-  it('should not report ad resolution and framerate for server side ad', () => {
+  it('should not report ad resolution and framerate for client side ad', () => {
     const {playerMock} = MockHelper.createPlayerMock();
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker(playerMock, 'test-key');
 
