@@ -146,7 +146,6 @@ describe(ConvivaAnalyticsSsai, () => {
       isAdBreakActive: false,
       getContentMetadata: () => ({
         [Conviva.Constants.ASSET_NAME]: 'Asset name from current metadata',
-        customKey: 'Custom value from current metadata'
       })
     });
     const ssai = new ConvivaAnalyticsSsai(convivaAnalyticsTrackerMock);
@@ -159,6 +158,27 @@ describe(ConvivaAnalyticsSsai, () => {
 
     expect(convivaAnalyticsTrackerMock.trackAdStarted).toHaveBeenCalledWith(expect.objectContaining({
       [Conviva.Constants.ASSET_NAME]: 'User provided asset name',
+    }), Conviva.Constants.AdType.SERVER_SIDE);
+  })
+
+  it('should not pass custom key from content metadata to ad info', () => {
+    const convivaAnalyticsTrackerMock = mock<ConvivaAnalyticsTracker>({
+      isAdBreakActive: false,
+      getContentMetadata: () => ({
+        // Should not be included in the ad metadata
+        customKey: 'Custom value from current metadata'
+      })
+    });
+    const ssai = new ConvivaAnalyticsSsai(convivaAnalyticsTrackerMock);
+
+    ssai.reportAdBreakStarted();
+    ssai.reportAdStarted({
+      id: 'adId',
+      title: 'Test title',
+    });
+
+    expect(convivaAnalyticsTrackerMock.trackAdStarted).toHaveBeenCalledWith(expect.objectContaining({
+      [Conviva.Constants.ASSET_NAME]: 'Test title',
     }), Conviva.Constants.AdType.SERVER_SIDE);
   })
 
