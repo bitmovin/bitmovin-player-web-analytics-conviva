@@ -2,7 +2,7 @@ import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, Playe
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import { INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from '../ConvivaAnalyticsTracker';
 
-export interface ServerSideAdInfo {
+export interface SsaiAdInfo {
   /**
    * The ad ID extracted from the ad server that contains the ad creative.
    */
@@ -137,7 +137,7 @@ export class AdHelper {
     return adInfo;
   }
 
-  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: ServerSideAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
+  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
     const keysToPick = [
       INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
       Conviva.Constants.ASSET_NAME,

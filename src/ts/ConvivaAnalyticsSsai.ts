@@ -1,6 +1,6 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import { ConvivaAnalyticsTracker, INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from './ConvivaAnalyticsTracker';
-import { AdHelper, ServerSideAdInfo } from './helper/AdHelper';
+import { AdHelper, SsaiAdInfo } from './helper/AdHelper';
 
 export class ConvivaAnalyticsSsai {
   private readonly convivaAnalyticsTracker: ConvivaAnalyticsTracker;
@@ -44,7 +44,7 @@ export class ConvivaAnalyticsSsai {
    *
    * @param serverSideAdInfo Object containing metadata about the server-side ad.
    */
-  public reportAdStarted(serverSideAdInfo: ServerSideAdInfo) {
+  public reportAdStarted(serverSideAdInfo: SsaiAdInfo) {
     if (!this._isAdBreakActive) {
         return;
     }
