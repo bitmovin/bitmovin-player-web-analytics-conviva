@@ -167,7 +167,7 @@ export class ConvivaAnalytics {
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad started', event);
 
-    const adInfo = AdHelper.extractClientSideConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
+    const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);

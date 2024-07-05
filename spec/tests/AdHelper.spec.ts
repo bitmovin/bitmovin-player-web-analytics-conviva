@@ -79,7 +79,7 @@ describe(AdHelper, () => {
         },
       } as AdEvent;
 
-      expect(AdHelper.extractClientSideConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
         "c3.ad.creativeId": "NA",
         "c3.ad.firstAdId": "123",
         "c3.ad.firstAdSystem": "NA",
@@ -119,7 +119,7 @@ describe(AdHelper, () => {
         } as Ad | LinearAd,
       } as AdEvent;
 
-      expect(AdHelper.extractClientSideConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
         [Conviva.Constants.ASSET_NAME]: "Test title",
         [Conviva.Constants.STREAM_URL]: 'https://test.com',
         [Conviva.Constants.DURATION]: 100,

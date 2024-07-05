@@ -76,7 +76,7 @@ export class AdHelper {
     return formattedErrorParts.join(' ');
   }
 
-  public static extractClientSideConvivaAdInfo(player: PlayerAPI, adBreakEvent: AdBreakEvent, adEvent: AdEvent): Conviva.ConvivaMetadata {
+  public static extractCsaiConvivaAdInfo(player: PlayerAPI, adBreakEvent: AdBreakEvent, adEvent: AdEvent): Conviva.ConvivaMetadata {
     const ad = adEvent.ad as Ad | LinearAd;
     const adData = ad.data as undefined | AdData | VastAdData;
 
@@ -137,7 +137,7 @@ export class AdHelper {
     return adInfo;
   }
 
-  public static convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
+  public static convertSsaiAdInfoToConvivaAdInfo(serverSideAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
     const keysToPick = [
       INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
       Conviva.Constants.ASSET_NAME,

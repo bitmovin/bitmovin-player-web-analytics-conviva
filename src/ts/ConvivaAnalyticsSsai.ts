@@ -50,7 +50,7 @@ export class ConvivaAnalyticsSsai {
     }
 
     this.convivaAnalyticsTracker.trackAdStarted(
-      AdHelper.convertServerSideAdInfoToConvivaAdInfo(serverSideAdInfo, this.convivaAnalyticsTracker.getContentMetadata()),
+      AdHelper.convertSsaiAdInfoToConvivaAdInfo(serverSideAdInfo, this.convivaAnalyticsTracker.getContentMetadata()),
       Conviva.Constants.AdType.SERVER_SIDE,
     );
   }
