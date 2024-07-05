@@ -789,7 +789,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    const formattedError = AdHelper.formatClientSideAdError(event);
+    const formattedError = AdHelper.formatCsaiAdError(event);
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad error', {
       event,

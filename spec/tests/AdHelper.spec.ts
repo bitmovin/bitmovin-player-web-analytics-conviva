@@ -12,7 +12,7 @@ describe(AdHelper, () => {
         scheduleTime: 0
       } as AdBreak;
 
-      expect(AdHelper.mapClientSideAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.PREROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.PREROLL)
     })
 
     it('should map ad position to postroll', () => {
@@ -23,7 +23,7 @@ describe(AdHelper, () => {
         scheduleTime: 100
       } as AdBreak;
 
-      expect(AdHelper.mapClientSideAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
     })
 
     it('should map ad position to midroll', () => {
@@ -34,13 +34,13 @@ describe(AdHelper, () => {
         scheduleTime: 50
       } as AdBreak;
 
-      expect(AdHelper.mapClientSideAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
     })
   })
 
   describe('formatAdErrorEvent', () => {
     it('should format error message', () => {
-      expect(AdHelper.formatClientSideAdError({
+      expect(AdHelper.formatCsaiAdError({
         code: ErrorCode.NETWORK_ERROR,
         name: 'Test error',
         troubleShootLink: 'https://test.com',
@@ -50,7 +50,7 @@ describe(AdHelper, () => {
     })
 
     it('should format full error message', () => {
-      expect(AdHelper.formatClientSideAdError({
+      expect(AdHelper.formatCsaiAdError({
         code: ErrorCode.NETWORK_ERROR,
         name: 'Test error',
         troubleShootLink: 'https://test.com',

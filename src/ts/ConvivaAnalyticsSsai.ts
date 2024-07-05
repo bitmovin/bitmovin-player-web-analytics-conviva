@@ -42,15 +42,15 @@ export class ConvivaAnalyticsSsai {
    * <p>
    * Has to be called after calling the <code>reportAdBreakStarted</code> method.
    *
-   * @param serverSideAdInfo Object containing metadata about the server-side ad.
+   * @param ssaiAdInfo Object containing metadata about the server-side ad.
    */
-  public reportAdStarted(serverSideAdInfo: SsaiAdInfo) {
+  public reportAdStarted(ssaiAdInfo: SsaiAdInfo) {
     if (!this._isAdBreakActive) {
         return;
     }
 
     this.convivaAnalyticsTracker.trackAdStarted(
-      AdHelper.convertSsaiAdInfoToConvivaAdInfo(serverSideAdInfo, this.convivaAnalyticsTracker.getContentMetadata()),
+      AdHelper.convertSsaiAdInfoToConvivaAdInfo(ssaiAdInfo, this.convivaAnalyticsTracker.getContentMetadata()),
       Conviva.Constants.AdType.SERVER_SIDE,
     );
   }

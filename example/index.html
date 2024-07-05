@@ -76,11 +76,11 @@
           // deviceMetadata: { ... }
         });
 
-        const simulateServerSideAd = () => {
+        const simulateSsaiAd = () => {
           // To avoid cyclic calls.
-          player.off(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd);
+          player.off(bitmovin.player.PlayerEvent.AdBreakFinished, simulateSsaiAd);
 
-          const playServerSideAd = () => {
+          const playSsaiAd = () => {
             convivaAnalytics.ssai.reportAdBreakStarted();
             convivaAnalytics.ssai.reportAdStarted({
               id: 'dummy-web-server-side-ad',
@@ -103,10 +103,10 @@
           }
 
           // Simulate server-side ad break with a little delay after the previous client side ad.
-          setTimeout(playServerSideAd, 2_000);
+          setTimeout(playSsaiAd, 2_000);
         }
 
-        player.on(bitmovin.player.PlayerEvent.AdBreakFinished, simulateServerSideAd)
+        player.on(bitmovin.player.PlayerEvent.AdBreakFinished, simulateSsaiAd)
       }
 
       function loadPlayer() {

@@ -4,4 +4,4 @@ import './conviva/ConvivaExtension';
 export { ConvivaAnalyticsConfiguration, EventAttributes } from './ConvivaAnalyticsTracker';
 export { ConvivaAnalytics } from './ConvivaAnalytics';
 export { Metadata } from './ContentMetadataBuilder';
-export { SsaiAdInfo as ServerSideAdInfo } from './helper/AdHelper';
+export { SsaiAdInfo } from './helper/AdHelper';

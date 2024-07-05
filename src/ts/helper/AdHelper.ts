@@ -41,7 +41,7 @@ export interface SsaiAdInfo {
 }
 
 export class AdHelper {
-  public static mapClientSideAdPosition(
+  public static mapCsaiAdPosition(
     adBreak: AdBreak,
     player: PlayerAPI,
   ): Conviva.valueof<Conviva.ConvivaConstants['AdPosition']> {
@@ -56,7 +56,7 @@ export class AdHelper {
     return Conviva.Constants.AdPosition.MIDROLL;
   }
 
-  public static formatClientSideAdError(event: ErrorEvent & {
+  public static formatCsaiAdError(event: ErrorEvent & {
     data?: {
       code?: number,
     },
@@ -107,7 +107,7 @@ export class AdHelper {
     const adInfo: Conviva.ConvivaMetadata = {
       'c3.ad.id': ad.id,
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
-      'c3.ad.position': AdHelper.mapClientSideAdPosition(adBreakEvent.adBreak, player),
+      'c3.ad.position': AdHelper.mapCsaiAdPosition(adBreakEvent.adBreak, player),
       'c3.ad.system': adSystemName,
       'c3.ad.creativeId': creativeId,
       'c3.ad.firstAdId': firstAdId,
@@ -137,7 +137,7 @@ export class AdHelper {
     return adInfo;
   }
 
-  public static convertSsaiAdInfoToConvivaAdInfo(serverSideAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
+  public static convertSsaiAdInfoToConvivaAdInfo(ssaiAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
     const keysToPick = [
       INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
       Conviva.Constants.ASSET_NAME,
@@ -156,14 +156,14 @@ export class AdHelper {
 
     const adInfo: Conviva.ConvivaMetadata = {
       ...selectedCurrentContentMetadata,
-      ...serverSideAdInfo.additionalMetadata,
-      'c3.ad.id': serverSideAdInfo.id,
+      ...ssaiAdInfo.additionalMetadata,
+      'c3.ad.id': ssaiAdInfo.id,
       'c3.ad.technology': Conviva.Constants.AdType.SERVER_SIDE,
-      'c3.ad.position': serverSideAdInfo.position || 'NA',
-      'c3.ad.system': serverSideAdInfo.adSystem || 'NA',
-      [Conviva.Constants.ASSET_NAME]: serverSideAdInfo.title || selectedCurrentContentMetadata[Conviva.Constants.ASSET_NAME] || 'NA',
-      'c3.ad.adStitcher': serverSideAdInfo.adStitcher || 'NA',
-      'c3.ad.isSlate': serverSideAdInfo.isSlate === undefined ? 'NA' : serverSideAdInfo.isSlate.toString(),
+      'c3.ad.position': ssaiAdInfo.position || 'NA',
+      'c3.ad.system': ssaiAdInfo.adSystem || 'NA',
+      [Conviva.Constants.ASSET_NAME]: ssaiAdInfo.title || selectedCurrentContentMetadata[Conviva.Constants.ASSET_NAME] || 'NA',
+      'c3.ad.adStitcher': ssaiAdInfo.adStitcher || 'NA',
+      'c3.ad.isSlate': ssaiAdInfo.isSlate === undefined ? 'NA' : ssaiAdInfo.isSlate.toString(),
 
       // These are not relevant for the server side (keep in the code for documentation purposes)
       // 'c3.ad.creativeId': undefined,
@@ -174,8 +174,8 @@ export class AdHelper {
       // 'c3.ad.mediaFileApiFramework': undefined
     };
 
-    if (serverSideAdInfo.duration) {
-      adInfo[Conviva.Constants.DURATION] = serverSideAdInfo.duration;
+    if (ssaiAdInfo.duration) {
+      adInfo[Conviva.Constants.DURATION] = ssaiAdInfo.duration;
     }
 
     return adInfo;
