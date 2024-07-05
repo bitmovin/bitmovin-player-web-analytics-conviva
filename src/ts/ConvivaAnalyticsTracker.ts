@@ -229,16 +229,6 @@ export class ConvivaAnalyticsTracker {
     this.registerPlayerEvents();
   }
 
-  /**
-   * Initializes a new conviva tracking session.
-   *
-   * Warning: The integration can only be validated without external session managing. So when using this method we can
-   * no longer ensure that the session is managed at the correct time. Additional: Since some metadata attributes
-   * relies on the players source we can't ensure that all metadata attributes are present at session creation.
-   * Therefore it could be that there will be a 'ContentMetadata created late' issue after conviva validation.
-   *
-   * If no source was loaded and no assetName was set via updateContentMetadata this method will throw an error.
-   */
   public initializeSession(): void {
     if (this.isSessionActive()) {
       this.logger.consoleLog('[ ConvivaAnalyticsTracker ] There is already a session running.', Conviva.SystemSettings.LogLevel.WARNING);
@@ -255,15 +245,6 @@ export class ConvivaAnalyticsTracker {
     this.sessionEndedExternally = false;
   }
 
-  /**
-   * Ends the current conviva tracking session. If there an ad break is active it will also report the ad as skipped.
-   * Results in a no-opt if there is no active session.
-   *
-   * Warning: Sessions will no longer be created automatically after this method has been called.
-   *
-   * The integration can only be validated without external session managing. So when using this method we can
-   * no longer ensure that the session is managed at the correct time.
-   */
   public endSession(): void {
     if (!this.isSessionActive()) {
       return;
@@ -282,12 +263,6 @@ export class ConvivaAnalyticsTracker {
     this.sessionEndedExternally = true;
   }
 
-  /**
-   * Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
-   * be sent and is not tied to a specific video.
-   * @param eventName arbitrary event name
-   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
-   */
   public sendCustomApplicationEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
@@ -306,12 +281,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportAppEvent(eventName, eventAttributes);
   }
 
-  /**
-   * Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
-   * during an active video session.
-   * @param eventName arbitrary event name
-   * @param eventAttributes a string-to-string dictionary object with arbitrary attribute keys and values
-   */
   public sendCustomPlaybackEvent(eventName: string, eventAttributes: EventAttributes = {}): void {
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
@@ -330,28 +299,10 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackEvent(eventName, eventAttributes);
   }
 
-  /**
-   * Will update the contentMetadata which are tracked with conviva.
-   *
-   * If there is an active session only permitted values will be updated and propagated immediately.
-   * If there is no active session the values will set on session creation.
-   *
-   * Attributes set via this method will override automatic tracked once.
-   * @param metadataOverrides Metadata attributes which will be used to track to conviva.
-   * @see ContentMetadataBuilder for more information about permitted attributes
-   */
   public updateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
-  /**
-   * Sends a custom deficiency event during playback to Conviva's Player Insight. If no session is active it will NOT
-   * create one.
-   *
-   * @param message Message which will be send to conviva
-   * @param severity One of FATAL or WARNING
-   * @param endSession Boolean flag if session should be closed after reporting the deficiency (Default: true)
-   */
   public reportPlaybackDeficiency(
     message: string,
     severity: Conviva.valueof<Conviva.ConvivaConstants['ErrorSeverity']>,
@@ -371,9 +322,6 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  /**
-   * Puts the session state in a notMonitored state.
-   */
   public pauseTracking(): void {
     this.debugLog('[ ConvivaAnalyticsTracker ] pause tracking via ad break started reporting');
     // AdStart is the right way to pause monitoring according to conviva.
@@ -383,9 +331,6 @@ export class ConvivaAnalyticsTracker {
     );
   }
 
-  /**
-   * Puts the session state from a notMonitored state into the last one tracked.
-   */
   public resumeTracking(): void {
     this.debugLog('[ ConvivaAnalyticsTracker ] resume tracking via ad break ended reporting');
     // AdEnd is the right way to resume monitoring according to conviva.
