@@ -1,6 +1,6 @@
 import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, PlayerAPI, VastAdData } from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import { INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from '../ConvivaAnalyticsTracker';
+import { INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG, STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG } from '../ConvivaAnalyticsTracker';
 
 export interface SsaiAdInfo {
   /**
@@ -140,6 +140,7 @@ export class AdHelper {
   public static convertSsaiAdInfoToConvivaAdInfo(ssaiAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
     const keysToPick = [
       INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
+      STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG,
       Conviva.Constants.ASSET_NAME,
       Conviva.Constants.IS_LIVE,
       Conviva.Constants.DEFAULT_RESOURCE,

@@ -27,6 +27,10 @@ export const AUTOPLAY_CONTENT_METADATA_CUSTOM_TAG = 'autoplay';
 export const PRELOAD_CONTENT_METADATA_CUSTOM_TAG = 'preload';
 export const INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG = 'integrationVersion';
 
+export const PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG = 'playerType';
+export const STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG = 'streamType';
+export const VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG = 'vrContentType';
+
 export interface ConvivaAnalyticsConfiguration {
   /**
    * Enables debug logging when set to true (default: false).
@@ -484,9 +488,9 @@ export class ConvivaAnalyticsTracker {
     this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
     this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
     this.contentMetadataBuilder.addToCustom({
-      playerType: this.player.getPlayerType(),
-      streamType: this.player.getStreamType(),
-      vrContentType: source.vr && source.vr.contentType,
+      [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
+      [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
+      [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
     });
 
     this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);

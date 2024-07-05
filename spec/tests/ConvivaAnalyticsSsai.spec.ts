@@ -1,4 +1,4 @@
-import { ConvivaAnalyticsTracker, INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from "../../src/ts/ConvivaAnalyticsTracker";
+import { ConvivaAnalyticsTracker, INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG, STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG } from "../../src/ts/ConvivaAnalyticsTracker";
 import { ConvivaAnalyticsSsai } from "../../src/ts/ConvivaAnalyticsSsai";
 import { mock } from 'jest-mock-extended';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
@@ -107,6 +107,7 @@ describe(ConvivaAnalyticsSsai, () => {
       isAdBreakActive: false,
       getContentMetadata: () => ({
         [INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG]: '1.0.0',
+        [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: 'Stream type from current metadata',
         [Conviva.Constants.ASSET_NAME]: 'Asset name from current metadata',
         [Conviva.Constants.IS_LIVE]: Conviva.Constants.StreamType.LIVE,
         [Conviva.Constants.DEFAULT_RESOURCE]: 'Default resource from current metadata',
@@ -128,6 +129,7 @@ describe(ConvivaAnalyticsSsai, () => {
       'c3.ad.id': 'adId',
       'c3.ad.technology': Conviva.Constants.AdType.SERVER_SIDE,
       [INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG]: '1.0.0',
+      [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: 'Stream type from current metadata',
       [Conviva.Constants.ASSET_NAME]: 'Asset name from current metadata',
       [Conviva.Constants.IS_LIVE]: Conviva.Constants.StreamType.LIVE,
       [Conviva.Constants.DEFAULT_RESOURCE]: 'Default resource from current metadata',
