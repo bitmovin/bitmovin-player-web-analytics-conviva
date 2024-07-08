@@ -12,7 +12,7 @@ describe(AdHelper, () => {
         scheduleTime: 0
       } as AdBreak;
 
-      expect(AdHelper.mapAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.PREROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.PREROLL)
     })
 
     it('should map ad position to postroll', () => {
@@ -23,7 +23,7 @@ describe(AdHelper, () => {
         scheduleTime: 100
       } as AdBreak;
 
-      expect(AdHelper.mapAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
     })
 
     it('should map ad position to midroll', () => {
@@ -34,13 +34,13 @@ describe(AdHelper, () => {
         scheduleTime: 50
       } as AdBreak;
 
-      expect(AdHelper.mapAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, player)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
     })
   })
 
   describe('formatAdErrorEvent', () => {
-    it('should format minimal error message', () => {
-      expect(AdHelper.formatAdErrorEvent({
+    it('should format error message', () => {
+      expect(AdHelper.formatCsaiAdError({
         code: ErrorCode.NETWORK_ERROR,
         name: 'Test error',
         troubleShootLink: 'https://test.com',
@@ -50,7 +50,7 @@ describe(AdHelper, () => {
     })
 
     it('should format full error message', () => {
-      expect(AdHelper.formatAdErrorEvent({
+      expect(AdHelper.formatCsaiAdError({
         code: ErrorCode.NETWORK_ERROR,
         name: 'Test error',
         troubleShootLink: 'https://test.com',
@@ -79,7 +79,7 @@ describe(AdHelper, () => {
         },
       } as AdEvent;
 
-      expect(AdHelper.extractConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
         "c3.ad.creativeId": "NA",
         "c3.ad.firstAdId": "123",
         "c3.ad.firstAdSystem": "NA",
@@ -89,6 +89,8 @@ describe(AdHelper, () => {
         "c3.ad.position": "Pre-roll",
         "c3.ad.system": "NA",
         "c3.ad.technology": "Client Side",
+        [Conviva.Constants.ASSET_NAME]: 'NA',
+        [Conviva.Constants.STREAM_URL]: 'NA',
       })
     })
 
@@ -117,7 +119,7 @@ describe(AdHelper, () => {
         } as Ad | LinearAd,
       } as AdEvent;
 
-      expect(AdHelper.extractConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, adEvent)).toEqual({
         [Conviva.Constants.ASSET_NAME]: "Test title",
         [Conviva.Constants.STREAM_URL]: 'https://test.com',
         [Conviva.Constants.DURATION]: 100,

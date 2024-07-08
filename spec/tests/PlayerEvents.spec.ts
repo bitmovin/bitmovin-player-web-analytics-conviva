@@ -196,6 +196,7 @@ describe('player event tests', () => {
           playerEventHelper.fireSeekEvent(50.145);
           expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
             Conviva.Constants.Playback.SEEK_STARTED,
+            expect.any(Number)
           );
         });
 
@@ -203,6 +204,7 @@ describe('player event tests', () => {
           playerEventHelper.fireTimeShiftEvent();
           expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
             Conviva.Constants.Playback.SEEK_STARTED,
+            -1
           );
         });
       });

@@ -481,15 +481,17 @@ describe(ConvivaAnalytics, () => {
         playerEventHelper.fireAdStartedEvent();
 
         expect(MockHelper.latestAdAnalytics.reportAdStarted).toHaveBeenCalledWith({
+          [Conviva.Constants.ASSET_NAME]: 'NA',
+          [Conviva.Constants.STREAM_URL]: 'NA',
           "c3.ad.creativeId": "NA",
           "c3.ad.firstAdId": 'Ad-ID',
           "c3.ad.firstAdSystem": "NA",
           "c3.ad.firstCreativeId": "NA",
           "c3.ad.id": 'Ad-ID',
           "c3.ad.mediaFileApiFramework": "NA",
-          "c3.ad.position": "Pre-roll",
+          "c3.ad.position": Conviva.Constants.AdPosition.PREROLL,
           "c3.ad.system": "NA",
-          "c3.ad.technology": "Client Side"
+          "c3.ad.technology": Conviva.Constants.AdType.CLIENT_SIDE
         });
       });
 

@@ -1,4 +1,4 @@
-import { EventAttributes } from '../ConvivaAnalytics';
+import { EventAttributes } from '../ConvivaAnalyticsTracker';
 
 export namespace ObjectUtils {
   export function flatten(object: any, prefix: string = '') {
