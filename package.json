@@ -36,6 +36,7 @@
     "create-file-webpack": "^1.0.2",
     "husky": "^8.0.3",
     "jest": "^24.1.0",
+    "jest-mock-extended": "^3.0.7",
     "kacl": "^1.1.1",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
