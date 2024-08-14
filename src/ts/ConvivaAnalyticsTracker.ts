@@ -134,6 +134,8 @@ export class ConvivaAnalyticsTracker {
     return this._isAdBreakActive;
   }
 
+  private hasPlayed = false;
+
   /**
    * Do not track play event during ad (e.g. triggered from IMA)
    */
@@ -452,12 +454,6 @@ export class ConvivaAnalyticsTracker {
         Conviva.SystemSettings.LogLevel.ERROR,
       );
     }
-
-    // Send the session init audio language values.
-    this.trackUpdateAudioTrack(this.player.getAudio());
-
-    // Check if at session init has a subtitle enabled.
-    this.trackSubtitleWhenInternalInitialize();
   }
 
   /**
@@ -530,6 +526,7 @@ export class ConvivaAnalyticsTracker {
     this.convivaAdAnalytics.release();
     this.convivaAdAnalytics = null;
 
+    this.hasPlayed = false;
     this._isAdBreakActive = false;
   };
 
@@ -606,6 +603,14 @@ export class ConvivaAnalyticsTracker {
     // In case the playback has finished and the user replays the stream create a new session
     if (!this.isSessionActive() && !this.sessionEndedExternally) {
       this.internalInitializeSession();
+    }
+
+    if (!this.hasPlayed) {
+      this.hasPlayed = true;
+      // Send the session init audio language values.
+      this.trackUpdateAudioTrack(this.player.getAudio());
+      // Check if at session init has a subtitle enabled.
+      this.trackInitialSubtitles();
     }
   };
 
@@ -811,7 +816,7 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  private trackSubtitleWhenInternalInitialize() {
+  private trackInitialSubtitles() {
     if (!this.isSessionActive()) {
       return;
     }
