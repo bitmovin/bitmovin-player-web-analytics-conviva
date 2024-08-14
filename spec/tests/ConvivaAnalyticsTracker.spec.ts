@@ -36,4 +36,42 @@ describe(ConvivaAnalyticsTracker, () => {
     expect(MockHelper.latestAdAnalytics.reportAdMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.RESOLUTION, expect.anything());
     expect(MockHelper.latestAdAnalytics.reportAdMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.RENDERED_FRAMERATE, expect.anything());
   })
+
+  it('should report audio track on the first play', () => {
+    const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
+
+    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+
+    playerEventHelper.firePlayEvent();
+
+    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.AUDIO_LANGUAGE, expect.anything());
+  })
+
+  it('should report subtitles on the first play', () => {
+    const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
+
+    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+
+    playerEventHelper.firePlayEvent();
+
+    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.CLOSED_CAPTIONS_LANGUAGE, expect.anything());
+  })
+
+  it('should not report playback metrics after the first play', () => {
+    const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
+
+    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+
+    playerEventHelper.firePlayEvent();
+    const invokedTimesBefore = getInvokedTimes(MockHelper.latestVideoAnalytics.reportPlaybackMetric);
+
+    playerEventHelper.firePlayEvent();
+    const invokedTimesAfter = getInvokedTimes(MockHelper.latestVideoAnalytics.reportPlaybackMetric);
+
+    expect(invokedTimesAfter).toBe(invokedTimesBefore);
+  })
 })
+
+const getInvokedTimes = (mock: unknown) => {
+  return (mock as jest.MockInstance<Function, any>).mock.calls.length;
+}
