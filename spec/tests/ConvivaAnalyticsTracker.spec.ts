@@ -73,5 +73,5 @@ describe(ConvivaAnalyticsTracker, () => {
 })
 
 const getInvokedTimes = (mock: unknown) => {
-  return (mock as jest.MockInstance<Function, any>).mock.calls.length;
+  return (mock as jest.MockInstance<Function, unknown[]>).mock.calls.length;
 }
