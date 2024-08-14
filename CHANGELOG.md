@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Track initial audio track and subtitles only after the first `Play` event
+
 ## [5.2.0] - 2024-07-08
 ### Added
 - Server side ad tracking
