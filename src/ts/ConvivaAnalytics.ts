@@ -1,5 +1,5 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import type {
+import {
   AdBreakEvent,
   AdEvent,
   AudioChangedEvent,
@@ -21,10 +21,16 @@ import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { AdHelper } from './helper/AdHelper';
 
 export class ConvivaAnalytics {
-  private readonly events: typeof PlayerEvent;
-  private readonly handlers: PlayerEventWrapper;
+  private handlers?: PlayerEventWrapper;
   private readonly convivaAnalyticsTracker: ConvivaAnalyticsTracker;
-  private readonly player: PlayerAPI;
+  private _player?: PlayerAPI;
+
+  private get player(): PlayerAPI {
+    if (!this._player) {
+      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` it before using the integration.');
+    }
+    return this._player;
+  }
 
   private readonly debugLoggingEnabled: boolean;
 
@@ -38,15 +44,15 @@ export class ConvivaAnalytics {
 
   public readonly ssai: Omit<ConvivaAnalyticsSsai, 'reset'>;
 
-  constructor(player: PlayerAPI, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
-    this.convivaAnalyticsTracker = new ConvivaAnalyticsTracker(player, customerKey, config);
+  constructor(player: PlayerAPI | undefined, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
+    this.convivaAnalyticsTracker = new ConvivaAnalyticsTracker(customerKey, config);
     this.debugLoggingEnabled = config.debugLoggingEnabled || false;
-    this.player = player;
-    // TODO: Use alternative to deprecated player.exports
-    this.events = player.exports.PlayerEvent;
+    this._player = player;
     this.handlers = new PlayerEventWrapper(player);
 
-    this.registerPlayerEvents();
+    if (player) {
+      this.attachPlayer(player);
+    }
 
     this.convivaSsaiAnalytics = new ConvivaAnalyticsSsai(this.convivaAnalyticsTracker);
 
@@ -61,6 +67,23 @@ export class ConvivaAnalytics {
       reportAdSkipped: this.convivaSsaiAnalytics.reportAdSkipped.bind(this.convivaSsaiAnalytics),
       reportAdBreakFinished: this.convivaSsaiAnalytics.reportAdBreakFinished.bind(this.convivaSsaiAnalytics),
     };
+  }
+
+  public attachPlayer(player: PlayerAPI): void {
+    if (this._player) {
+      throw new Error('Player is already attached');
+    }
+
+    this._player = player;
+
+    if (this.handlers) {
+      this.unregisterPlayerEvents();
+    }
+
+    this.handlers = new PlayerEventWrapper(player);
+    this.registerPlayerEvents();
+
+    this.convivaAnalyticsTracker.attachPlayer(player);
   }
 
   /**
@@ -93,6 +116,7 @@ export class ConvivaAnalytics {
 
   private reset(): void {
     this.lastAdBreakEvent = null;
+    this._player = null;
     this.convivaSsaiAnalytics.reset();
   }
 
@@ -166,8 +190,8 @@ export class ConvivaAnalytics {
   }
 
   private destroy(event?: PlayerEventBase): void {
-    this.reset();
     this.unregisterPlayerEvents();
+    this.reset();
     this.convivaAnalyticsTracker.release(event);
   }
 
@@ -301,35 +325,35 @@ export class ConvivaAnalytics {
   };
 
   private registerPlayerEvents(): void {
-    this.handlers.add(this.events.Play, this.onPlay);
-    this.handlers.add(this.events.Playing, this.onPlaying);
-    this.handlers.add(this.events.Paused, this.onPlaybackStateChanged);
-    this.handlers.add(this.events.StallStarted, this.onPlaybackStateChanged);
-    this.handlers.add(this.events.StallEnded, this.onPlaybackStateChanged);
-    this.handlers.add(this.events.PlaybackFinished, this.onPlaybackFinished);
-    this.handlers.add(this.events.VideoPlaybackQualityChanged, this.onVideoQualityChanged);
-    this.handlers.add(this.events.AudioPlaybackQualityChanged, this.onCustomEvent);
-    this.handlers.add(this.events.Muted, this.onCustomEvent);
-    this.handlers.add(this.events.Unmuted, this.onCustomEvent);
-    this.handlers.add(this.events.ViewModeChanged, this.onCustomEvent);
-    this.handlers.add(this.events.AdStarted, this.onAdStarted);
-    this.handlers.add(this.events.AdFinished, this.onAdFinished);
-    this.handlers.add(this.events.AdBreakStarted, this.onAdBreakStarted);
-    this.handlers.add(this.events.AdBreakFinished, this.onAdBreakFinished);
-    this.handlers.add(this.events.AdSkipped, this.onAdSkipped);
-    this.handlers.add(this.events.AdError, this.onAdError);
-    this.handlers.add(this.events.Error, this.onError);
-    this.handlers.add(this.events.Destroy, this.onDestroy);
-    this.handlers.add(this.events.Seek, this.onSeek);
-    this.handlers.add(this.events.Seeked, this.onSeeked);
-    this.handlers.add(this.events.TimeShift, this.onTimeShift);
-    this.handlers.add(this.events.TimeShifted, this.onTimeShifted);
-    this.handlers.add(this.events.AudioChanged, this.onAudioChanged);
-    this.handlers.add(this.events.SubtitleEnabled, this.onSubtitleEnabled);
-    this.handlers.add(this.events.SubtitleDisabled, this.onSubtitleDisabled);
+    this.handlers.add(PlayerEvent.Play, this.onPlay);
+    this.handlers.add(PlayerEvent.Playing, this.onPlaying);
+    this.handlers.add(PlayerEvent.Paused, this.onPlaybackStateChanged);
+    this.handlers.add(PlayerEvent.StallStarted, this.onPlaybackStateChanged);
+    this.handlers.add(PlayerEvent.StallEnded, this.onPlaybackStateChanged);
+    this.handlers.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
+    this.handlers.add(PlayerEvent.VideoPlaybackQualityChanged, this.onVideoQualityChanged);
+    this.handlers.add(PlayerEvent.AudioPlaybackQualityChanged, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.Muted, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.Unmuted, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.ViewModeChanged, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.AdStarted, this.onAdStarted);
+    this.handlers.add(PlayerEvent.AdFinished, this.onAdFinished);
+    this.handlers.add(PlayerEvent.AdBreakStarted, this.onAdBreakStarted);
+    this.handlers.add(PlayerEvent.AdBreakFinished, this.onAdBreakFinished);
+    this.handlers.add(PlayerEvent.AdSkipped, this.onAdSkipped);
+    this.handlers.add(PlayerEvent.AdError, this.onAdError);
+    this.handlers.add(PlayerEvent.Error, this.onError);
+    this.handlers.add(PlayerEvent.Destroy, this.onDestroy);
+    this.handlers.add(PlayerEvent.Seek, this.onSeek);
+    this.handlers.add(PlayerEvent.Seeked, this.onSeeked);
+    this.handlers.add(PlayerEvent.TimeShift, this.onTimeShift);
+    this.handlers.add(PlayerEvent.TimeShifted, this.onTimeShifted);
+    this.handlers.add(PlayerEvent.AudioChanged, this.onAudioChanged);
+    this.handlers.add(PlayerEvent.SubtitleEnabled, this.onSubtitleEnabled);
+    this.handlers.add(PlayerEvent.SubtitleDisabled, this.onSubtitleDisabled);
 
-    this.handlers.add(this.events.CastStarted, this.onCustomEvent);
-    this.handlers.add(this.events.CastStopped, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.CastStarted, this.onCustomEvent);
+    this.handlers.add(PlayerEvent.CastStopped, this.onCustomEvent);
   }
 
   private unregisterPlayerEvents(): void {

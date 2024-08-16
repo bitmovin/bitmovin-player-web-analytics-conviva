@@ -2,22 +2,22 @@ import { PlayerAPI, PlayerEvent, PlayerEventBase } from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 export class PlayerStateHelper {
-  public static getPlayerStateFromEvent(event: PlayerEventBase, events: typeof PlayerEvent, player: PlayerAPI) {
+  public static getPlayerStateFromEvent(event: PlayerEventBase, player: PlayerAPI) {
     let playerState;
 
     switch (event.type) {
-      case events.StallStarted:
+      case PlayerEvent.StallStarted:
         playerState = Conviva.Constants.PlayerState.BUFFERING;
         break;
-      case events.Playing:
+      case PlayerEvent.Playing:
         playerState = Conviva.Constants.PlayerState.PLAYING;
         break;
-      case events.Paused:
+      case PlayerEvent.Paused:
         playerState = Conviva.Constants.PlayerState.PAUSED;
         break;
-      case events.Seeked:
-      case events.TimeShifted:
-      case events.StallEnded:
+      case PlayerEvent.Seeked:
+      case PlayerEvent.TimeShifted:
+      case PlayerEvent.StallEnded:
         if (player.isPlaying()) {
           playerState = Conviva.Constants.PlayerState.PLAYING;
         } else {

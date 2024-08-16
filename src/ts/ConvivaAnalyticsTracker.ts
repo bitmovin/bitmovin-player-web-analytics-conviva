@@ -1,16 +1,16 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import type {
+import {
   AudioTrack,
   ErrorEvent,
   PlaybackEvent,
   PlayerAPI,
-  PlayerEvent,
   PlayerEventBase,
   SourceConfig,
   VideoQualityChangedEvent,
   SubtitleTrack,
   TimeMode,
 } from 'bitmovin-player';
+import { PlayerEvent } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
 import { Html5Storage } from './Html5Storage';
@@ -113,9 +113,16 @@ export class ConvivaAnalyticsTracker {
   private static readonly VERSION: string = '{{VERSION}}';
 
   private static readonly STALL_TRACKING_DELAY_MS = 100;
-  private readonly player: PlayerAPI;
-  private readonly events: typeof PlayerEvent;
-  private readonly handlers: PlayerEventWrapper;
+  private _player: PlayerAPI;
+
+  private get player(): PlayerAPI {
+    if (!this._player) {
+      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` it before using the integration.');
+    }
+    return this._player;
+  }
+
+  private handlers?: PlayerEventWrapper;
   private readonly config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
 
@@ -141,6 +148,21 @@ export class ConvivaAnalyticsTracker {
    */
   public get canTrackPlayEvent(): boolean {
     return !this._isAdBreakActive;
+  }
+
+  public attachPlayer(player: PlayerAPI): void {
+    if (this._player) {
+      throw new Error('Player is already attached');
+    }
+
+    this._player = player;
+
+    if (this.handlers) {
+      this.unregisterPlayerEvents();
+    }
+
+    this.handlers = new PlayerEventWrapper(player);
+    this.registerPlayerEvents();
   }
 
   public getContentMetadata() {
@@ -171,7 +193,7 @@ export class ConvivaAnalyticsTracker {
    */
   private sessionEndedExternally = false;
 
-  constructor(player: PlayerAPI, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
+  constructor(customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error(
         `Conviva script missing, cannot init ConvivaAnalytics. Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin's ConvivaAnalytics integration.`,
@@ -179,17 +201,6 @@ export class ConvivaAnalyticsTracker {
       return; // Cancel initialization
     }
 
-    if (player.getSource()) {
-      console.error('Bitmovin Conviva integration must be instantiated before calling player.load()');
-      return; // Cancel initialization
-    }
-
-    this.player = player;
-
-    // TODO: Use alternative to deprecated player.exports
-    this.events = player.exports.PlayerEvent;
-
-    this.handlers = new PlayerEventWrapper(player);
     this.config = config;
 
     // Set default config values
@@ -231,8 +242,6 @@ export class ConvivaAnalyticsTracker {
     Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
-
-    this.registerPlayerEvents();
   }
 
   public initializeSession(): void {
@@ -436,7 +445,13 @@ export class ConvivaAnalyticsTracker {
     this.debugLog('[ ConvivaAnalyticsTracker ] new session key', this.sessionKey);
 
     this.convivaVideoAnalytics.setCallback(() => {
-      const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
+      const playheadTime = this.player.getCurrentTime('relativetime' as TimeMode);
+
+      if (!Number.isFinite(playheadTime)) {
+        return;
+      }
+
+      const playheadTimeMs = playheadTime * 1000;
 
       if (this._isAdBreakActive) {
         this.debugLog('[ ConvivaAnalyticsTracker ] report ad player head time', playheadTimeMs);
@@ -528,6 +543,8 @@ export class ConvivaAnalyticsTracker {
 
     this.hasPlayed = false;
     this._isAdBreakActive = false;
+
+    this._player = null;
   };
 
   private resetContentMetadata(): void {
@@ -554,20 +571,20 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    const playerState = PlayerStateHelper.getPlayerStateFromEvent(event, this.events, this.player);
+    const playerState = PlayerStateHelper.getPlayerStateFromEvent(event, this.player);
     const stallTrackingStartEvents = [
-      this.events.Play,
-      this.events.Seek,
-      this.events.TimeShift,
+      PlayerEvent.Play,
+      PlayerEvent.Seek,
+      PlayerEvent.TimeShift,
     ];
     const stallTrackingClearEvents = [
-      this.events.StallStarted,
-      this.events.Playing,
-      this.events.Paused,
-      this.events.Seeked,
-      this.events.TimeShifted,
-      this.events.StallEnded,
-      this.events.PlaybackFinished,
+      PlayerEvent.StallStarted,
+      PlayerEvent.Playing,
+      PlayerEvent.Paused,
+      PlayerEvent.Seeked,
+      PlayerEvent.TimeShifted,
+      PlayerEvent.StallEnded,
+      PlayerEvent.PlaybackFinished,
     ];
 
     if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
@@ -587,7 +604,7 @@ export class ConvivaAnalyticsTracker {
       }
     }
 
-    if (event.type === this.events.PlaybackFinished) {
+    if (event.type === PlayerEvent.PlaybackFinished) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report playback ended');
       this.convivaVideoAnalytics.reportPlaybackEnded();
     }
@@ -875,12 +892,12 @@ export class ConvivaAnalyticsTracker {
   };
 
   private registerPlayerEvents(): void {
-    this.handlers.add(this.events.SourceLoaded, this.onSourceLoaded);
-    this.handlers.add(this.events.Play, this.onPlay);
-    this.handlers.add(this.events.Playing, this.onPlaying);
-    this.handlers.add(this.events.PlaybackFinished, this.onPlaybackFinished);
-    this.handlers.add(this.events.SourceUnloaded, this.onSourceUnloaded);
-    this.handlers.add(this.events.Destroy, this.onDestroy);
+    this.handlers.add(PlayerEvent.SourceLoaded, this.onSourceLoaded);
+    this.handlers.add(PlayerEvent.Play, this.onPlay);
+    this.handlers.add(PlayerEvent.Playing, this.onPlaying);
+    this.handlers.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
+    this.handlers.add(PlayerEvent.SourceUnloaded, this.onSourceUnloaded);
+    this.handlers.add(PlayerEvent.Destroy, this.onDestroy);
   }
 
   private unregisterPlayerEvents(): void {
