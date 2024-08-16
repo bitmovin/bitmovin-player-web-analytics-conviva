@@ -76,10 +76,6 @@ export class ConvivaAnalytics {
 
     this._player = player;
 
-    if (this.handlers) {
-      this.unregisterPlayerEvents();
-    }
-
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
 
@@ -117,6 +113,7 @@ export class ConvivaAnalytics {
   private reset(): void {
     this.lastAdBreakEvent = null;
     this._player = null;
+    this.handlers = null;
     this.convivaSsaiAnalytics.reset();
   }
 

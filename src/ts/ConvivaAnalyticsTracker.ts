@@ -157,10 +157,6 @@ export class ConvivaAnalyticsTracker {
 
     this._player = player;
 
-    if (this.handlers) {
-      this.unregisterPlayerEvents();
-    }
-
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
   }
@@ -355,8 +351,11 @@ export class ConvivaAnalyticsTracker {
   public release(event?: PlayerEventBase): void {
     this.debugLog('[ ConvivaAnalyticsTracker ] releasing', event);
 
-    this.unregisterPlayerEvents();
     this.internalEndSession(event);
+
+    this.unregisterPlayerEvents();
+    this._player = null;
+    this.handlers = null;
 
     Conviva.Analytics.release();
   }
@@ -543,8 +542,6 @@ export class ConvivaAnalyticsTracker {
 
     this.hasPlayed = false;
     this._isAdBreakActive = false;
-
-    this._player = null;
   };
 
   private resetContentMetadata(): void {
