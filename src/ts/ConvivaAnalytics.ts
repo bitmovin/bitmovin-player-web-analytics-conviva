@@ -68,6 +68,20 @@ export class ConvivaAnalytics {
     };
   }
 
+  /**
+   * Attaches the player instance to the integration. This can be used to lazy attach the player instance e.g.
+   * to measure VST (Video start time) more precisely, for example:
+   *   ```
+   *    const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')
+   *    convivaAnalytics.initializeSession();
+   *
+   *    // do some other work, e.g. fetching the source
+   *
+   *    convivaAnalytics.attachPlayer(player);
+   *    player.load({ ... });
+   *    ```
+   * @param player The player instance to attach to the integration.
+   */
   public attachPlayer(player: PlayerAPI): void {
     this.convivaAnalyticsTracker.attachAndValidatePlayer(player);
 
