@@ -170,6 +170,14 @@ export class ConvivaAnalyticsTracker {
 
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
+
+    const playerInfo = {
+      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
+      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
+    };
+
+    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
+    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
   }
 
   public getContentMetadata() {
@@ -435,14 +443,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
     this.convivaAdAnalytics = Conviva.Analytics.buildAdAnalytics(this.convivaVideoAnalytics);
 
-    const playerInfo = {
-      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
-      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
-    };
-
-    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
-    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
-
     this.debugLog('[ ConvivaAnalyticsTracker ] report playback requested');
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
 
@@ -451,6 +451,10 @@ export class ConvivaAnalyticsTracker {
     this.debugLog('[ ConvivaAnalyticsTracker ] new session key', this.sessionKey);
 
     this.convivaVideoAnalytics.setCallback(() => {
+      if (!this.isPlayerAttached) {
+        return;
+      }
+
       const playheadTime = this.player.getCurrentTime(TimeMode.RelativeTime);
 
       if (!Number.isFinite(playheadTime)) {
