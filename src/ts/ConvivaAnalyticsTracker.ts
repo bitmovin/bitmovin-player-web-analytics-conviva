@@ -126,16 +126,16 @@ export class ConvivaAnalyticsTracker {
   private readonly config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
 
-  private readonly logger: Conviva.LoggingInterface;
-  private sessionKey: number;
-  private convivaVideoAnalytics: Conviva.VideoAnalytics;
-  private convivaAdAnalytics: Conviva.AdAnalytics;
+  private readonly logger: Conviva.LoggingInterface = new Html5Logging();
+  private sessionKey: number = Conviva.Constants.NO_SESSION_KEY;
+  private convivaVideoAnalytics?: Conviva.VideoAnalytics;
+  private convivaAdAnalytics?: Conviva.AdAnalytics;
 
   /**
    * Tracks the ad break status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
    * This flag is required because player.isAd() is unreliable and not always true between the events.
    */
-  private _isAdBreakActive: boolean;
+  private _isAdBreakActive: boolean = false;
 
   public get isAdBreakActive(): boolean {
     return this._isAdBreakActive;
@@ -202,10 +202,6 @@ export class ConvivaAnalyticsTracker {
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
 
-    this.logger = new Html5Logging();
-    this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
-    this._isAdBreakActive = false;
-
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
     const deviceMetadata: Conviva.ConvivaDeviceMetadata = {
       [Conviva.Constants.DeviceMetadata.CATEGORY]:
@@ -270,7 +266,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackEnded();
 
     this.internalEndSession();
-    this.resetContentMetadata();
     this.sessionEndedExternally = true;
   }
 
@@ -329,7 +324,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackFailed(message);
     if (endSession) {
       this.internalEndSession();
-      this.resetContentMetadata();
     }
   }
 
@@ -534,6 +528,8 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] end session', Conviva.Constants.NO_SESSION_KEY, event);
 
+    this.contentMetadataBuilder.reset();
+
     this.convivaVideoAnalytics.release();
     this.convivaVideoAnalytics = null;
 
@@ -543,10 +539,6 @@ export class ConvivaAnalyticsTracker {
     this.hasPlayed = false;
     this._isAdBreakActive = false;
   };
-
-  private resetContentMetadata(): void {
-    this.contentMetadataBuilder.reset();
-  }
 
   private isSessionActive(): boolean {
     return !!this.convivaVideoAnalytics;
@@ -878,13 +870,11 @@ export class ConvivaAnalyticsTracker {
       return;
     } else {
       this.internalEndSession(event);
-      this.resetContentMetadata();
     }
   };
 
   private onDestroy = (event: any) => {
     this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] destroy', event);
-
     this.release(event);
   };
 

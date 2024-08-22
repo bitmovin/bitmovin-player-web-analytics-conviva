@@ -48,7 +48,6 @@ export class ConvivaAnalytics {
     this.convivaAnalyticsTracker = new ConvivaAnalyticsTracker(customerKey, config);
     this.debugLoggingEnabled = config.debugLoggingEnabled || false;
     this._player = player;
-    this.handlers = new PlayerEventWrapper(player);
 
     if (player) {
       this.attachPlayer(player);
@@ -106,15 +105,8 @@ export class ConvivaAnalytics {
    * no longer ensure that the session is managed at the correct time.
    */
   public endSession(): void {
-    this.reset();
-    this.convivaAnalyticsTracker.endSession();
-  }
-
-  private reset(): void {
-    this.lastAdBreakEvent = null;
-    this._player = null;
-    this.handlers = null;
     this.convivaSsaiAnalytics.reset();
+    this.convivaAnalyticsTracker.endSession();
   }
 
   /**
@@ -182,14 +174,12 @@ export class ConvivaAnalytics {
   }
 
   public release(): void {
-    this.destroy();
-    this.convivaAnalyticsTracker.release();
-  }
-
-  private destroy(event?: PlayerEventBase): void {
     this.unregisterPlayerEvents();
-    this.reset();
-    this.convivaAnalyticsTracker.release(event);
+    this.lastAdBreakEvent = null;
+    this._player = null;
+    this.handlers = null;
+    this.convivaSsaiAnalytics.reset();
+    this.convivaAnalyticsTracker.release();
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -318,7 +308,7 @@ export class ConvivaAnalytics {
 
   private onDestroy = (event: any) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] destroy', event);
-    this.destroy(event);
+    this.release();
   };
 
   private registerPlayerEvents(): void {
