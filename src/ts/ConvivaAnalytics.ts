@@ -73,6 +73,7 @@ export class ConvivaAnalytics {
    * to measure VST (Video start time) more precisely, for example:
    *   ```
    *    const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')
+   *    convivaAnalytics.updateContentMetadata({ assetName: 'My video' });
    *    convivaAnalytics.initializeSession();
    *
    *    // do some other work, e.g. fetching the source

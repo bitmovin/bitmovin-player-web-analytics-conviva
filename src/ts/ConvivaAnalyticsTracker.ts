@@ -122,6 +122,10 @@ export class ConvivaAnalyticsTracker {
     return this._player;
   }
 
+  private get isPlayerAttached(): boolean {
+    return !!this._player;
+  }
+
   private handlers?: PlayerEventWrapper;
   private readonly config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
@@ -151,8 +155,11 @@ export class ConvivaAnalyticsTracker {
   }
 
   public attachAndValidatePlayer(player: PlayerAPI): void {
-    if (this._player) {
-      throw new Error('Cannot attach player to Bitmovin Conviva integration because player is already attached');
+    if (this.isPlayerAttached) {
+      this.logger.consoleLog(
+        '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player is already attached',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
     }
 
     if (player.getSource()) {
@@ -248,8 +255,10 @@ export class ConvivaAnalyticsTracker {
 
     // This could be called before source loaded.
     // Without setting the asset name on the content metadata the SDK will throw errors when we initialize the session.
-    if (!this.player.getSource() && !this.contentMetadataBuilder.assetName) {
-      throw 'AssetName is missing. Load player source first or set assetName via updateContentMetadata';
+    if (!this.isPlayerAttached && !this.contentMetadataBuilder.assetName) {
+      throw 'Player is not attached during session initialization and `assetName` is empty in the content metadata. Either attach the player before calling `initializeSession` or set the `assetName` manually using `updateContentMetadata`.';
+    } else if (this.isPlayerAttached && !this.player.getSource() && !this.contentMetadataBuilder.assetName) {
+      throw 'Player is attached but no source is loaded and `assetName` is empty in the content metadata. Either load a source before calling `initializeSession` or set the `assetName` manually using `updateContentMetadata`.';
     }
 
     this.internalInitializeSession();
@@ -472,6 +481,11 @@ export class ConvivaAnalyticsTracker {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
+    if (!this.isPlayerAttached) {
+      this.debugLog('[ ConvivaAnalyticsTracker ] Player is not attached, skipping default content metadata initialization, it will be initialized on source loaded event');
+      return;
+    }
+
     this.contentMetadataBuilder.duration = this.player.getDuration();
     this.contentMetadataBuilder.streamType = this.player.isLive()
       ? Conviva.ContentMetadata.StreamType.LIVE
@@ -488,20 +502,16 @@ export class ConvivaAnalyticsTracker {
 
     // This could be called before we got a source
     if (source) {
-      this.buildSourceRelatedMetadata(source);
+      this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
+      this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
+      this.contentMetadataBuilder.addToCustom({
+        [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
+        [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
+        [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
+      });
+
+      this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
     }
-  }
-
-  private buildSourceRelatedMetadata(source: SourceConfig) {
-    this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
-    this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
-    this.contentMetadataBuilder.addToCustom({
-      [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
-      [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
-      [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
-    });
-
-    this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
   }
 
   private updateSession() {
@@ -555,7 +565,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    this.buildSourceRelatedMetadata(this.player.getSource());
+    this.buildContentMetadata();
     this.updateSession();
   };
 
