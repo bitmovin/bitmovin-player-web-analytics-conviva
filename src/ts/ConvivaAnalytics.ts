@@ -27,7 +27,7 @@ export class ConvivaAnalytics {
 
   private get player(): PlayerAPI {
     if (!this._player) {
-      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` it before using the integration.');
+      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.');
     }
     return this._player;
   }
@@ -69,16 +69,11 @@ export class ConvivaAnalytics {
   }
 
   public attachPlayer(player: PlayerAPI): void {
-    if (this._player) {
-      throw new Error('Player is already attached');
-    }
+    this.convivaAnalyticsTracker.attachAndValidatePlayer(player);
 
     this._player = player;
-
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
-
-    this.convivaAnalyticsTracker.attachPlayer(player);
   }
 
   /**

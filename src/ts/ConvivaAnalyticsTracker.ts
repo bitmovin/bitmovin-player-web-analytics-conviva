@@ -117,7 +117,7 @@ export class ConvivaAnalyticsTracker {
 
   private get player(): PlayerAPI {
     if (!this._player) {
-      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` it before using the integration.');
+      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.');
     }
     return this._player;
   }
@@ -150,9 +150,13 @@ export class ConvivaAnalyticsTracker {
     return !this._isAdBreakActive;
   }
 
-  public attachPlayer(player: PlayerAPI): void {
+  public attachAndValidatePlayer(player: PlayerAPI): void {
     if (this._player) {
       throw new Error('Player is already attached');
+    }
+
+    if (player.getSource()) {
+      throw new Error('Bitmovin Conviva integration must be instantiated before calling player.load()');
     }
 
     this._player = player;
