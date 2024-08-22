@@ -2,6 +2,7 @@ import { MockHelper, PlayerEventHelper } from '../helper/MockHelper';
 import { ConvivaAnalytics } from '../../src/ts';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import { PlayerAPI } from 'bitmovin-player';
+import { ConvivaAnalyticsTracker } from '../../src/ts/ConvivaAnalyticsTracker';
 
 jest.mock('@convivainc/conviva-js-coresdk', () => {
   const { MockHelper } = jest.requireActual('../helper/MockHelper');
@@ -82,36 +83,36 @@ describe('player event tests', () => {
             playerEventHelper.fireStallStartedEvent();
           });
 
-          afterEach((done: any) => {
-            setTimeout(function () {
-              expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(
-                Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING,
-              );
-              done();
-            }, 120);
+          afterEach(async () => {
+            await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS * 1.5));
+
+            expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenLastCalledWith(
+              Conviva.Constants.Playback.PLAYER_STATE,
+              Conviva.Constants.PlayerState.BUFFERING,
+            );
           });
         });
       });
 
       describe('does not report stalling', () => {
-        it('when content is preloaded', (done: any) => {
+        it('when content is preloaded', async () => {
           playerEventHelper.firePlayEvent();
-          setTimeout(() => {
-            playerEventHelper.firePlayingEvent();
 
-            expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-              Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING,
-            );
-            setTimeout(() => {
-              expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-                Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING,
-              );
-              done();
-            }, 2000);
-          }, 30);
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS / 2));
+
+          playerEventHelper.firePlayingEvent();
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS * 1.5));
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
         });
       });
 
@@ -121,42 +122,44 @@ describe('player event tests', () => {
           playerEventHelper.firePlayingEvent();
         });
 
-        it('and seeking', (done: any) => {
+        it('and seeking', async () => {
           playerEventHelper.fireSeekEvent();
-          setTimeout(() => {
-            playerEventHelper.fireSeekedEvent();
 
-            expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-              Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING,
-            );
-            setTimeout(() => {
-              expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-                Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING,
-              );
-              done();
-            }, 2000);
-          }, 30);
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS / 2));
+
+          playerEventHelper.fireSeekedEvent();
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS * 1.5));
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
         });
 
-        it('and time shifting', (done: any) => {
+        it('and time shifting', async () => {
           playerEventHelper.fireTimeShiftEvent();
-          setTimeout(() => {
-            playerEventHelper.fireTimeShiftedEvent();
 
-            expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-              Conviva.Constants.Playback.PLAYER_STATE,
-              Conviva.Constants.PlayerState.BUFFERING,
-            );
-            setTimeout(() => {
-              expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
-                Conviva.Constants.Playback.PLAYER_STATE,
-                Conviva.Constants.PlayerState.BUFFERING,
-              );
-              done();
-            }, 2000);
-          }, 30);
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS / 2));
+
+          playerEventHelper.fireTimeShiftedEvent();
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, ConvivaAnalyticsTracker.STALL_TRACKING_DELAY_MS * 1.5));
+
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(
+            Conviva.Constants.Playback.PLAYER_STATE,
+            Conviva.Constants.PlayerState.BUFFERING,
+          );
         });
       });
     });

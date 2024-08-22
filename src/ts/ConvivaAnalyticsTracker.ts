@@ -112,7 +112,7 @@ export interface EventAttributes {
 export class ConvivaAnalyticsTracker {
   private static readonly VERSION: string = '{{VERSION}}';
 
-  private static readonly STALL_TRACKING_DELAY_MS = 100;
+  public static readonly STALL_TRACKING_DELAY_MS = 100;
   private _player: PlayerAPI;
 
   private get player(): PlayerAPI {
