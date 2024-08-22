@@ -152,11 +152,11 @@ export class ConvivaAnalyticsTracker {
 
   public attachAndValidatePlayer(player: PlayerAPI): void {
     if (this._player) {
-      throw new Error('Player is already attached');
+      throw new Error('Cannot attach player to Bitmovin Conviva integration because player is already attached');
     }
 
     if (player.getSource()) {
-      throw new Error('Bitmovin Conviva integration must be instantiated before calling player.load()');
+      throw new Error('Cannot attach player to Bitmovin Conviva integration because player.load() has already been called (attaching player is possible only before player.load())');
     }
 
     this._player = player;
@@ -442,7 +442,7 @@ export class ConvivaAnalyticsTracker {
     this.debugLog('[ ConvivaAnalyticsTracker ] new session key', this.sessionKey);
 
     this.convivaVideoAnalytics.setCallback(() => {
-      const playheadTime = this.player.getCurrentTime('relativetime' as TimeMode);
+      const playheadTime = this.player.getCurrentTime(TimeMode.RelativeTime);
 
       if (!Number.isFinite(playheadTime)) {
         return;
