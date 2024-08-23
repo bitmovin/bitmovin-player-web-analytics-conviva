@@ -74,11 +74,11 @@ export class ConvivaAnalytics {
    *   ```
    *   const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')
    *
-   *   // Asset name is required to initialize the session before `player.load()`.
+   *   // Asset name is required to be set when initializing the session before `player.load()`.
    *   convivaAnalytics.updateContentMetadata({ assetName: 'My video' });
    *   convivaAnalytics.initializeSession();
    *
-   *   // do some other work, e.g. fetching the source
+   *   // do some other work, e.g. fetch the source
    *
    *   convivaAnalytics.attachPlayer(player);
    *   player.load({ ... });
