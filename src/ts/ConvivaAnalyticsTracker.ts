@@ -170,15 +170,24 @@ export class ConvivaAnalyticsTracker {
     this._player = player;
 
     this.handlers = new PlayerEventWrapper(player);
+    this.setPlayerInfo();
     this.registerPlayerEvents();
+  }
+
+  private setPlayerInfo() {
+    if (!this.convivaAdAnalytics || !this.convivaAdAnalytics || !this.isPlayerAttached) {
+      return;
+    }
 
     const playerInfo = {
       [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
       [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
     };
 
-    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
-    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
+    if (this.convivaVideoAnalytics) {
+      this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
+      this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
+    }
   }
 
   public getContentMetadata() {
@@ -480,6 +489,8 @@ export class ConvivaAnalyticsTracker {
         Conviva.SystemSettings.LogLevel.ERROR,
       );
     }
+
+    this.setPlayerInfo();
   }
 
   /**
