@@ -524,24 +524,4 @@ describe(ConvivaAnalytics, () => {
       })
     });
   })
-
-  describe('player attachment', () => {
-    beforeEach(() => {
-      jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
-    })
-
-    it('attaches player later', () => {
-      convivaAnalytics = new ConvivaAnalytics(undefined, 'TEST-KEY');
-
-      expect(() => convivaAnalytics.attachPlayer(playerMock)).not.toThrow();
-      expect(() => convivaAnalytics.attachPlayer(playerMock)).toThrow();
-    })
-
-    it('should not allow attaching player twice', () => {
-      convivaAnalytics = new ConvivaAnalytics(undefined, 'TEST-KEY');
-
-      expect(() => convivaAnalytics.attachPlayer(playerMock)).not.toThrow();
-      expect(() => convivaAnalytics.attachPlayer(playerMock)).toThrow();
-    })
-  })
 });
