@@ -160,6 +160,7 @@ export class ConvivaAnalyticsTracker {
         '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player is already attached',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
+      return;
     }
 
     if (player.getSource()) {
@@ -262,7 +263,7 @@ export class ConvivaAnalyticsTracker {
     }
 
     // This could be called before source loaded.
-    // Without setting the asset name on the content metadata the SDK will throw errors when we initialize the session.
+    // Without setting the asset name on the content metadata there will be errors on touchstone when we initialize the session.
     if (!this.isPlayerAttached && !this.contentMetadataBuilder.assetName) {
       throw 'Player is not attached during session initialization and `assetName` is empty in the content metadata. Either attach the player before calling `initializeSession` or set the `assetName` manually using `updateContentMetadata`.';
     } else if (this.isPlayerAttached && !this.player.getSource() && !this.contentMetadataBuilder.assetName) {
