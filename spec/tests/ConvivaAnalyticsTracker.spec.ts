@@ -12,7 +12,7 @@ describe(ConvivaAnalyticsTracker, () => {
   it('should report ad resolution and framerate for server side ad', () => {
     const {playerMock} = MockHelper.createPlayerMock();
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-    convivaAnalyticsTracker.attachAndValidatePlayer(playerMock);
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({}));
 
@@ -27,7 +27,7 @@ describe(ConvivaAnalyticsTracker, () => {
   it('should not report ad resolution and framerate for client side ad', () => {
     const {playerMock} = MockHelper.createPlayerMock();
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-    convivaAnalyticsTracker.attachAndValidatePlayer(playerMock);
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({}));
 
@@ -43,7 +43,7 @@ describe(ConvivaAnalyticsTracker, () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-    convivaAnalyticsTracker.attachAndValidatePlayer(playerMock);
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
 
@@ -54,7 +54,7 @@ describe(ConvivaAnalyticsTracker, () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-    convivaAnalyticsTracker.attachAndValidatePlayer(playerMock);
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
 
@@ -65,7 +65,7 @@ describe(ConvivaAnalyticsTracker, () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
     const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-    convivaAnalyticsTracker.attachAndValidatePlayer(playerMock);
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
     const invokedTimesBefore = getInvokedTimes(MockHelper.latestVideoAnalytics.reportPlaybackMetric);

@@ -154,30 +154,34 @@ export class ConvivaAnalyticsTracker {
     return !this._isAdBreakActive;
   }
 
-  public attachAndValidatePlayer(player: PlayerAPI): boolean {
+  public canAttachPlayer(player: PlayerAPI) {
+    let reason: string | undefined = undefined;
+
     if (this.isPlayerAttached) {
-      this.logger.consoleLog(
-        '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player is already attached',
-        Conviva.SystemSettings.LogLevel.WARNING,
-      );
-      return false;
+      reason = 'Player is already attached';
     }
 
     if (player.getSource()) {
-      this.logger.consoleLog(
-        '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player.load() has already been called (attaching player is possible only before player.load())',
-        Conviva.SystemSettings.LogLevel.WARNING,
-      )
-      return false;
+      reason = 'Player.load() has already been called (attaching player is possible only before player.load())';
+    }
+
+    return {
+      canAttach: !reason,
+      reason,
+    };
+  }
+
+  public attachPlayer(player: PlayerAPI): void {
+    const {canAttach} = this.canAttachPlayer(player);
+
+    if (!canAttach) {
+      return;
     }
 
     this._player = player;
-
     this.handlers = new PlayerEventWrapper(player);
     this.setPlayerInfo();
     this.registerPlayerEvents();
-
-    return true;
   }
 
   private setPlayerInfo() {
@@ -289,7 +293,7 @@ export class ConvivaAnalyticsTracker {
     this.sessionEndedExternally = false;
   }
 
-  public endSession(): void {
+  private ensurePlaybackFinished() {
     if (!this.isSessionActive()) {
       return;
     }
@@ -301,7 +305,16 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report playback ended state');
     this.convivaVideoAnalytics.reportPlaybackEnded();
+  }
 
+  public endSession(): void {
+    if (!this.isSessionActive()) {
+      return;
+    }
+
+    this.debugLog('[ ConvivaAnalytics ] external ending session');
+
+    this.ensurePlaybackFinished();
     this.internalEndSession();
     this.sessionEndedExternally = true;
   }
@@ -379,14 +392,20 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportAdBreakEnded();
   }
 
-  public release(event?: PlayerEventBase): void {
-    this.debugLog('[ ConvivaAnalyticsTracker ] releasing', event);
+  public release(isPlayerDestroyed: boolean): void {
+    this.debugLog('[ ConvivaAnalyticsTracker ] releasing', {
+      isPlayerDestroyed,
+    });
 
-    this.internalEndSession(event);
+    if (!isPlayerDestroyed) {
+      this.unregisterPlayerEvents();
+    }
 
-    this.unregisterPlayerEvents();
     this._player = null;
     this.handlers = null;
+
+    this.ensurePlaybackFinished();
+    this.internalEndSession();
 
     Conviva.Analytics.release();
   }
@@ -557,12 +576,12 @@ export class ConvivaAnalyticsTracker {
     return assetName;
   }
 
-  private internalEndSession = (event?: PlayerEventBase) => {
+  private internalEndSession = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] end session', Conviva.Constants.NO_SESSION_KEY, event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] end session', this.sessionKey);
 
     this.contentMetadataBuilder.reset();
 
@@ -905,13 +924,8 @@ export class ConvivaAnalyticsTracker {
       // Ignore sourceUnloaded events during ads
       return;
     } else {
-      this.internalEndSession(event);
+      this.internalEndSession();
     }
-  };
-
-  private onDestroy = (event: any) => {
-    this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] destroy', event);
-    this.release(event);
   };
 
   private registerPlayerEvents(): void {
@@ -920,7 +934,6 @@ export class ConvivaAnalyticsTracker {
     this.handlers.add(PlayerEvent.Playing, this.onPlaying);
     this.handlers.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
     this.handlers.add(PlayerEvent.SourceUnloaded, this.onSourceUnloaded);
-    this.handlers.add(PlayerEvent.Destroy, this.onDestroy);
   }
 
   private unregisterPlayerEvents(): void {

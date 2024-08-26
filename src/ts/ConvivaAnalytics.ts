@@ -19,6 +19,7 @@ import { ConvivaAnalyticsConfiguration, ConvivaAnalyticsTracker, EventAttributes
 import { ConvivaAnalyticsSsai } from './ConvivaAnalyticsSsai';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { AdHelper } from './helper/AdHelper';
+import { Html5Logging } from './Html5Logging';
 
 export class ConvivaAnalytics {
   private handlers?: PlayerEventWrapper;
@@ -41,6 +42,8 @@ export class ConvivaAnalytics {
   private lastAdBreakEvent: AdBreakEvent;
 
   private convivaSsaiAnalytics: ConvivaAnalyticsSsai;
+
+  private readonly logger: Conviva.LoggingInterface = new Html5Logging();
 
   public readonly ssai: Omit<ConvivaAnalyticsSsai, 'reset'>;
 
@@ -69,38 +72,43 @@ export class ConvivaAnalytics {
   }
 
   /**
-   * Attaches the player instance to the integration. This can for late player attaching e.g.
-   * to measure VST (Video start time) more precisely, for example:
-   *   ```
-   *   const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')
+   * Attaches the player instance to the integration. This can be used for late player attaching e.g.
+   * to measure VST (Video start time) more precisely.
    *
-   *   // Asset name is required to be set when initializing the session before `player.load()`.
-   *   convivaAnalytics.updateContentMetadata({ assetName: 'My video' });
-   *   convivaAnalytics.initializeSession();
+   * Has no effect if there is already a `Player` instance set. Use the `new ConvivaAnalytics(...)` without `player`
+   * if you plan to attach a `Player` instance later in the life-cycle.
    *
-   *   // do some other work, e.g. fetch the source
+   * Example:
+   * ```
+   * const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')
    *
-   *   convivaAnalytics.attachPlayer(player);
-   *   player.load({ ... });
-   *   ```
+   * // Asset name is required to be set when initializing the session before `player.load()`.
+   * convivaAnalytics.updateContentMetadata({ assetName: 'My video' });
+   * convivaAnalytics.initializeSession();
    *
-   * Has no effect if there is already an `Player` instance set. Use the `new ConvivaAnalytics(...)` without `player`
-   * if you plan to attach an `Player` instance later in the life-cycle.
+   * // ... Additional setup steps
+   *
+   * convivaAnalytics.attachPlayer(player);
+   * player.load({ ... });
+   * ```
    *
    * @param player The player instance to attach to the integration.
    */
-  public attachPlayer(player: PlayerAPI): boolean {
-    const isAttached = this.convivaAnalyticsTracker.attachAndValidatePlayer(player);
+  public attachPlayer(player: PlayerAPI): void {
+    const {canAttach, reason} = this.convivaAnalyticsTracker.canAttachPlayer(player);
 
-    if (!isAttached) {
-      return false;
+    if (!canAttach) {
+      this.logger.consoleLog(
+        `[ ConvivaAnalyticsTracker ] cannot attach player: ${reason}`,
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
+      return;
     }
 
+    this.convivaAnalyticsTracker.attachPlayer(player);
     this._player = player;
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
-
-    return true;
   }
 
   /**
@@ -127,6 +135,7 @@ export class ConvivaAnalytics {
    * no longer ensure that the session is managed at the correct time.
    */
   public endSession(): void {
+    this.debugLog('[ ConvivaAnalytics ] external ending session');
     this.convivaSsaiAnalytics.reset();
     this.convivaAnalyticsTracker.endSession();
   }
@@ -195,13 +204,24 @@ export class ConvivaAnalytics {
     this.convivaAnalyticsTracker.resumeTracking();
   }
 
-  public release(): void {
-    this.unregisterPlayerEvents();
-    this.lastAdBreakEvent = null;
+  public release(event?: PlayerEventBase): void {
+    const isPlayerDestroyed = event?.type === PlayerEvent.Destroy;
+
+    if (!isPlayerDestroyed) {
+      this.unregisterPlayerEvents();
+    }
+
     this._player = null;
     this.handlers = null;
+
+    this.debugLog('[ ConvivaAnalytics ] releasing', {
+      event,
+      isPlayerDestroyed,
+    });
+    this.convivaAnalyticsTracker.release(isPlayerDestroyed);
     this.convivaSsaiAnalytics.reset();
-    this.convivaAnalyticsTracker.release();
+    this.lastAdBreakEvent = null;
+
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -330,7 +350,7 @@ export class ConvivaAnalytics {
 
   private onDestroy = (event: any) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] destroy', event);
-    this.release();
+    this.release(event);
   };
 
   private registerPlayerEvents(): void {

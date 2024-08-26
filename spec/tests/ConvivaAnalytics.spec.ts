@@ -524,4 +524,51 @@ describe(ConvivaAnalytics, () => {
       })
     });
   })
+
+  describe("late player attaching", () => {
+    convivaAnalytics = new ConvivaAnalytics(undefined, 'TEST-KEY');
+
+    it("initializes session with asset name from source", () => {
+      jest.spyOn(playerMock, 'getSource').mockReturnValue({
+        hls: 'test.m3u8',
+        title: 'Asset Title',
+      });
+      convivaAnalytics.updateContentMetadata({ assetName: undefined });
+
+      expect(() => convivaAnalytics.initializeSession()).not.toThrow();
+    })
+
+    it("initializes session with asset name from metadata", () => {
+      jest.spyOn(playerMock, 'getSource').mockReturnValue(undefined);
+      convivaAnalytics.updateContentMetadata({ assetName: undefined });
+
+      expect(() => convivaAnalytics.initializeSession()).toThrow();
+    })
+
+    it("fails to initialize session if there is no asset name available", () => {
+      jest.spyOn(playerMock, 'getSource').mockReturnValue(null);
+      convivaAnalytics.updateContentMetadata({ assetName: undefined });
+
+      expect(() => convivaAnalytics.initializeSession()).toThrow();
+    })
+
+    it("attaches player after session initialization", () => {
+      jest.spyOn(playerMock, 'getSource').mockReturnValue({
+        hls: 'test.m3u8',
+        title: 'Asset Title',
+      });
+
+      convivaAnalytics.initializeSession();
+      convivaAnalytics.attachPlayer(playerMock);
+
+      playerEventHelper.firePlayEvent();
+
+      expect(MockHelper.latestVideoAnalytics.setPlayerInfo).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          frameworkName: 'Bitmovin Player',
+          frameworkVersion: '8.0.0',
+        }),
+      );
+    })
+  })
 });
