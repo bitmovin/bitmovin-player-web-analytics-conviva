@@ -69,7 +69,7 @@ export class ConvivaAnalytics {
   }
 
   /**
-   * Attaches the player instance to the integration. This can be used to lazy attach the player instance e.g.
+   * Attaches the player instance to the integration. This can for late player attaching e.g.
    * to measure VST (Video start time) more precisely, for example:
    *   ```
    *   const convivaAnalytics = new ConvivaAnalytics(undefined, '<CONVIVA_CUSTOMER_KEY>')

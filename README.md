@@ -174,3 +174,34 @@ The integration will close the active session.
 ```js
 player.load({…});
 ```
+
+#### External VST tracking
+
+If your app needs additional setup steps which should be included in VST tracking, such as DRM token generation, before the `Player` instance can be initialized, 
+the `ConvivaAnalytics` can be initialized without a `Player` instance. Once the `Player` instance is created it can be attached.
+
+1. Create the `ConvivaAnalytics` instance with your `customerKey` and configuration.
+
+```typescript
+const convivaAnalytics = new ConvivaAnalytics(undefined, customerKey);
+```
+
+2. Conviva requires that the `assetName` is set at session initialization. Therefore ensure that you provide using the metadata overrides **before** initializing the tracking session.
+
+```typescript
+convivaAnalytics.updateContentMetadata({
+  assetName: 'Your Asset Name',
+});
+
+// Initialize tracking session
+convivaAnalytics.initializeSession()
+```
+
+3. Once your `Player` instance is ready attach it to the `ConvivaAnalytics` instance.
+
+```typescript
+// ... Additional setup steps
+
+const player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
+convivaAnalytics.attachPlayer(player);
+``` 
