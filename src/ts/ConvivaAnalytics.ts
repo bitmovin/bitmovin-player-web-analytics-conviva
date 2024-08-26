@@ -83,14 +83,24 @@ export class ConvivaAnalytics {
    *   convivaAnalytics.attachPlayer(player);
    *   player.load({ ... });
    *   ```
+   *
+   * Has no effect if there is already an `Player` instance set. Use the `new ConvivaAnalytics(...)` without `player`
+   * if you plan to attach an `Player` instance later in the life-cycle.
+   *
    * @param player The player instance to attach to the integration.
    */
-  public attachPlayer(player: PlayerAPI): void {
-    this.convivaAnalyticsTracker.attachAndValidatePlayer(player);
+  public attachPlayer(player: PlayerAPI): boolean {
+    const isAttached = this.convivaAnalyticsTracker.attachAndValidatePlayer(player);
+
+    if (!isAttached) {
+      return false;
+    }
 
     this._player = player;
     this.handlers = new PlayerEventWrapper(player);
     this.registerPlayerEvents();
+
+    return true;
   }
 
   /**

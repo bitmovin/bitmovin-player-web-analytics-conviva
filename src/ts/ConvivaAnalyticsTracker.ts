@@ -154,17 +154,21 @@ export class ConvivaAnalyticsTracker {
     return !this._isAdBreakActive;
   }
 
-  public attachAndValidatePlayer(player: PlayerAPI): void {
+  public attachAndValidatePlayer(player: PlayerAPI): boolean {
     if (this.isPlayerAttached) {
       this.logger.consoleLog(
         '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player is already attached',
         Conviva.SystemSettings.LogLevel.WARNING,
       );
-      return;
+      return false;
     }
 
     if (player.getSource()) {
-      throw new Error('Cannot attach player to Bitmovin Conviva integration because player.load() has already been called (attaching player is possible only before player.load())');
+      this.logger.consoleLog(
+        '[ ConvivaAnalyticsTracker ] Cannot attach player to Bitmovin Conviva integration because player.load() has already been called (attaching player is possible only before player.load())',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      )
+      return false;
     }
 
     this._player = player;
@@ -172,6 +176,8 @@ export class ConvivaAnalyticsTracker {
     this.handlers = new PlayerEventWrapper(player);
     this.setPlayerInfo();
     this.registerPlayerEvents();
+
+    return true;
   }
 
   private setPlayerInfo() {
