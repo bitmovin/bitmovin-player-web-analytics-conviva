@@ -204,7 +204,11 @@ export class ConvivaAnalytics {
     this.convivaAnalyticsTracker.resumeTracking();
   }
 
-  public release(event?: PlayerEventBase): void {
+  public release(): void {
+    this.releaseInternal();
+  }
+
+  private releaseInternal(event?: PlayerEventBase): void {
     const isPlayerDestroyed = event?.type === PlayerEvent.Destroy;
 
     if (!isPlayerDestroyed) {
@@ -221,7 +225,6 @@ export class ConvivaAnalytics {
     this.convivaAnalyticsTracker.release(isPlayerDestroyed);
     this.convivaSsaiAnalytics.reset();
     this.lastAdBreakEvent = null;
-
   }
 
   private debugLog(message?: any, ...optionalParams: any[]): void {
@@ -350,7 +353,7 @@ export class ConvivaAnalytics {
 
   private onDestroy = (event: any) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] destroy', event);
-    this.release(event);
+    this.releaseInternal(event);
   };
 
   private registerPlayerEvents(): void {
