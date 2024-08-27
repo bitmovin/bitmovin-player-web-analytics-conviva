@@ -1,15 +1,15 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import type {
+import {
   AudioTrack,
   ErrorEvent,
   PlaybackEvent,
   PlayerAPI,
-  PlayerEvent,
   PlayerEventBase,
   SourceConfig,
   VideoQualityChangedEvent,
   SubtitleTrack,
   TimeMode,
+  PlayerEvent,
 } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
@@ -112,23 +112,34 @@ export interface EventAttributes {
 export class ConvivaAnalyticsTracker {
   private static readonly VERSION: string = '{{VERSION}}';
 
-  private static readonly STALL_TRACKING_DELAY_MS = 100;
-  private readonly player: PlayerAPI;
-  private readonly events: typeof PlayerEvent;
-  private readonly handlers: PlayerEventWrapper;
+  public static readonly STALL_TRACKING_DELAY_MS = 100;
+  private _player: PlayerAPI;
+
+  private get player(): PlayerAPI {
+    if (!this._player) {
+      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.');
+    }
+    return this._player;
+  }
+
+  private get isPlayerAttached(): boolean {
+    return !!this._player;
+  }
+
+  private handlers?: PlayerEventWrapper;
   private readonly config: ConvivaAnalyticsConfiguration;
   private readonly contentMetadataBuilder: ContentMetadataBuilder;
 
-  private readonly logger: Conviva.LoggingInterface;
-  private sessionKey: number;
-  private convivaVideoAnalytics: Conviva.VideoAnalytics;
-  private convivaAdAnalytics: Conviva.AdAnalytics;
+  private readonly logger: Conviva.LoggingInterface = new Html5Logging();
+  private sessionKey: number = Conviva.Constants.NO_SESSION_KEY;
+  private convivaVideoAnalytics?: Conviva.VideoAnalytics;
+  private convivaAdAnalytics?: Conviva.AdAnalytics;
 
   /**
    * Tracks the ad break status and is true between ON_AD_STARTED and ON_AD_FINISHED/SKIPPED/ERROR.
    * This flag is required because player.isAd() is unreliable and not always true between the events.
    */
-  private _isAdBreakActive: boolean;
+  private _isAdBreakActive: boolean = false;
 
   public get isAdBreakActive(): boolean {
     return this._isAdBreakActive;
@@ -141,6 +152,50 @@ export class ConvivaAnalyticsTracker {
    */
   public get canTrackPlayEvent(): boolean {
     return !this._isAdBreakActive;
+  }
+
+  public canAttachPlayer(player: PlayerAPI) {
+    let reason: string | undefined = undefined;
+
+    if (this.isPlayerAttached) {
+      reason = 'Player is already attached';
+    }
+
+    if (player.getSource()) {
+      reason = 'Player.load() has already been called (attaching player is possible only before player.load())';
+    }
+
+    return {
+      canAttach: !reason,
+      reason,
+    };
+  }
+
+  public attachPlayer(player: PlayerAPI): void {
+    const {canAttach} = this.canAttachPlayer(player);
+
+    if (!canAttach) {
+      return;
+    }
+
+    this._player = player;
+    this.handlers = new PlayerEventWrapper(player);
+    this.setPlayerInfo();
+    this.registerPlayerEvents();
+  }
+
+  private setPlayerInfo() {
+    if (!this.convivaVideoAnalytics || !this.convivaAdAnalytics || !this.isPlayerAttached) {
+      return;
+    }
+
+    const playerInfo = {
+      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
+      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
+    };
+
+    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
+    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
   }
 
   public getContentMetadata() {
@@ -171,7 +226,7 @@ export class ConvivaAnalyticsTracker {
    */
   private sessionEndedExternally = false;
 
-  constructor(player: PlayerAPI, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
+  constructor(customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
     if (typeof Conviva === 'undefined') {
       console.error(
         `Conviva script missing, cannot init ConvivaAnalytics. Please load the Conviva script (conviva-core-sdk.min.js) before Bitmovin's ConvivaAnalytics integration.`,
@@ -179,25 +234,10 @@ export class ConvivaAnalyticsTracker {
       return; // Cancel initialization
     }
 
-    if (player.getSource()) {
-      console.error('Bitmovin Conviva integration must be instantiated before calling player.load()');
-      return; // Cancel initialization
-    }
-
-    this.player = player;
-
-    // TODO: Use alternative to deprecated player.exports
-    this.events = player.exports.PlayerEvent;
-
-    this.handlers = new PlayerEventWrapper(player);
     this.config = config;
 
     // Set default config values
     this.config.debugLoggingEnabled = this.config.debugLoggingEnabled || false;
-
-    this.logger = new Html5Logging();
-    this.sessionKey = Conviva.Constants.NO_SESSION_KEY;
-    this._isAdBreakActive = false;
 
     const deviceMetadataFromConfig = this.config.deviceMetadata || {};
     const deviceMetadata: Conviva.ConvivaDeviceMetadata = {
@@ -231,8 +271,6 @@ export class ConvivaAnalyticsTracker {
     Conviva.Analytics.init(customerKey, callbackFunctions, settings);
 
     this.contentMetadataBuilder = new ContentMetadataBuilder(this.logger);
-
-    this.registerPlayerEvents();
   }
 
   public initializeSession(): void {
@@ -242,16 +280,18 @@ export class ConvivaAnalyticsTracker {
     }
 
     // This could be called before source loaded.
-    // Without setting the asset name on the content metadata the SDK will throw errors when we initialize the session.
-    if (!this.player.getSource() && !this.contentMetadataBuilder.assetName) {
-      throw 'AssetName is missing. Load player source first or set assetName via updateContentMetadata';
+    // Without setting the asset name on the content metadata there will be errors on touchstone when we initialize the session.
+    if (!this.isPlayerAttached && !this.contentMetadataBuilder.assetName) {
+      throw 'Player is not attached during session initialization and `assetName` is empty in the content metadata. Either attach the player before calling `initializeSession` or set the `assetName` manually using `updateContentMetadata`.';
+    } else if (this.isPlayerAttached && !this.player.getSource() && !this.contentMetadataBuilder.assetName) {
+      throw 'Player is attached but no source is loaded and `assetName` is empty in the content metadata. Either load a source before calling `initializeSession` or set the `assetName` manually using `updateContentMetadata`.';
     }
 
     this.internalInitializeSession();
     this.sessionEndedExternally = false;
   }
 
-  public endSession(): void {
+  private ensurePlaybackFinished() {
     if (!this.isSessionActive()) {
       return;
     }
@@ -263,9 +303,17 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report playback ended state');
     this.convivaVideoAnalytics.reportPlaybackEnded();
+  }
 
+  public endSession(): void {
+    if (!this.isSessionActive()) {
+      return;
+    }
+
+    this.debugLog('[ ConvivaAnalytics ] external ending session');
+
+    this.ensurePlaybackFinished();
     this.internalEndSession();
-    this.resetContentMetadata();
     this.sessionEndedExternally = true;
   }
 
@@ -324,7 +372,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackFailed(message);
     if (endSession) {
       this.internalEndSession();
-      this.resetContentMetadata();
     }
   }
 
@@ -343,11 +390,20 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportAdBreakEnded();
   }
 
-  public release(event?: PlayerEventBase): void {
-    this.debugLog('[ ConvivaAnalyticsTracker ] releasing', event);
+  public release(isPlayerDestroyed: boolean): void {
+    this.debugLog('[ ConvivaAnalyticsTracker ] releasing', {
+      isPlayerDestroyed,
+    });
 
-    this.unregisterPlayerEvents();
-    this.internalEndSession(event);
+    if (!isPlayerDestroyed) {
+      this.unregisterPlayerEvents();
+    }
+
+    this._player = null;
+    this.handlers = null;
+
+    this.ensurePlaybackFinished();
+    this.internalEndSession();
 
     Conviva.Analytics.release();
   }
@@ -420,14 +476,6 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics = Conviva.Analytics.buildVideoAnalytics();
     this.convivaAdAnalytics = Conviva.Analytics.buildAdAnalytics(this.convivaVideoAnalytics);
 
-    const playerInfo = {
-      [Conviva.Constants.FRAMEWORK_NAME]: 'Bitmovin Player',
-      [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
-    };
-
-    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
-    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
-
     this.debugLog('[ ConvivaAnalyticsTracker ] report playback requested');
     this.convivaVideoAnalytics.reportPlaybackRequested(this.contentMetadataBuilder.build());
 
@@ -435,8 +483,23 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] new session key', this.sessionKey);
 
+    this.setPlayerInfo();
+    // It's required to correctly track VST. There must be BUFFERING or STOPPED metric reported before PLAYING.
+    // In some cases BUFFERING does not fire before PLAYING, so we report STOPPED right after session initialization to cover all edge cases.
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
+
     this.convivaVideoAnalytics.setCallback(() => {
-      const playheadTimeMs = this.player.getCurrentTime('relativetime' as TimeMode) * 1000;
+      if (!this.isPlayerAttached) {
+        return;
+      }
+
+      const playheadTime = this.player.getCurrentTime(TimeMode.RelativeTime);
+
+      if (!Number.isFinite(playheadTime)) {
+        return;
+      }
+
+      const playheadTimeMs = playheadTime * 1000;
 
       if (this._isAdBreakActive) {
         this.debugLog('[ ConvivaAnalyticsTracker ] report ad player head time', playheadTimeMs);
@@ -460,6 +523,11 @@ export class ConvivaAnalyticsTracker {
    * Update contentMetadata which must be present before first video frame
    */
   private buildContentMetadata() {
+    if (!this.isPlayerAttached) {
+      this.debugLog('[ ConvivaAnalyticsTracker ] Player is not attached, skipping default content metadata initialization, it will be initialized on source loaded event');
+      return;
+    }
+
     this.contentMetadataBuilder.duration = this.player.getDuration();
     this.contentMetadataBuilder.streamType = this.player.isLive()
       ? Conviva.ContentMetadata.StreamType.LIVE
@@ -476,20 +544,16 @@ export class ConvivaAnalyticsTracker {
 
     // This could be called before we got a source
     if (source) {
-      this.buildSourceRelatedMetadata(source);
+      this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
+      this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
+      this.contentMetadataBuilder.addToCustom({
+        [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
+        [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
+        [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
+      });
+
+      this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
     }
-  }
-
-  private buildSourceRelatedMetadata(source: SourceConfig) {
-    this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
-    this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
-    this.contentMetadataBuilder.addToCustom({
-      [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
-      [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
-      [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
-    });
-
-    this.contentMetadataBuilder.streamUrl = this.getUrlFromSource(source);
   }
 
   private updateSession() {
@@ -513,12 +577,14 @@ export class ConvivaAnalyticsTracker {
     return assetName;
   }
 
-  private internalEndSession = (event?: PlayerEventBase) => {
+  private internalEndSession = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] end session', Conviva.Constants.NO_SESSION_KEY, event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] end session', this.sessionKey);
+
+    this.contentMetadataBuilder.reset();
 
     this.convivaVideoAnalytics.release();
     this.convivaVideoAnalytics = null;
@@ -529,10 +595,6 @@ export class ConvivaAnalyticsTracker {
     this.hasPlayed = false;
     this._isAdBreakActive = false;
   };
-
-  private resetContentMetadata(): void {
-    this.contentMetadataBuilder.reset();
-  }
 
   private isSessionActive(): boolean {
     return !!this.convivaVideoAnalytics;
@@ -545,7 +607,7 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    this.buildSourceRelatedMetadata(this.player.getSource());
+    this.buildContentMetadata();
     this.updateSession();
   };
 
@@ -554,20 +616,20 @@ export class ConvivaAnalyticsTracker {
       return;
     }
 
-    const playerState = PlayerStateHelper.getPlayerStateFromEvent(event, this.events, this.player);
+    const playerState = PlayerStateHelper.getPlayerStateFromEvent(event, this.player);
     const stallTrackingStartEvents = [
-      this.events.Play,
-      this.events.Seek,
-      this.events.TimeShift,
+      PlayerEvent.Play,
+      PlayerEvent.Seek,
+      PlayerEvent.TimeShift,
     ];
     const stallTrackingClearEvents = [
-      this.events.StallStarted,
-      this.events.Playing,
-      this.events.Paused,
-      this.events.Seeked,
-      this.events.TimeShifted,
-      this.events.StallEnded,
-      this.events.PlaybackFinished,
+      PlayerEvent.StallStarted,
+      PlayerEvent.Playing,
+      PlayerEvent.Paused,
+      PlayerEvent.Seeked,
+      PlayerEvent.TimeShifted,
+      PlayerEvent.StallEnded,
+      PlayerEvent.PlaybackFinished,
     ];
 
     if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
@@ -587,7 +649,7 @@ export class ConvivaAnalyticsTracker {
       }
     }
 
-    if (event.type === this.events.PlaybackFinished) {
+    if (event.type === PlayerEvent.PlaybackFinished) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report playback ended');
       this.convivaVideoAnalytics.reportPlaybackEnded();
     }
@@ -863,28 +925,20 @@ export class ConvivaAnalyticsTracker {
       // Ignore sourceUnloaded events during ads
       return;
     } else {
-      this.internalEndSession(event);
-      this.resetContentMetadata();
+      this.internalEndSession();
     }
   };
 
-  private onDestroy = (event: any) => {
-    this.debugLog('[ ConvivaAnalyticsTracker ] [ Player Event ] destroy', event);
-
-    this.release(event);
-  };
-
   private registerPlayerEvents(): void {
-    this.handlers.add(this.events.SourceLoaded, this.onSourceLoaded);
-    this.handlers.add(this.events.Play, this.onPlay);
-    this.handlers.add(this.events.Playing, this.onPlaying);
-    this.handlers.add(this.events.PlaybackFinished, this.onPlaybackFinished);
-    this.handlers.add(this.events.SourceUnloaded, this.onSourceUnloaded);
-    this.handlers.add(this.events.Destroy, this.onDestroy);
+    this.handlers.add(PlayerEvent.SourceLoaded, this.onSourceLoaded);
+    this.handlers.add(PlayerEvent.Play, this.onPlay);
+    this.handlers.add(PlayerEvent.Playing, this.onPlaying);
+    this.handlers.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
+    this.handlers.add(PlayerEvent.SourceUnloaded, this.onSourceUnloaded);
   }
 
   private unregisterPlayerEvents(): void {
-    this.handlers.clear();
+    this.handlers?.clear();
   }
 
   static get version(): string {

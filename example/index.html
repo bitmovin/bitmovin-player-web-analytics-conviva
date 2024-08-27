@@ -51,14 +51,25 @@
       <button id="loadPlayer">Load Player</button>
       <button id="unloadPlayer">Unload Player</button>
       <button id="destroyPlayer">Destroy Player</button>
+      <button id="simulateSsaiAd">Simulate SSAI Ad</button>
+      <button id="initializeSession">Initialize session</button>
     </div>
     <script>
       var player;
       var convivaAnalytics;
 
+      var convivaCustomerKey = '<CONVIVA_CUSTOMER_KEY>';
+      var convivaAnalyticsConfig = {
+        debugLoggingEnabled: true,
+        // TOUCHSTONE_SERVICE_URL for testing (DO NOT USE IN PRODUCTION)
+        gatewayUrl: 'https://youraccount-test.testonly.conviva.com',
+        // This is inferred automatically, but can be overridden.
+        // deviceMetadata: { ... }
+      }
+
       function createPlayer() {
         if (player) {
-          alert('You must destroy the player before re-creating it.');
+          alert('You need to destroy the player before re-creating it');
           return;
         }
 
@@ -66,50 +77,36 @@
 
         player = new bitmovin.player.Player(document.getElementById('player'), getPlayerConfig());
 
-        console.log('Creating Conviva Analytics');
+        if (convivaAnalytics) {
+          console.log('Reusing Conviva Analytics');
+          convivaAnalytics.attachPlayer(player);
+        } else {
+          console.log('Creating Conviva Analytics');
+          convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, convivaCustomerKey, convivaAnalyticsConfig);
+        }
+      }
 
-        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, '<CONVIVA_CUSTOMER_KEY>', {
-          debugLoggingEnabled: true,
-          // TOUCHSTONE_SERVICE_URL for testing (DO NOT USE IN PRODUCTION)
-          gatewayUrl: 'https://youraccount-test.testonly.conviva.com',
-          // This is inferred automatically, but can be overridden.
-          // deviceMetadata: { ... }
-        });
-
-        const simulateSsaiAd = () => {
-          // To avoid cyclic calls.
-          player.off(bitmovin.player.PlayerEvent.AdBreakFinished, simulateSsaiAd);
-
-          const playSsaiAd = () => {
-            convivaAnalytics.ssai.reportAdBreakStarted();
-            convivaAnalytics.ssai.reportAdStarted({
-              id: 'dummy-web-server-side-ad',
-              title: 'Dummy web server side AD',
-              duration: 20,
-              adSystem: 'dummy-server-side-ad-system',
-              position: Conviva.Constants.AdPosition.PREROLL,
-              isSlate: false,
-              adStitcher: 'Dummy AD stitcher',
-              additionalMetadata: {
-                dummyKey: 'dummy-value'
-              }
-            });
-
-            // "Play" the server side ad for 20 seconds.
-            setTimeout(() => {
-              convivaAnalytics.ssai.reportAdFinished();
-              convivaAnalytics.ssai.reportAdBreakFinished();
-            }, 20_000);
-          }
-
-          // Simulate server-side ad break with a little delay after the previous client side ad.
-          setTimeout(playSsaiAd, 2_000);
+      function initializeSession() {
+        if (convivaAnalytics) {
+          alert('You need to destroy the previous player before initializing session');
+          return;
         }
 
-        player.on(bitmovin.player.PlayerEvent.AdBreakFinished, simulateSsaiAd)
+        console.log('Creating Conviva Analytics and initializing session');
+
+        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(undefined, convivaCustomerKey, convivaAnalyticsConfig);
+        convivaAnalytics.updateContentMetadata({
+          assetName: 'Art of Motion',
+        })
+        convivaAnalytics.initializeSession();
       }
 
       function loadPlayer() {
+        if (!player) {
+          alert('You need to create the player before loading it');
+          return;
+        }
+
         console.log('Updating Conviva Analytics content metadata');
         // Initialize metadata. It also can be used to update some data during playback.
         convivaAnalytics.updateContentMetadata({
@@ -171,9 +168,37 @@
 
           player.destroy();
           player = null;
+          convivaAnalytics = null;
         } else {
           console.log('No player to destroy');
         }
+      }
+
+      const simulateSsaiAd = () => {
+        if (!player || !player.isPlaying()) {
+          alert('You need to load the player and ensure there is playback active before simulating an SSAI ad');
+          return;
+        }
+
+        convivaAnalytics.ssai.reportAdBreakStarted();
+        convivaAnalytics.ssai.reportAdStarted({
+          id: 'dummy-web-server-side-ad',
+          title: 'Dummy web server side AD',
+          duration: 20,
+          adSystem: 'dummy-server-side-ad-system',
+          position: Conviva.Constants.AdPosition.PREROLL,
+          isSlate: false,
+          adStitcher: 'Dummy AD stitcher',
+          additionalMetadata: {
+            dummyKey: 'dummy-value'
+          }
+        });
+
+        // "Play" the server side ad for 20 seconds.
+        setTimeout(() => {
+          convivaAnalytics.ssai.reportAdFinished();
+          convivaAnalytics.ssai.reportAdBreakFinished();
+        }, 20_000);
       }
 
       const destroyPlayerButton = document.getElementById('destroyPlayer');
@@ -187,6 +212,12 @@
 
       const unloadPlayerButton = document.getElementById('unloadPlayer');
       unloadPlayerButton.onclick = unloadPlayer;
+
+      const simulateSsaiAdButton = document.getElementById('simulateSsaiAd');
+      simulateSsaiAdButton.onclick = simulateSsaiAd;
+
+      const initializeSessionButton = document.getElementById('initializeSession');
+      initializeSessionButton.onclick = initializeSession;
 
       function getPlayerConfig() {
         return {

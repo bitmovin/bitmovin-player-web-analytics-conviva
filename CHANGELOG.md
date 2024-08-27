@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Possibility to start session tracking without a `Player` instance
+  - `const convivaAnalytics = new ConvivaAnalytics(undefined, customerKey)` initializer without a `Player`
+  - `convivaAnalytics.attachPlayer(player)` to attach the `Player` at a later point in the session life-cycle
+
 ## [5.3.0] - 2024-08-14
 ### Changed
 - Track initial audio track and subtitles only after the first `Play` event

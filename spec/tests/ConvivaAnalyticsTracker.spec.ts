@@ -11,7 +11,8 @@ jest.mock('../../src/ts/Html5Logging');
 describe(ConvivaAnalyticsTracker, () => {
   it('should report ad resolution and framerate for server side ad', () => {
     const {playerMock} = MockHelper.createPlayerMock();
-    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker(playerMock, 'test-key');
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({}));
 
@@ -25,7 +26,8 @@ describe(ConvivaAnalyticsTracker, () => {
 
   it('should not report ad resolution and framerate for client side ad', () => {
     const {playerMock} = MockHelper.createPlayerMock();
-    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker(playerMock, 'test-key');
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({}));
 
@@ -40,7 +42,8 @@ describe(ConvivaAnalyticsTracker, () => {
   it('should report audio track on the first play', () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
-    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
 
@@ -50,7 +53,8 @@ describe(ConvivaAnalyticsTracker, () => {
   it('should report subtitles on the first play', () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
-    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
 
@@ -60,7 +64,8 @@ describe(ConvivaAnalyticsTracker, () => {
   it('should not report playback metrics after the first play', () => {
     const {playerMock, playerEventHelper} = MockHelper.createPlayerMock();
 
-    new ConvivaAnalyticsTracker(playerMock, 'test-key');
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+    convivaAnalyticsTracker.attachPlayer(playerMock);
 
     playerEventHelper.firePlayEvent();
     const invokedTimesBefore = getInvokedTimes(MockHelper.latestVideoAnalytics.reportPlaybackMetric);
