@@ -63,7 +63,7 @@ module.exports = {
       commonjs: 'bitmovin-player',
       commonjs2: 'bitmovin-player',
       amd: 'bitmovin-player',
-      root: ['bitmovin']
+      root: ['bitmovin', 'player']
     }
   }
 };
