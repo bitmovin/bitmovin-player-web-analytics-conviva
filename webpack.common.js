@@ -59,5 +59,11 @@ module.exports = {
       amd: '@convivainc/conviva-js-coresdk',
       root: ['Conviva']
     },
+    'bitmovin-player': {
+      commonjs: 'bitmovin-player',
+      commonjs2: 'bitmovin-player',
+      amd: 'bitmovin-player',
+      root: ['bitmovin']
+    }
   }
 };
