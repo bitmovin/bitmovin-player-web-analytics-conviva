@@ -185,7 +185,7 @@ export class ConvivaAnalyticsTracker {
   }
 
   private setPlayerInfo() {
-    if (!this.convivaAdAnalytics || !this.convivaAdAnalytics || !this.isPlayerAttached) {
+    if (!this.convivaVideoAnalytics || !this.convivaAdAnalytics || !this.isPlayerAttached) {
       return;
     }
 
@@ -194,10 +194,8 @@ export class ConvivaAnalyticsTracker {
       [Conviva.Constants.FRAMEWORK_VERSION]: this.player.version,
     };
 
-    if (this.convivaVideoAnalytics) {
-      this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
-      this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
-    }
+    this.convivaVideoAnalytics.setPlayerInfo(playerInfo);
+    this.convivaAdAnalytics.setAdPlayerInfo(playerInfo);
   }
 
   public getContentMetadata() {
