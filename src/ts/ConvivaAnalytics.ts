@@ -389,6 +389,6 @@ export class ConvivaAnalytics {
   }
 
   private unregisterPlayerEvents(): void {
-    this.handlers.clear();
+    this.handlers?.clear();
   }
 }

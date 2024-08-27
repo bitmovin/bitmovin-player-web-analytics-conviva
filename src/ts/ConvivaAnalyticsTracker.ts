@@ -937,7 +937,7 @@ export class ConvivaAnalyticsTracker {
   }
 
   private unregisterPlayerEvents(): void {
-    this.handlers.clear();
+    this.handlers?.clear();
   }
 
   static get version(): string {
