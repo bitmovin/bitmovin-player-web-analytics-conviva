@@ -516,7 +516,7 @@ export class ConvivaAnalyticsTracker {
     this.setPlayerInfo();
     // It's required to correctly track VST. There must be BUFFERING or STOPPED metric reported before PLAYING.
     // In some cases BUFFERING does not fire before PLAYING, so we report STOPPED right after session initialization to cover all edge cases.
-    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED)
+    this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.STOPPED);
   }
 
   /**
