@@ -9,8 +9,8 @@ import {
   VideoQualityChangedEvent,
   SubtitleTrack,
   TimeMode,
+  PlayerEvent,
 } from 'bitmovin-player';
-import { PlayerEvent } from 'bitmovin-player';
 import { Html5Http } from './Html5Http';
 import { Html5Logging } from './Html5Logging';
 import { Html5Storage } from './Html5Storage';
