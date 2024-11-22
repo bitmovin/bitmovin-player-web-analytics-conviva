@@ -621,6 +621,8 @@ export class ConvivaAnalyticsTracker {
       PlayerEvent.Play,
       PlayerEvent.Seek,
       PlayerEvent.TimeShift,
+      PlayerEvent.AdBreakStarted,
+      PlayerEvent.AdFinished,
     ];
     const stallTrackingClearEvents = [
       PlayerEvent.StallStarted,
@@ -630,6 +632,8 @@ export class ConvivaAnalyticsTracker {
       PlayerEvent.TimeShifted,
       PlayerEvent.StallEnded,
       PlayerEvent.PlaybackFinished,
+      PlayerEvent.AdStarted,
+      PlayerEvent.AdBreakFinished,
     ];
 
     if (stallTrackingStartEvents.indexOf(event.type) !== -1) {
