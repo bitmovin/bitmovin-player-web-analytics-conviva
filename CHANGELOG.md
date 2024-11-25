@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Ad-related delays not contributing to rebuffering metrics
+
 ## [5.4.0] - 2024-08-27
 ### Added
 - Possibility to start session tracking without a `Player` instance
