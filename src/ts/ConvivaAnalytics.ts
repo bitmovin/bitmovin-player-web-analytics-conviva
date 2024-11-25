@@ -273,6 +273,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak started', event);
     this.lastAdBreakEvent = event;
     this.convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
   };
 
   private onAdStarted = (event: AdEvent) => {
@@ -282,11 +283,13 @@ export class ConvivaAnalytics {
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
+    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
   }
 
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
     this.convivaAnalyticsTracker.trackAdFinished();
+    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
   }
 
   private onAdSkipped = (event: AdEvent) => {
@@ -298,6 +301,7 @@ export class ConvivaAnalytics {
   private onAdBreakFinished = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak finished', event);
     this.convivaAnalyticsTracker.trackAdBreakFinished();
+    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
   };
 
   private onAdError = (event: ErrorEvent) => {
