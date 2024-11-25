@@ -625,7 +625,7 @@ export class ConvivaAnalyticsTracker {
       PlayerEvent.AdFinished,
     ];
     const stallTrackingClearEvents = [
-      PlayerEvent.StallStarted,
+      PlayerEvent.StallStarted, // StallStarted is reported as BUFFERING immediately. Does not need the delayed timeout approach.
       PlayerEvent.Playing,
       PlayerEvent.Paused,
       PlayerEvent.Seeked,
