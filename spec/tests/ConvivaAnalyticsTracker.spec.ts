@@ -2,6 +2,7 @@ import { PlayerEvent, PlayerEventBase } from "bitmovin-player";
 import { ConvivaAnalyticsTracker } from "../../src/ts/ConvivaAnalyticsTracker";
 import { MockHelper } from "../helper/MockHelper";
 import * as Conviva from '@convivainc/conviva-js-coresdk';
+import { PlayerStateHelper } from "../../src/ts/helper/PlayerStateHelper";
 
 jest.mock('@convivainc/conviva-js-coresdk', () => {
   const { MockHelper } = jest.requireActual('../helper/MockHelper');
@@ -211,6 +212,25 @@ describe(ConvivaAnalyticsTracker, () => {
       convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
 
       expect(reportAdBreakStartedSpy).toHaveBeenCalledTimes(2);
+    })
+
+    it('should only signal that playback has resumed after the actual AdBreakFinished', () => {
+      const { AdType, Playback, PlayerState } = Conviva.Constants;
+      const reportPlaybackSpy = jest.spyOn(convivaAnalyticsTracker['convivaVideoAnalytics'], 'reportPlaybackMetric');
+      jest.spyOn(PlayerStateHelper, 'getPlayerState').mockReturnValue(PlayerState.PLAYING);
+
+      convivaAnalyticsTracker.trackAdBreakStarted(AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackAdStarted({}, AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackAdFinished();
+
+      jest.runAllTimers();
+
+      expect(reportAdBreakEndedSpy).toHaveBeenCalledTimes(1);
+      expect(reportPlaybackSpy).not.toHaveBeenCalledWith(Playback.PLAYER_STATE, PlayerState.PLAYING);
+
+      convivaAnalyticsTracker.trackAdBreakFinished();
+
+      expect(reportPlaybackSpy).toHaveBeenCalledWith(Playback.PLAYER_STATE, PlayerState.PLAYING);
     })
   });
 })
