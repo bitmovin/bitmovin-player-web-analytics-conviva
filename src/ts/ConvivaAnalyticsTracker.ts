@@ -114,7 +114,7 @@ export class ConvivaAnalyticsTracker {
 
   public static readonly AD_BREAK_FINISHED_DELAY_MS = 250;
   public static readonly STALL_TRACKING_DELAY_MS = 100;
-  
+
   private _player: PlayerAPI;
 
   private get player(): PlayerAPI {
