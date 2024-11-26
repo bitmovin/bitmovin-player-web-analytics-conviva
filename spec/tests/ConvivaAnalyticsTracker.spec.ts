@@ -168,11 +168,27 @@ describe(ConvivaAnalyticsTracker, () => {
       expect(reportAdBreakEndedSpy).toHaveBeenCalledTimes(1);
     })
 
-    it('should not report ad break ended if AdFinished is followed by a new AdStarted', () => {
+    it('should not report ad break ended twice if AdBreakFinished is emitted after the ad finished timer has already expired', () => {
       convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
       convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
       convivaAnalyticsTracker.trackAdFinished();
 
+      jest.runAllTimers();
+
+      expect(reportAdBreakEndedSpy).toHaveBeenCalledTimes(1);
+
+      convivaAnalyticsTracker.trackAdBreakFinished();
+
+      expect(reportAdBreakEndedSpy).toHaveBeenCalledTimes(1);
+    })
+
+    it('should not report ad break ended if AdFinished is followed by a new AdStarted', () => {
+      convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
+
+      expect(reportAdBreakStartedSpy).toHaveBeenCalledTimes(1);
+
+      convivaAnalyticsTracker.trackAdFinished();
       convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
 
       jest.runAllTimers();
@@ -184,11 +200,13 @@ describe(ConvivaAnalyticsTracker, () => {
     it('should report ad break started again after wrongly reporting ad break ended', () => {
       convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
       convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
+
+      expect(reportAdBreakStartedSpy).toHaveBeenCalledTimes(1);
+
       convivaAnalyticsTracker.trackAdFinished();
       jest.runAllTimers();
 
       expect(reportAdBreakEndedSpy).toHaveBeenCalledTimes(1);
-      expect(reportAdBreakStartedSpy).toHaveBeenCalledTimes(1);
 
       convivaAnalyticsTracker.trackAdStarted({}, Conviva.Constants.AdType.CLIENT_SIDE);
 
