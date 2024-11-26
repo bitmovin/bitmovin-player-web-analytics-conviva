@@ -1,3 +1,4 @@
+import { PlayerEvent, PlayerEventBase } from "bitmovin-player";
 import { ConvivaAnalyticsTracker } from "../../src/ts/ConvivaAnalyticsTracker";
 import { MockHelper } from "../helper/MockHelper";
 import * as Conviva from '@convivainc/conviva-js-coresdk';
@@ -74,6 +75,51 @@ describe(ConvivaAnalyticsTracker, () => {
     const invokedTimesAfter = getInvokedTimes(MockHelper.latestVideoAnalytics.reportPlaybackMetric);
 
     expect(invokedTimesAfter).toBe(invokedTimesBefore);
+  })
+
+  describe('trackPlaybackStateChanged', () => {
+    let convivaAnalyticsTracker: ConvivaAnalyticsTracker;
+
+    beforeEach(() => {
+      convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+
+      const {playerMock} = MockHelper.createPlayerMock();
+      convivaAnalyticsTracker.attachPlayer(playerMock);
+      jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({ title: 'test-title' }));
+      convivaAnalyticsTracker.initializeSession();
+    })
+
+    test.each([
+      PlayerEvent.Play,
+      PlayerEvent.Seek,
+      PlayerEvent.TimeShift,
+      PlayerEvent.AdBreakStarted,
+      PlayerEvent.AdFinished,
+    ])('should start timer for stalling when reported player event is %s', (event) => {
+      const stallTrackingStartTimeoutSpy = jest.spyOn(convivaAnalyticsTracker['stallTrackingTimeout'], 'start');
+
+      convivaAnalyticsTracker.trackPlaybackStateChanged({ type: event } as PlayerEventBase);
+
+      expect(stallTrackingStartTimeoutSpy).toHaveBeenCalled();
+    })
+
+    test.each([
+      PlayerEvent.StallStarted,
+      PlayerEvent.Playing,
+      PlayerEvent.Paused,
+      PlayerEvent.Seeked,
+      PlayerEvent.TimeShifted,
+      PlayerEvent.StallEnded,
+      PlayerEvent.PlaybackFinished,
+      PlayerEvent.AdStarted,
+      PlayerEvent.AdBreakFinished,
+    ])('should clear timer for stalling when reported player event is %s', (event) => {
+      const stallTrackingStopTimeoutSpy = jest.spyOn(convivaAnalyticsTracker['stallTrackingTimeout'], 'clear');
+
+      convivaAnalyticsTracker.trackPlaybackStateChanged({ type: event } as PlayerEventBase);
+
+      expect(stallTrackingStopTimeoutSpy).toHaveBeenCalled();
+    })
   })
 })
 
