@@ -45,6 +45,8 @@ export class ConvivaAnalytics {
 
   private readonly logger: Conviva.LoggingInterface = new Html5Logging();
 
+  private duration: number = 0;
+
   public readonly ssai: Omit<ConvivaAnalyticsSsai, 'reset'>;
 
   constructor(player: PlayerAPI | undefined, customerKey: string, config: ConvivaAnalyticsConfiguration = {}) {
@@ -279,7 +281,7 @@ export class ConvivaAnalytics {
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad started', event);
 
-    const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.player, this.lastAdBreakEvent, event);
+    const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.player, this.lastAdBreakEvent, this.duration, event);
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
@@ -360,7 +362,13 @@ export class ConvivaAnalytics {
     this.releaseInternal(event);
   };
 
+  private onSourceLoaded = (event: PlayerEventBase) => {
+    this.debugLog('[ ConvivaAnalytics ] [ Player Event ] onSourceLoaded', event);
+    this.duration = this.player.getDuration();
+  };
+
   private registerPlayerEvents(): void {
+    this.handlers.add(PlayerEvent.SourceLoaded, this.onSourceLoaded);
     this.handlers.add(PlayerEvent.Play, this.onPlay);
     this.handlers.add(PlayerEvent.Playing, this.onPlaying);
     this.handlers.add(PlayerEvent.Paused, this.onPlaybackStateChanged);
