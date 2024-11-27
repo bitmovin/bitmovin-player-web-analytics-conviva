@@ -112,7 +112,9 @@ export interface EventAttributes {
 export class ConvivaAnalyticsTracker {
   private static readonly VERSION: string = '{{VERSION}}';
 
+  public static readonly AD_BREAK_FINISHED_DELAY_MS = 250;
   public static readonly STALL_TRACKING_DELAY_MS = 100;
+
   private _player: PlayerAPI;
 
   private get player(): PlayerAPI {
@@ -736,8 +738,17 @@ export class ConvivaAnalyticsTracker {
   };
 
   public trackAdStarted = (adInfo: Conviva.ConvivaMetadata, type: Conviva.valueof<Conviva.ConvivaConstants['AdType']>, bitrateKbps?: number) => {
+    // Clear the timeout that may have been scheduled by a previous ad finished event, as the ad break is not actually over yet.
+    this.adBreakFinishedTimeout.clear();
+
     if (!this.isSessionActive()) {
       return;
+    }
+
+    if (!this.isAdBreakActive) {
+      // If no ad break is active, it must mean that the `adBreakFinishedTimeout` ran before AdStarted was emitted.
+      // Then we need to report this as the start of a new ad break.
+      this.trackAdBreakStarted(type);
     }
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad started', {
@@ -769,15 +780,6 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  public trackAdFinished = () => {
-    if (!this.isSessionActive()) {
-      return;
-    }
-
-    this.debugLog('[ ConvivaAnalyticsTracker ] report ad ended');
-    this.convivaAdAnalytics.reportAdEnded();
-  }
-
   public trackAdSkipped = () => {
     if (!this.isSessionActive()) {
       return;
@@ -787,15 +789,39 @@ export class ConvivaAnalyticsTracker {
     this.convivaAdAnalytics.reportAdSkipped();
   };
 
-  public trackAdBreakFinished = () => {
+  public trackAdFinished = () => {
     if (!this.isSessionActive()) {
       return;
     }
 
+    this.debugLog('[ ConvivaAnalyticsTracker ] report ad ended');
+    this.convivaAdAnalytics.reportAdEnded();
+
+    // Start timer to report ad break finished, as waiting for the event will cause VST to be too low.
+    this.adBreakFinishedTimeout.start();
+  }
+
+  private reportAdBreakEnded = () => {
     this._isAdBreakActive = false;
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad break ended');
     this.convivaVideoAnalytics.reportAdBreakEnded();
+  }
+
+  private adBreakFinishedTimeout = new Timeout(ConvivaAnalyticsTracker.AD_BREAK_FINISHED_DELAY_MS, this.reportAdBreakEnded);
+
+  public trackAdBreakFinished = () => {
+    // Clear the timeout to prevent the ad break finished event from being reported twice
+    this.adBreakFinishedTimeout.clear();
+
+    if (!this.isSessionActive()) {
+      return;
+    }
+
+    if (this.isAdBreakActive) {
+      // If ad break is still active, it must mean that the event was faster than the `adBreakFinishedTimeout`
+      this.reportAdBreakEnded();
+    }
 
     this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} playback state`);
     this.convivaVideoAnalytics.reportPlaybackMetric(

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Ad-related delays not contributing to rebuffering metrics
+- Underreported VST after playing CSAI pre-rolls
 
 ## [5.4.0] - 2024-08-27
 ### Added
