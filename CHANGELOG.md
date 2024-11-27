@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed 
+- Mid rolls errorneously reported as post rolls when midroll's schedule time > the duration of the adbreak 
+
+### Changed
+- Updated Bitmovin Player version to 8.191.0
 
 ### Fixed
 - Ad-related delays not contributing to rebuffering metrics
