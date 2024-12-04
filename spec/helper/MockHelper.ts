@@ -290,6 +290,13 @@ export class PlayerEventHelper {
     });
   }
 
+  fireRestoringContentEvent(): void {
+    this.fireEvent<PlayerEventBase>({
+      timestamp: Date.now(),
+      type: PlayerEvent.RestoringContent,
+    });
+  }
+
   fireAdBreakFinishedEvent(): void {
     this.fireEvent<AdBreakEvent>({
       timestamp: Date.now(),
