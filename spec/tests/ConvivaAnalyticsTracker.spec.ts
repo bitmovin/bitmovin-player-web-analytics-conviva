@@ -77,6 +77,40 @@ describe(ConvivaAnalyticsTracker, () => {
     expect(invokedTimesAfter).toBe(invokedTimesBefore);
   })
 
+  it('should report ad break ended on RestoringContent event', () => {
+    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+
+    convivaAnalyticsTracker.attachPlayer(playerMock);
+    playerEventHelper.firePlayEvent();
+    convivaAnalyticsTracker.trackRestoringContent();
+
+    expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not report the player state on AdBreakFinished events if there is still an active ad', () => {
+    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+
+    convivaAnalyticsTracker.attachPlayer(playerMock);
+    playerEventHelper.fireAdBreakFinishedEvent();
+    convivaAnalyticsTracker.trackAdBreakFinished();
+
+    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalled();
+  });
+
+  it('should report the player state on AdBreakFinished events if there is no active ad', () => {
+    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
+    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+
+    convivaAnalyticsTracker.attachPlayer(playerMock);
+    playerEventHelper.firePlayEvent();
+    convivaAnalyticsTracker.trackRestoringContent();
+    convivaAnalyticsTracker.trackAdBreakFinished();
+
+    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalled();
+  });
+
   describe('trackPlaybackStateChanged', () => {
     let convivaAnalyticsTracker: ConvivaAnalyticsTracker;
 
@@ -112,7 +146,6 @@ describe(ConvivaAnalyticsTracker, () => {
       PlayerEvent.StallEnded,
       PlayerEvent.PlaybackFinished,
       PlayerEvent.AdStarted,
-      PlayerEvent.AdBreakFinished,
     ])('should clear timer for stalling when reported player event is %s', (event) => {
       const stallTrackingStopTimeoutSpy = jest.spyOn(convivaAnalyticsTracker['stallTrackingTimeout'], 'clear');
 
