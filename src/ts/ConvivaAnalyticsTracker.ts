@@ -787,7 +787,7 @@ export class ConvivaAnalyticsTracker {
     this.convivaAdAnalytics.reportAdSkipped();
   };
 
-  public trackAdBreakFinished = () => {
+  public trackRestoringContent = () => {
     if (!this.isSessionActive()) {
       return;
     }
@@ -796,6 +796,12 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] report ad break ended');
     this.convivaVideoAnalytics.reportAdBreakEnded();
+  };
+
+  public trackAdBreakFinished = () => {
+    if (!this.isSessionActive() || this._isAdBreakActive) {
+      return;
+    }
 
     this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} playback state`);
     this.convivaVideoAnalytics.reportPlaybackMetric(
