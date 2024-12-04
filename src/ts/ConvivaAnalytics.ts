@@ -28,7 +28,9 @@ export class ConvivaAnalytics {
 
   private get player(): PlayerAPI {
     if (!this._player) {
-      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.');
+      throw new Error(
+        'Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.',
+      );
     }
     return this._player;
   }
@@ -95,7 +97,7 @@ export class ConvivaAnalytics {
    * @param player The player instance to attach to the integration.
    */
   public attachPlayer(player: PlayerAPI): void {
-    const {canAttach, reason} = this.convivaAnalyticsTracker.canAttachPlayer(player);
+    const { canAttach, reason } = this.convivaAnalyticsTracker.canAttachPlayer(player);
 
     if (!canAttach) {
       this.logger.consoleLog(
@@ -284,13 +286,13 @@ export class ConvivaAnalytics {
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
     this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
-  }
+  };
 
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
     this.convivaAnalyticsTracker.trackAdFinished();
     this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
-  }
+  };
 
   private onAdSkipped = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad skipped', event);
@@ -374,8 +376,9 @@ export class ConvivaAnalytics {
     this.handlers.add(PlayerEvent.ViewModeChanged, this.onCustomEvent);
     this.handlers.add(PlayerEvent.AdStarted, this.onAdStarted);
     this.handlers.add(PlayerEvent.AdFinished, this.onAdFinished);
-    this.handlers.add(PlayerEvent.AdBreakStarted, this.onAdBreakStarted);
-    this.handlers.add(PlayerEvent.AdBreakFinished, this.onAdBreakFinished);
+    // TODO take from PlayerEvent when released
+    this.handlers.add('contentpausing' as PlayerEvent, this.onAdBreakStarted);
+    this.handlers.add('contentresuming' as PlayerEvent, this.onAdBreakFinished);
     this.handlers.add(PlayerEvent.AdSkipped, this.onAdSkipped);
     this.handlers.add(PlayerEvent.AdError, this.onAdError);
     this.handlers.add(PlayerEvent.Error, this.onError);
