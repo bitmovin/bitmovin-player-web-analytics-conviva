@@ -2,6 +2,12 @@ name: Release new version
 
 on:
   workflow_dispatch:
+    inputs:
+      is-major-release:
+        type: boolean
+        description: Is this a major release?
+        required: false
+        default: false
 
 jobs:
   release:
@@ -47,30 +53,30 @@ jobs:
         with:
           script: |
             const { defineReleaseVersion } = require('./.github/scripts/defineVersion.js')
-            return defineReleaseVersion({core}, "${{ steps.read-latest-release-version.outputs.latestReleaseVersion }}", './CHANGELOG.md' )
+            return defineReleaseVersion({core}, "${{ steps.read-latest-release-version.outputs.latestReleaseVersion }}", './CHANGELOG.md', ${{ inputs.is-major-release }})
 
-      - name: Bump package.json and Changelog version
-        run: |
-          npm --no-git-tag-version version "${{ fromJson(steps.define-release-version.outputs.result) }}"
-          npx kacl release
-
-      - name: Add tag and push changes
-        run: |
-          git config --global user.name 'Automated Release'
-          git config --global user.email 'release-automation@bitmovin.com'
-          git add .
-          git commit -m "Bump version and update changelog"
-          git tag -a "${{ fromJson(steps.define-release-version.outputs.result) }}" -m "v${{ fromJson(steps.define-release-version.outputs.result) }}"
-          git push origin develop
-          git push origin --tags
-
-      - name: build and publish
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
-          npm publish
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          tag_name: ${{ fromJson(steps.define-release-version.outputs.result) }}
+#      - name: Bump package.json and Changelog version
+#        run: |
+#          npm --no-git-tag-version version "${{ fromJson(steps.define-release-version.outputs.result) }}"
+#          npx kacl release
+#
+#      - name: Add tag and push changes
+#        run: |
+#          git config --global user.name 'Automated Release'
+#          git config --global user.email 'release-automation@bitmovin.com'
+#          git add .
+#          git commit -m "Bump version and update changelog"
+#          git tag -a "${{ fromJson(steps.define-release-version.outputs.result) }}" -m "v${{ fromJson(steps.define-release-version.outputs.result) }}"
+#          git push origin develop
+#          git push origin --tags
+#
+#      - name: build and publish
+#        run: |
+#          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
+#          npm publish
+#
+#      - name: Create GitHub release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          generate_release_notes: true
+#          tag_name: ${{ fromJson(steps.define-release-version.outputs.result) }}
