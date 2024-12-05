@@ -33,7 +33,7 @@ async function defineReleaseVersion({ core }, currentVersion, changelogFile, isM
       core.info(`Increase version from ${currentVersion} to ${version}`);
       return version;
     } else {
-      core.error('No valid entries to release\n' + JSON.stringify(unreleased, null, '  ') + '\n' + JSON.stringify(parsedSections, null, '  '));
+      core.error('No valid entries to release, ' + JSON.stringify(unreleased) + ', ' + JSON.stringify(parsedSections));
     }
   });
 }
