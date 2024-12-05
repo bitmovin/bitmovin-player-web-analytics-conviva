@@ -6,8 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [6.0.0] - 2024-12-05
 ### Changed
-- Update `bitmovin-player` dependency to `~8.158.1` 
+- Update `bitmovin-player` dependency to `~8.158.1`
   - Necessary due to dependency on newly introduced `PlayerEvent.RestoringContent` event
 
 ### Fixed
@@ -153,7 +155,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.0.0...HEAD
+[6.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...v6.0.0
 [5.4.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.0...v5.4.1
 [5.4.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.3.0...v5.4.0
 [5.3.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.2.0...v5.3.0
