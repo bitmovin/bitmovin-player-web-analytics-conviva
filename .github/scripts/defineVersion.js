@@ -10,6 +10,8 @@ async function defineReleaseVersion({ core }, currentVersion, changelogFile, isM
       return;
     }
 
+    console.log('defining release version...');
+
     const parsedSections = unreleased.parsed;
 
     const hasAddedSection = parsedSections.Added && parsedSections.Added.length > 0;
@@ -19,6 +21,21 @@ async function defineReleaseVersion({ core }, currentVersion, changelogFile, isM
     const hasFixedSection = parsedSections.Fixed && parsedSections.Fixed.length > 0;
     const hasSecurityEntries = parsedSections.Security && parsedSections.Security.length > 0;
     const hasDeprecatedEntries = parsedSections.Deprecated && parsedSections.Deprecated.length > 0;
+
+    const dataObj = {
+      unreleased,
+      parsedSections,
+      hasAddedSection,
+      hasChangedSection,
+      hasRemovedSection,
+      hasFixedSection,
+      hasSecurityEntries,
+      hasDeprecatedEntries,
+    };
+    const dataStr = JSON.stringify(dataObj, null, '  ');
+
+    console.log(dataStr);
+    core.info(dataStr);
 
     if (isMajorRelease) {
       const version = semver.inc(currentVersion, 'major');
