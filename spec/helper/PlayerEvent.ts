@@ -509,10 +509,10 @@ export enum PlayerEvent {
 
   /**
    * Is fired when the playback of an break has finished and the player is about to start restoring the main content.
-   * Is succeeded by a @see {@link AdBreakStarted} event once the main content has been restored.
+   * Is succeeded by a {@link AdBreakFinished} event once the main content has been restored.
    *
    * @event
-   * @since v8.192.1
+   * @since v8.158.1
    */
   RestoringContent = 'restoringcontent',
   /**
