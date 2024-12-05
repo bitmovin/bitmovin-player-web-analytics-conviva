@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Update `bitmovin-player` dependency to `~8.158.1` 
+  - Necessary due to dependency on newly introduced `PlayerEvent.RestoringContent` event
+
+### Fixed
+- Overreported VST after playing CSAI pre-rolls
 
 ## [5.4.1] - 2024-11-27
 ### Fixed

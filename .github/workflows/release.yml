@@ -2,6 +2,12 @@ name: Release new version
 
 on:
   workflow_dispatch:
+    inputs:
+      is-major-release:
+        type: boolean
+        description: Is this a major release?
+        required: false
+        default: false
 
 jobs:
   release:
@@ -47,7 +53,7 @@ jobs:
         with:
           script: |
             const { defineReleaseVersion } = require('./.github/scripts/defineVersion.js')
-            return defineReleaseVersion({core}, "${{ steps.read-latest-release-version.outputs.latestReleaseVersion }}", './CHANGELOG.md' )
+            return defineReleaseVersion({core}, "${{ steps.read-latest-release-version.outputs.latestReleaseVersion }}", './CHANGELOG.md', ${{ inputs.is-major-release }})
 
       - name: Bump package.json and Changelog version
         run: |

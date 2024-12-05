@@ -494,9 +494,10 @@ export enum PlayerEvent {
    * @since v7.5.4
    */
   AdBreakStarted = 'adbreakstarted',
+
   /**
-   * Is fired when the playback of an ad break has ended. Is preceded by a @see {@link AdBreakStarted} event.
-   * This event is currently only supported for the ad client typ 'ima'.
+   * Is fired when the playback of an ad break has ended and the main content has been restored. Is preceded by a
+   * @see {@link AdBreakStarted} event.
    * The passed event is of type {@link AdBreakEvent}.
    *
    * Also accessible via the bitmovin.player.PlayerEvent.AdBreakFinished constant.
@@ -505,6 +506,15 @@ export enum PlayerEvent {
    * @since v7.5.4
    */
   AdBreakFinished = 'adbreakfinished',
+
+  /**
+   * Is fired when the playback of an break has finished and the player is about to start restoring the main content.
+   * Is succeeded by a {@link AdBreakFinished} event once the main content has been restored.
+   *
+   * @event
+   * @since v8.158.1
+   */
+  RestoringContent = 'restoringcontent',
   /**
    * Is fired when the playback of an ad has been finished.
    * The passed event is of type {@link AdEvent}.
