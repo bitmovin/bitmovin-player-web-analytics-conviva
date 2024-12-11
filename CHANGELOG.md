@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Update `bitmovin-player` dependency to `^8.193.0`
+  - This is the most recent player version that added the `PlayerEvent.RestoringContent` event
 
 ## [6.0.0] - 2024-12-05
 ### Changed
