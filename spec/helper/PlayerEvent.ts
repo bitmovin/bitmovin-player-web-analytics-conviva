@@ -512,7 +512,7 @@ export enum PlayerEvent {
    * Is succeeded by a {@link AdBreakFinished} event once the main content has been restored.
    *
    * @event
-   * @since v8.158.1
+   * @since v8.193.0
    */
   RestoringContent = 'restoringcontent',
   /**
