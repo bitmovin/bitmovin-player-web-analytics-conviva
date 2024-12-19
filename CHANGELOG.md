@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-### Fixed 
+
+## [6.1.1] - 2024-12-19
+### Fixed
 - Mid-roll ads erroneously reported as post-rolls when mid-roll's schedule time is greater than the duration of the ad
 
 ## [6.1.0] - 2024-12-11
@@ -162,7 +164,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.0...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.1...HEAD
+[6.1.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...v6.0.0
 [5.4.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.0...v5.4.1
