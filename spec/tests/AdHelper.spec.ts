@@ -5,7 +5,7 @@ import * as Conviva from '@convivainc/conviva-js-coresdk';
 describe(AdHelper, () => {
   describe('mapAdPosition', () => {
     it('should map ad position to preroll', () => {
-      const duration = 100 as number;
+      const duration = 100;
       const adBreak = {
         scheduleTime: 0
       } as AdBreak;
@@ -14,7 +14,7 @@ describe(AdHelper, () => {
     })
 
     it('should map ad position to postroll', () => {
-      const duration = 100 as number;
+      const duration = 100;
       const adBreak = {
         scheduleTime: 100
       } as AdBreak;
@@ -23,7 +23,7 @@ describe(AdHelper, () => {
     })
 
     it('should map ad position to midroll', () => {
-      const duration = 100 as number;
+      const duration = 100;
       const adBreak = {
         scheduleTime: 50
       } as AdBreak;
@@ -61,7 +61,7 @@ describe(AdHelper, () => {
   describe('extractConvivaAdInfo', () => {
     it('should extract minimal Conviva ad info', () => {
       const player = {} as PlayerAPI;
-      const duration = 100 as number;
+      const duration = 100;
       const adBreakEvent = {
         adBreak: {
           scheduleTime: 0
@@ -91,7 +91,7 @@ describe(AdHelper, () => {
 
     it('should extract full Conviva ad info', () => {
       const player = {} as PlayerAPI;
-      const duration = 100 as number;
+      const duration = 100;
       const adBreakEvent = {
         adBreak: {
           scheduleTime: 0
