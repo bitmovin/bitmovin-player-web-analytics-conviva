@@ -45,7 +45,10 @@ export class ConvivaAnalytics {
 
   private readonly logger: Conviva.LoggingInterface = new Html5Logging();
 
-  private duration: number = 0;
+  /**
+   * Tracks the duration of main content. Needed as the player may return the ad duration instead.
+   */
+  private mainContentDuration = 0;
 
   public readonly ssai: Omit<ConvivaAnalyticsSsai, 'reset'>;
 
@@ -281,7 +284,7 @@ export class ConvivaAnalytics {
   private onAdStarted = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad started', event);
 
-    const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.player, this.lastAdBreakEvent, this.duration, event);
+    const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.lastAdBreakEvent, this.mainContentDuration, event);
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
@@ -368,7 +371,7 @@ export class ConvivaAnalytics {
 
   private onSourceLoaded = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] onSourceLoaded', event);
-    this.duration = this.player.getDuration();
+    this.mainContentDuration = this.player.getDuration();
   };
 
   private registerPlayerEvents(): void {

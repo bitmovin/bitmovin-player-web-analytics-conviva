@@ -5,30 +5,30 @@ import * as Conviva from '@convivainc/conviva-js-coresdk';
 describe(AdHelper, () => {
   describe('mapAdPosition', () => {
     it('should map ad position to preroll', () => {
-      const duration = 100;
+      const mainContentDuration = 100;
       const adBreak = {
         scheduleTime: 0
       } as AdBreak;
 
-      expect(AdHelper.mapCsaiAdPosition(adBreak, duration)).toEqual(Conviva.Constants.AdPosition.PREROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, mainContentDuration)).toEqual(Conviva.Constants.AdPosition.PREROLL)
     })
 
     it('should map ad position to postroll', () => {
-      const duration = 100;
+      const mainContentDuration = 100;
       const adBreak = {
         scheduleTime: 100
       } as AdBreak;
 
-      expect(AdHelper.mapCsaiAdPosition(adBreak, duration)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, mainContentDuration)).toEqual(Conviva.Constants.AdPosition.POSTROLL)
     })
 
     it('should map ad position to midroll', () => {
-      const duration = 100;
+      const mainContentDuration = 100;
       const adBreak = {
         scheduleTime: 50
       } as AdBreak;
 
-      expect(AdHelper.mapCsaiAdPosition(adBreak, duration)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
+      expect(AdHelper.mapCsaiAdPosition(adBreak, mainContentDuration)).toEqual(Conviva.Constants.AdPosition.MIDROLL)
     })
   })
 
@@ -60,8 +60,7 @@ describe(AdHelper, () => {
 
   describe('extractConvivaAdInfo', () => {
     it('should extract minimal Conviva ad info', () => {
-      const player = {} as PlayerAPI;
-      const duration = 100;
+      const mainContentDuration = 100;
       const adBreakEvent = {
         adBreak: {
           scheduleTime: 0
@@ -74,7 +73,7 @@ describe(AdHelper, () => {
         },
       } as AdEvent;
 
-      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, duration, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(adBreakEvent, mainContentDuration, adEvent)).toEqual({
         "c3.ad.creativeId": "NA",
         "c3.ad.firstAdId": "123",
         "c3.ad.firstAdSystem": "NA",
@@ -90,8 +89,7 @@ describe(AdHelper, () => {
     })
 
     it('should extract full Conviva ad info', () => {
-      const player = {} as PlayerAPI;
-      const duration = 100;
+      const mainContentDuration = 100;
       const adBreakEvent = {
         adBreak: {
           scheduleTime: 0
@@ -115,7 +113,7 @@ describe(AdHelper, () => {
         } as Ad | LinearAd,
       } as AdEvent;
 
-      expect(AdHelper.extractCsaiConvivaAdInfo(player, adBreakEvent, duration, adEvent)).toEqual({
+      expect(AdHelper.extractCsaiConvivaAdInfo(adBreakEvent, mainContentDuration, adEvent)).toEqual({
         [Conviva.Constants.ASSET_NAME]: "Test title",
         [Conviva.Constants.STREAM_URL]: 'https://test.com',
         [Conviva.Constants.DURATION]: 100,

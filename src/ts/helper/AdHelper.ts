@@ -43,14 +43,14 @@ export interface SsaiAdInfo {
 export class AdHelper {
   public static mapCsaiAdPosition(
     adBreak: AdBreak,
-    duration: number,
+    mainContentDuration: number,
   ): Conviva.valueof<Conviva.ConvivaConstants['AdPosition']> {
 
     if (adBreak.scheduleTime <= 0) {
       return Conviva.Constants.AdPosition.PREROLL;
     }
 
-    if (adBreak.scheduleTime >= duration) {
+    if (adBreak.scheduleTime >= mainContentDuration) {
       return Conviva.Constants.AdPosition.POSTROLL;
     }
 
@@ -77,7 +77,11 @@ export class AdHelper {
     return formattedErrorParts.join(' ');
   }
 
-  public static extractCsaiConvivaAdInfo(player: PlayerAPI, adBreakEvent: AdBreakEvent, duration: number, adEvent: AdEvent): Conviva.ConvivaMetadata {
+  public static extractCsaiConvivaAdInfo(
+    adBreakEvent: AdBreakEvent,
+    mainContentDuration: number,
+    adEvent: AdEvent,
+  ): Conviva.ConvivaMetadata {
     const ad = adEvent.ad as Ad | LinearAd;
     const adData = ad.data as undefined | AdData | VastAdData;
 
@@ -108,7 +112,7 @@ export class AdHelper {
     const adInfo: Conviva.ConvivaMetadata = {
       'c3.ad.id': ad.id,
       'c3.ad.technology': Conviva.Constants.AdType.CLIENT_SIDE,
-      'c3.ad.position': AdHelper.mapCsaiAdPosition(adBreakEvent.adBreak, duration),
+      'c3.ad.position': AdHelper.mapCsaiAdPosition(adBreakEvent.adBreak, mainContentDuration),
       'c3.ad.system': adSystemName,
       'c3.ad.creativeId': creativeId,
       'c3.ad.firstAdId': firstAdId,
