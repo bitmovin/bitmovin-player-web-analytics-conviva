@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Updated Bitmovin Player version to 8.191.0
 
 
+## [6.1.0] - 2024-12-11
+### Changed
+- Update `bitmovin-player` dependency to `^8.193.0`
+  - This is the most recent player version that added the `PlayerEvent.RestoringContent` event
+
+## [6.0.0] - 2024-12-05
+### Changed
+- Update `bitmovin-player` dependency to `~8.158.1`
+  - Necessary due to dependency on newly introduced `PlayerEvent.RestoringContent` event
+
+### Fixed
+- Overreported VST after playing CSAI pre-rolls
+
 ## [5.4.1] - 2024-11-27
 ### Fixed
 - Ad-related delays not contributing to rebuffering metrics
@@ -154,7 +167,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.0...HEAD
+[6.1.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.0.0...v6.1.0
+[6.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...v6.0.0
 [5.4.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.0...v5.4.1
 [5.4.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.3.0...v5.4.0
 [5.3.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.2.0...v5.3.0

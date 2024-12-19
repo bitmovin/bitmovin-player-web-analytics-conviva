@@ -269,17 +269,20 @@ describe('player event tests', () => {
 
       it('on adError', () => {
         playerEventHelper.fireAdErrorEvent();
+        playerEventHelper.fireRestoringContentEvent();
         playerEventHelper.fireAdBreakFinishedEvent();
         expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
       });
 
       it('on ad skipped', () => {
         playerEventHelper.fireAdSkippedEvent();
+        playerEventHelper.fireRestoringContentEvent();
         playerEventHelper.fireAdBreakFinishedEvent();
         expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
       });
 
       it('on ad end', () => {
+        playerEventHelper.fireRestoringContentEvent();
         playerEventHelper.fireAdBreakFinishedEvent();
         expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
       });

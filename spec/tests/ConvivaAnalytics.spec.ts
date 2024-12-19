@@ -522,6 +522,20 @@ describe(ConvivaAnalytics, () => {
           Conviva.Constants.ErrorSeverity.WARNING
         );
       })
+
+      it('reports ad break ended when restoring content', () => {
+        playerEventHelper.fireRestoringContentEvent();
+
+        expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
+      });
+
+      it('reports the playback metric on ad finished', () => {
+        (MockHelper.latestVideoAnalytics.reportPlaybackMetric as jest.Mock).mockReset();
+
+        playerEventHelper.fireAdBreakFinishedEvent();
+
+        expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledTimes(1);
+      });
     });
   })
 

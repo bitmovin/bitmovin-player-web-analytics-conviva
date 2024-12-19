@@ -1,7 +1,7 @@
 const parseChangelog = require('changelog-parser');
 const semver = require('semver');
 
-async function defineReleaseVersion({ core }, currentVersion, changelogFile) {
+async function defineReleaseVersion({ core }, currentVersion, changelogFile, isMajorRelease) {
   return parseChangelog(changelogFile).then((result) => {
     const unreleased = result.versions.find((entry) => entry.version === null);
 
@@ -20,7 +20,11 @@ async function defineReleaseVersion({ core }, currentVersion, changelogFile) {
     const hasSecurityEntries = parsedSections.Security && parsedSections.Security.length > 0;
     const hasDeprecatedEntries = parsedSections.Deprecated && parsedSections.Deprecated.length > 0;
 
-    if (hasAddedSection || hasChangedSection || hasRemovedSection) {
+    if (isMajorRelease) {
+      const version = semver.inc(currentVersion, 'major');
+      core.info(`Increase version from ${currentVersion} to ${version}`);
+      return version;
+    } else if (hasAddedSection || hasChangedSection || hasRemovedSection) {
       const version = semver.inc(currentVersion, 'minor');
       core.info(`Increase version from ${currentVersion} to ${version}`);
       return version;
