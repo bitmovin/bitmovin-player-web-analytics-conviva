@@ -7,12 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Fixed 
-- Mid rolls errorneously reported as post rolls when midroll's schedule time > the duration of the adbreak 
-- Adhelper testcases to use the source duration instead
-
-### Changed
-- Updated Bitmovin Player version to 8.191.0
-
+- Mid-roll ads erroneously reported as post-rolls when mid-roll's schedule time is greater than the duration of the ad
 
 ## [6.1.0] - 2024-12-11
 ### Changed
