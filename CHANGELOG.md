@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed 
+- Mid-roll ads erroneously reported as post-rolls when mid-roll's schedule time is greater than the duration of the ad
 
 ## [6.1.0] - 2024-12-11
 ### Changed
