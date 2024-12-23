@@ -503,18 +503,21 @@ describe(ConvivaAnalytics, () => {
       })
 
       it('reports ad finished', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
         playerEventHelper.fireAdFinishedEvent();
 
         expect(MockHelper.latestAdAnalytics.reportAdEnded).toHaveBeenCalled();
       })
 
       it('reports ad skipped', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
         playerEventHelper.fireAdSkippedEvent();
 
         expect(MockHelper.latestAdAnalytics.reportAdSkipped).toHaveBeenCalled();
       })
 
       it('reports ad error', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
         playerEventHelper.fireAdErrorEvent();
 
         expect(MockHelper.latestAdAnalytics.reportAdError).toHaveBeenCalledWith(
@@ -524,6 +527,7 @@ describe(ConvivaAnalytics, () => {
       })
 
       it('reports ad break ended when restoring content', () => {
+        playerEventHelper.fireAdBreakStartedEvent(0);
         playerEventHelper.fireRestoringContentEvent();
 
         expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);

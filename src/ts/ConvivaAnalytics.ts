@@ -267,6 +267,11 @@ export class ConvivaAnalytics {
   };
 
   private onAdStarted = (event: AdEvent) => {
+    if (!this.lastAdBreakEvent) {
+      this.debugLog('[ ConvivaAnalytics ] received ad started without active ad break', event);
+      return;
+    }
+
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad started', event);
 
     const adInfo = AdHelper.extractCsaiConvivaAdInfo(this.lastAdBreakEvent, this.mainContentDuration, event);
@@ -277,6 +282,11 @@ export class ConvivaAnalytics {
   }
 
   private onAdFinished = (event: AdEvent) => {
+    if (!this.lastAdBreakEvent) {
+      this.debugLog('[ ConvivaAnalytics ] received ad finished without active ad break', event);
+      return;
+    }
+
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
     this.convivaAnalyticsTracker.trackAdFinished();
     this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
