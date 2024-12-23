@@ -240,17 +240,7 @@ export class ConvivaAnalytics {
 
   private onPlaybackStateChanged = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] playback state change related event', event);
-    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
-  };
-
-  private onPlay = (event: PlaybackEvent) => {
-    this.debugLog('[ ConvivaAnalytics ] [ Player Event ] play', event);
-
-    if (!this.convivaAnalyticsTracker.canTrackPlayEvent) {
-      return;
-    }
-
-    this.onPlaybackStateChanged(event);
+    this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
   };
 
   private onPlaying = (event: PlaybackEvent) => {
@@ -260,7 +250,7 @@ export class ConvivaAnalytics {
 
   private onPlaybackFinished = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] playback finished', event);
-    this.onPlaybackStateChanged(event);
+    this.convivaAnalyticsTracker.trackPlaybackFinished();
   };
 
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
@@ -278,7 +268,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak started', event);
     this.lastAdBreakEvent = event;
     this.convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
-    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
+    this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
   };
 
   private onAdStarted = (event: AdEvent) => {
@@ -288,13 +278,13 @@ export class ConvivaAnalytics {
     const bitrateKbps = event.ad.data?.bitrate;
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
-    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
+    // No need to call reportPlaybackStateFromEvent as this is covered by `trackAdStarted`
   }
 
   private onAdFinished = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
     this.convivaAnalyticsTracker.trackAdFinished();
-    this.convivaAnalyticsTracker.trackPlaybackStateChanged(event);
+    this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
   }
 
   private onAdSkipped = (event: AdEvent) => {
@@ -306,11 +296,13 @@ export class ConvivaAnalytics {
   private onRestoringContent = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] restoring content', event);
     this.convivaAnalyticsTracker.trackRestoringContent();
+    this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
   };
 
   private onAdBreakFinished = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak finished', event);
     this.convivaAnalyticsTracker.trackAdBreakFinished();
+    // No need to call reportPlaybackStateFromEvent as this is covered by `trackAdBreakFinished`
   }
 
   private onAdError = (event: ErrorEvent) => {
@@ -322,7 +314,6 @@ export class ConvivaAnalytics {
   private onSeek = (event: SeekEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] seek', event);
     this.convivaAnalyticsTracker.trackSeekStart(event.seekTarget);
-    this.onPlaybackStateChanged(event);
   };
 
   private onSeeked = (event: SeekEvent) => {
@@ -335,7 +326,6 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] time shift', event);
     // According to conviva it is valid to pass -1 for seeking in live streams
     this.convivaAnalyticsTracker.trackSeekStart(-1);
-    this.onPlaybackStateChanged(event);
   };
 
   private onTimeShifted = (event: TimeShiftEvent) => {
@@ -374,9 +364,25 @@ export class ConvivaAnalytics {
     this.mainContentDuration = this.player.getDuration();
   };
 
+  private static readonly stallTrackingStartEvents = [
+    PlayerEvent.Play,
+    PlayerEvent.Seek,
+    PlayerEvent.TimeShift,
+  ];
+
+  private static readonly stallTrackingClearEvents = [
+    PlayerEvent.StallStarted, // StallStarted is reported as BUFFERING immediately. Does not need the delayed timeout approach.
+    PlayerEvent.Playing,
+    PlayerEvent.Paused,
+    PlayerEvent.Seeked,
+    PlayerEvent.TimeShifted,
+    PlayerEvent.StallEnded,
+    PlayerEvent.PlaybackFinished,
+    PlayerEvent.AdStarted,
+  ];
+
   private registerPlayerEvents(): void {
     this.handlers.add(PlayerEvent.SourceLoaded, this.onSourceLoaded);
-    this.handlers.add(PlayerEvent.Play, this.onPlay);
     this.handlers.add(PlayerEvent.Playing, this.onPlaying);
     this.handlers.add(PlayerEvent.Paused, this.onPlaybackStateChanged);
     this.handlers.add(PlayerEvent.StallStarted, this.onPlaybackStateChanged);
@@ -406,6 +412,18 @@ export class ConvivaAnalytics {
 
     this.handlers.add(PlayerEvent.CastStarted, this.onCustomEvent);
     this.handlers.add(PlayerEvent.CastStopped, this.onCustomEvent);
+
+    ConvivaAnalytics.stallTrackingStartEvents.forEach((eventName) => {
+      this.handlers.add(eventName, (event) => {
+        this.convivaAnalyticsTracker.startStallTrackingTimeout(event);
+      });
+    });
+
+    ConvivaAnalytics.stallTrackingClearEvents.forEach((eventName) => {
+      this.handlers.add(eventName, (event) => {
+        this.convivaAnalyticsTracker.clearStallTrackingTimeout(event);
+      });
+    });
   }
 
   private unregisterPlayerEvents(): void {
