@@ -682,6 +682,8 @@ export class ConvivaAnalyticsTracker {
 
     this.debugLog('[ ConvivaAnalyticsTracker ] releasing everything after playback finished event', event);
 
+    this.trackPlaybackFinished();
+
     this.convivaVideoAnalytics.release();
     this.convivaVideoAnalytics = null;
 
@@ -689,7 +691,7 @@ export class ConvivaAnalyticsTracker {
     this.convivaAdAnalytics = null;
   };
 
-  public trackPlaybackFinished = () => {
+  private trackPlaybackFinished = () => {
     this.debugLog('[ ConvivaAnalyticsTracker ] report playback ended');
     this.convivaVideoAnalytics.reportPlaybackEnded();
   }

@@ -248,11 +248,6 @@ export class ConvivaAnalytics {
     this.onPlaybackStateChanged(event);
   };
 
-  private onPlaybackFinished = (event: PlayerEventBase) => {
-    this.debugLog('[ ConvivaAnalytics ] [ Player Event ] playback finished', event);
-    this.convivaAnalyticsTracker.trackPlaybackFinished();
-  };
-
   private onVideoQualityChanged = (event: VideoQualityChangedEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] video quality changed', event);
     this.convivaAnalyticsTracker.trackVideoQualityChanged(event);
@@ -387,7 +382,6 @@ export class ConvivaAnalytics {
     this.handlers.add(PlayerEvent.Paused, this.onPlaybackStateChanged);
     this.handlers.add(PlayerEvent.StallStarted, this.onPlaybackStateChanged);
     this.handlers.add(PlayerEvent.StallEnded, this.onPlaybackStateChanged);
-    this.handlers.add(PlayerEvent.PlaybackFinished, this.onPlaybackFinished);
     this.handlers.add(PlayerEvent.VideoPlaybackQualityChanged, this.onVideoQualityChanged);
     this.handlers.add(PlayerEvent.AudioPlaybackQualityChanged, this.onCustomEvent);
     this.handlers.add(PlayerEvent.Muted, this.onCustomEvent);
