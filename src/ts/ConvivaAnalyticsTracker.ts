@@ -625,7 +625,7 @@ export class ConvivaAnalyticsTracker {
     this.debugLog(`[ ConvivaAnalyticsTracker ] inferred player state ${playerState} from ${event.type} event`, {playerState, event});
 
     if (playerState) {
-      this.trackPlaybackState(playerState)
+      this.trackPlaybackState(playerState);
     }
   }
 
@@ -633,7 +633,7 @@ export class ConvivaAnalyticsTracker {
     if (!this.isSessionActive()) {
       return;
     }
-  
+
     if (this._isAdBreakActive) {
       this.debugLog('[ ConvivaAnalyticsTracker ] report ad playback state', playerState);
       this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, playerState);
