@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Delayed buffering reporting on CSAI events
+- Reporting of ad break ended for SSAI ads
 
 ## [6.1.1] - 2024-12-19
 ### Fixed
