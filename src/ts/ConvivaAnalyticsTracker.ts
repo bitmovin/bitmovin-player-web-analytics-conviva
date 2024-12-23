@@ -779,7 +779,7 @@ export class ConvivaAnalyticsTracker {
   };
 
   public trackRestoringContent = () => {
-    if (!this.isSessionActive()) {
+    if (!this.isSessionActive() || !this._isAdBreakActive) {
       return;
     }
 
@@ -789,15 +789,21 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportAdBreakEnded();
   };
 
-  public trackAdBreakFinished = () => {
-    if (!this.isSessionActive() || this._isAdBreakActive) {
+  public trackAdBreakFinished = (type: Conviva.valueof<Conviva.ConvivaConstants['AdType']>) => {
+    const shouldExpectAnotherCsaiAd = type === Conviva.Constants.AdType.CLIENT_SIDE && this._isAdBreakActive;
+    if (!this.isSessionActive() || shouldExpectAnotherCsaiAd) {
+      // We only care to update the playback state when we are restoring main content.
       return;
     }
 
-    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} playback state`);
+    this.trackRestoringContent();
+
+    const playerState = PlayerStateHelper.getPlayerState(this.player);
+
+    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${playerState} playback state on ad break finished event`);
     this.convivaVideoAnalytics.reportPlaybackMetric(
       Conviva.Constants.Playback.PLAYER_STATE,
-      PlayerStateHelper.getPlayerState(this.player),
+      playerState,
     );
   };
 

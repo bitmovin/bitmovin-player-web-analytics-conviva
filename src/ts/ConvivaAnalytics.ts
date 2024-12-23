@@ -296,7 +296,7 @@ export class ConvivaAnalytics {
 
   private onAdBreakFinished = (event: AdBreakEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak finished', event);
-    this.convivaAnalyticsTracker.trackAdBreakFinished();
+    this.convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.CLIENT_SIDE);
     // No need to call reportPlaybackStateFromEvent as this is covered by `trackAdBreakFinished`
   }
 
