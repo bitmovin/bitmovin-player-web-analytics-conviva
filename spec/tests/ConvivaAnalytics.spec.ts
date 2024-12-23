@@ -529,7 +529,7 @@ describe(ConvivaAnalytics, () => {
         expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
       });
 
-      it('reports the playback metric on ad finished', () => {
+      it('reports the playback metric on ad break finished', () => {
         (MockHelper.latestVideoAnalytics.reportPlaybackMetric as jest.Mock).mockReset();
 
         playerEventHelper.fireAdBreakFinishedEvent();

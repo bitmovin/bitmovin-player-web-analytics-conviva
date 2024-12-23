@@ -68,12 +68,12 @@ describe('player event tests', () => {
       expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalled();
     });
 
-    describe('v8 stalling handling', () => {
+    describe('delayed stalling reporting', () => {
       // In v8 there is no stalling event between play / playing; seek / seeked; timeshift / thimeshifted but it
       // can be treated as stalling so we need to report it (maybe timeout in favor of seeking in buffer)
 
       describe('reports stalling', () => {
-        describe('durring playback', () => {
+        describe('during playback', () => {
           beforeEach(() => {
             playerEventHelper.firePlayEvent();
             playerEventHelper.firePlayingEvent();
@@ -251,7 +251,7 @@ describe('player event tests', () => {
       );
     });
 
-    it('track  mid-roll ad', () => {
+    it('track mid-roll ad', () => {
       playerEventHelper.fireAdBreakStartedEvent(5);
       playerEventHelper.fireAdStartedEvent();
       expect(MockHelper.latestVideoAnalytics.reportAdBreakStarted).toHaveBeenCalledTimes(1);

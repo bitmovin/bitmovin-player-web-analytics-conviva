@@ -625,7 +625,7 @@ export class ConvivaAnalyticsTracker {
     this.debugLog(`[ ConvivaAnalyticsTracker ] inferred player state ${playerState} from ${event.type} event`, {playerState, event});
 
     if (playerState) {
-      this.trackPlaybackState(PlayerStateHelper.getPlayerStateFromEvent(event, this.player))
+      this.trackPlaybackState(playerState)
     }
   }
 
@@ -738,7 +738,7 @@ export class ConvivaAnalyticsTracker {
     });
     this.convivaAdAnalytics.reportAdStarted(adInfo);
 
-    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} ad playback state within tracking ad started`);
+    this.debugLog(`[ ConvivaAnalyticsTracker ] report ${PlayerStateHelper.getPlayerState(this.player)} ad playback state on ad started event`);
     this.convivaAdAnalytics.reportAdMetric(Conviva.Constants.Playback.PLAYER_STATE, PlayerStateHelper.getPlayerState(this.player));
 
     if (type === Conviva.Constants.AdType.SERVER_SIDE) {
