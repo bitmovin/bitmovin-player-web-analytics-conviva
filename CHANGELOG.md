@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [6.1.2] - 2024-12-24
 ### Fixed
 - Delayed buffering reporting on CSAI events
 - Reporting of ad break ended for SSAI ads
@@ -167,7 +169,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.1...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.2...HEAD
+[6.1.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.0.0...v6.1.0
 [6.0.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v5.4.1...v6.0.0
