@@ -89,6 +89,6 @@ export class ConvivaAnalyticsSsai {
     }
 
     this._isAdBreakActive = false;
-    this.convivaAnalyticsTracker.trackAdBreakFinished();
+    this.convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.SERVER_SIDE);
   }
 }

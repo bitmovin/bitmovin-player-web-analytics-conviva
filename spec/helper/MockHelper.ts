@@ -222,9 +222,7 @@ export namespace MockHelper {
           }
         }),
         subtitles: {
-          list: jest.fn(() => {
-            return [];
-          }),
+          list: jest.fn(() => []),
         },
         on: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.on(eventType, callback),
         off: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.off(eventType, callback),

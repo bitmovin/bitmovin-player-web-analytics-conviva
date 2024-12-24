@@ -6,6 +6,9 @@ export class PlayerStateHelper {
     let playerState;
 
     switch (event.type) {
+      case PlayerEvent.AdBreakStarted:
+      case PlayerEvent.AdFinished:
+      case PlayerEvent.RestoringContent:
       case PlayerEvent.StallStarted:
         playerState = Conviva.Constants.PlayerState.BUFFERING;
         break;

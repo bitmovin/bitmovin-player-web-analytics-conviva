@@ -77,83 +77,62 @@ describe(ConvivaAnalyticsTracker, () => {
     expect(invokedTimesAfter).toBe(invokedTimesBefore);
   })
 
-  it('should report ad break ended on RestoringContent event', () => {
-    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
-    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-
-    convivaAnalyticsTracker.attachPlayer(playerMock);
-    playerEventHelper.firePlayEvent();
-    convivaAnalyticsTracker.trackRestoringContent();
-
-    expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not report the player state on AdBreakFinished events if there is still an active ad', () => {
-    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
-    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-
-    convivaAnalyticsTracker.attachPlayer(playerMock);
-    playerEventHelper.fireAdBreakFinishedEvent();
-    convivaAnalyticsTracker.trackAdBreakFinished();
-
-    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalled();
-  });
-
-  it('should report the player state on AdBreakFinished events if there is no active ad', () => {
-    const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
-    const convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-
-    convivaAnalyticsTracker.attachPlayer(playerMock);
-    playerEventHelper.firePlayEvent();
-    convivaAnalyticsTracker.trackRestoringContent();
-    convivaAnalyticsTracker.trackAdBreakFinished();
-
-    expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalled();
-  });
-
-  describe('trackPlaybackStateChanged', () => {
+  describe('CSAI', () => {
     let convivaAnalyticsTracker: ConvivaAnalyticsTracker;
 
     beforeEach(() => {
+      const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
       convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
-
-      const {playerMock} = MockHelper.createPlayerMock();
       convivaAnalyticsTracker.attachPlayer(playerMock);
-      jest.spyOn(playerMock, 'getSource').mockImplementation(() => ({ title: 'test-title' }));
-      convivaAnalyticsTracker.initializeSession();
-    })
+      playerEventHelper.firePlayEvent();
+      jest.spyOn(playerMock, 'isPlaying').mockReturnValue(true);
+    });
 
-    test.each([
-      PlayerEvent.Play,
-      PlayerEvent.Seek,
-      PlayerEvent.TimeShift,
-      PlayerEvent.AdBreakStarted,
-      PlayerEvent.AdFinished,
-    ])('should start timer for stalling when reported player event is %s', (event) => {
-      const stallTrackingStartTimeoutSpy = jest.spyOn(convivaAnalyticsTracker['stallTrackingTimeout'], 'start');
+    it('should not report ad break ended on AdBreakFinished if there is still an active ad', () => {
+      convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.CLIENT_SIDE);
+  
+      expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(0);
+      expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).not.toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+    });
 
-      convivaAnalyticsTracker.trackPlaybackStateChanged({ type: event } as PlayerEventBase);
+    it('should report ad break ended if AdBreakFinished is preceeded by RestoringContent event', () => {
+      convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackRestoringContent();
+      convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.CLIENT_SIDE);
+  
+      expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
+      expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+    });
 
-      expect(stallTrackingStartTimeoutSpy).toHaveBeenCalled();
-    })
+    it('should not report ad break ended multiple times', () => {
+      convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+      convivaAnalyticsTracker.trackRestoringContent();
+      convivaAnalyticsTracker.trackRestoringContent();
+      convivaAnalyticsTracker.trackRestoringContent();
+  
+      expect(MockHelper.latestVideoAnalytics.reportAdBreakEnded).toHaveBeenCalledTimes(1);
+    });
+  });
 
-    test.each([
-      PlayerEvent.StallStarted,
-      PlayerEvent.Playing,
-      PlayerEvent.Paused,
-      PlayerEvent.Seeked,
-      PlayerEvent.TimeShifted,
-      PlayerEvent.StallEnded,
-      PlayerEvent.PlaybackFinished,
-      PlayerEvent.AdStarted,
-    ])('should clear timer for stalling when reported player event is %s', (event) => {
-      const stallTrackingStopTimeoutSpy = jest.spyOn(convivaAnalyticsTracker['stallTrackingTimeout'], 'clear');
+  describe('SSAI', () => {
+    let convivaAnalyticsTracker: ConvivaAnalyticsTracker;
 
-      convivaAnalyticsTracker.trackPlaybackStateChanged({ type: event } as PlayerEventBase);
+    beforeEach(() => {
+      const { playerMock, playerEventHelper } = MockHelper.createPlayerMock();
+      convivaAnalyticsTracker = new ConvivaAnalyticsTracker('test-key');
+      convivaAnalyticsTracker.attachPlayer(playerMock);
+      playerEventHelper.firePlayEvent();
+      jest.spyOn(playerMock, 'isPlaying').mockReturnValue(true);
+    });
 
-      expect(stallTrackingStopTimeoutSpy).toHaveBeenCalled();
-    })
-  })
+    it('should report the player state on AdBreakFinished when there is an active ad', () => {
+      convivaAnalyticsTracker.trackAdBreakStarted(Conviva.Constants.AdType.SERVER_SIDE);
+      convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.SERVER_SIDE);
+  
+      expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(Conviva.Constants.Playback.PLAYER_STATE, Conviva.Constants.PlayerState.PLAYING);
+    });
+  });
 })
 
 const getInvokedTimes = (mock: unknown) => {
