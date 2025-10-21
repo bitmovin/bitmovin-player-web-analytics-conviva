@@ -65,7 +65,7 @@
         gatewayUrl: 'https://youraccount-test.testonly.conviva.com',
         // This is inferred automatically, but can be overridden.
         // deviceMetadata: { ... }
-      }
+      };
 
       function createPlayer() {
         if (player) {
@@ -82,7 +82,11 @@
           convivaAnalytics.attachPlayer(player);
         } else {
           console.log('Creating Conviva Analytics');
-          convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(player, convivaCustomerKey, convivaAnalyticsConfig);
+          convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(
+            player,
+            convivaCustomerKey,
+            convivaAnalyticsConfig,
+          );
         }
       }
 
@@ -94,10 +98,14 @@
 
         console.log('Creating Conviva Analytics and initializing session');
 
-        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(undefined, convivaCustomerKey, convivaAnalyticsConfig);
+        convivaAnalytics = new bitmovin.player.analytics.ConvivaAnalytics(
+          undefined,
+          convivaCustomerKey,
+          convivaAnalyticsConfig,
+        );
         convivaAnalytics.updateContentMetadata({
           assetName: 'Art of Motion',
-        })
+        });
         convivaAnalytics.initializeSession();
       }
 
@@ -190,8 +198,8 @@
           isSlate: false,
           adStitcher: 'Dummy AD stitcher',
           additionalMetadata: {
-            dummyKey: 'dummy-value'
-          }
+            dummyKey: 'dummy-value',
+          },
         });
 
         // "Play" the server side ad for 20 seconds.
@@ -199,7 +207,7 @@
           convivaAnalytics.ssai.reportAdFinished();
           convivaAnalytics.ssai.reportAdBreakFinished();
         }, 20_000);
-      }
+      };
 
       const destroyPlayerButton = document.getElementById('destroyPlayer');
       destroyPlayerButton.onclick = destroyPlayer;
@@ -246,9 +254,9 @@
                 },
                 id: 'ad-pre-skippable',
                 position: 'pre',
-              }
-            ]
-          }
+              },
+            ],
+          },
         };
       }
 

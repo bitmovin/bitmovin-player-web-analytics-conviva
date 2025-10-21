@@ -1,7 +1,12 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 
 export class Html5Storage implements Conviva.StorageInterface {
-  public saveData(storageSpace: string, storageKey: string, data: string, callback: Conviva.StorageSaveDataCallback): void {
+  public saveData(
+    storageSpace: string,
+    storageKey: string,
+    data: string,
+    callback: Conviva.StorageSaveDataCallback,
+  ): void {
     const localStorageKey = storageSpace + '.' + storageKey;
     try {
       localStorage.setItem(localStorageKey, data);

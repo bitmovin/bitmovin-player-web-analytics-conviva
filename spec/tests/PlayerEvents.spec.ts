@@ -15,7 +15,7 @@ const PLAYER_STATE = Conviva.Constants.Playback.PLAYER_STATE;
 
 describe('player event tests', () => {
   let playerMock: PlayerAPI;
-  let playerEventHelper: PlayerEventHelper
+  let playerEventHelper: PlayerEventHelper;
   let convivaAnalytics: ConvivaAnalytics;
 
   beforeEach(() => {
@@ -45,40 +45,43 @@ describe('player event tests', () => {
       });
 
       test.each`
-        event                           | isAdActive | expectedPlayerState
-        ${PlayerEvent.Playing}          | ${false}   | ${PlayerState.PLAYING}
-        ${PlayerEvent.Playing}          | ${true}    | ${PlayerState.PLAYING}
-        ${PlayerEvent.Paused}           | ${false}   | ${PlayerState.PAUSED}
-        ${PlayerEvent.Paused}           | ${true}    | ${PlayerState.PAUSED}
-        ${PlayerEvent.StallStarted}     | ${false}   | ${PlayerState.BUFFERING}
-        ${PlayerEvent.StallStarted}     | ${true}    | ${PlayerState.BUFFERING}
-        ${PlayerEvent.StallEnded}       | ${false}   | ${PlayerState.PLAYING}
-        ${PlayerEvent.StallEnded}       | ${true}    | ${PlayerState.PLAYING}
-        ${PlayerEvent.Seeked}           | ${false}   | ${PlayerState.PLAYING}
-        ${PlayerEvent.Seeked}           | ${true}    | ${PlayerState.PLAYING}
-        ${PlayerEvent.TimeShifted}      | ${false}   | ${PlayerState.PLAYING}
-        ${PlayerEvent.TimeShifted}      | ${true}    | ${PlayerState.PLAYING}
-      `('should report player state $expectedPlayerState on ad metric $isAdActive after event $event', ({ event, isAdActive, expectedPlayerState }) => {
-        jest.spyOn(playerMock, 'isPlaying').mockReturnValue(expectedPlayerState === PlayerState.PLAYING);
-        jest.spyOn(playerMock, 'isPaused').mockReturnValue(expectedPlayerState === PlayerState.PAUSED);
+        event                       | isAdActive | expectedPlayerState
+        ${PlayerEvent.Playing}      | ${false}   | ${PlayerState.PLAYING}
+        ${PlayerEvent.Playing}      | ${true}    | ${PlayerState.PLAYING}
+        ${PlayerEvent.Paused}       | ${false}   | ${PlayerState.PAUSED}
+        ${PlayerEvent.Paused}       | ${true}    | ${PlayerState.PAUSED}
+        ${PlayerEvent.StallStarted} | ${false}   | ${PlayerState.BUFFERING}
+        ${PlayerEvent.StallStarted} | ${true}    | ${PlayerState.BUFFERING}
+        ${PlayerEvent.StallEnded}   | ${false}   | ${PlayerState.PLAYING}
+        ${PlayerEvent.StallEnded}   | ${true}    | ${PlayerState.PLAYING}
+        ${PlayerEvent.Seeked}       | ${false}   | ${PlayerState.PLAYING}
+        ${PlayerEvent.Seeked}       | ${true}    | ${PlayerState.PLAYING}
+        ${PlayerEvent.TimeShifted}  | ${false}   | ${PlayerState.PLAYING}
+        ${PlayerEvent.TimeShifted}  | ${true}    | ${PlayerState.PLAYING}
+      `(
+        'should report player state $expectedPlayerState on ad metric $isAdActive after event $event',
+        ({ event, isAdActive, expectedPlayerState }) => {
+          jest.spyOn(playerMock, 'isPlaying').mockReturnValue(expectedPlayerState === PlayerState.PLAYING);
+          jest.spyOn(playerMock, 'isPaused').mockReturnValue(expectedPlayerState === PlayerState.PAUSED);
 
-        const reportAdMetricSpy = jest.spyOn(MockHelper.latestAdAnalytics, 'reportAdMetric');
-        const reportPlaybackMetricSpy = jest.spyOn(MockHelper.latestVideoAnalytics, 'reportPlaybackMetric')
-        const mockAdData: AdEvent = { ad: { id: 'test-ad-id', data: {} } } as AdEvent;
+          const reportAdMetricSpy = jest.spyOn(MockHelper.latestAdAnalytics, 'reportAdMetric');
+          const reportPlaybackMetricSpy = jest.spyOn(MockHelper.latestVideoAnalytics, 'reportPlaybackMetric');
+          const mockAdData: AdEvent = { ad: { id: 'test-ad-id', data: {} } } as AdEvent;
 
-        if (isAdActive) {
-          convivaAnalytics['convivaAnalyticsTracker'].trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
-        }
-        playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event, ...mockAdData });
+          if (isAdActive) {
+            convivaAnalytics['convivaAnalyticsTracker'].trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+          }
+          playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event, ...mockAdData });
 
-        if (isAdActive) {
-          expect(reportAdMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
-          expect(reportPlaybackMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
-        } else {
-          expect(reportAdMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
-          expect(reportPlaybackMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
-        }
-      });
+          if (isAdActive) {
+            expect(reportAdMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
+            expect(reportPlaybackMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
+          } else {
+            expect(reportAdMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
+            expect(reportPlaybackMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlayerState);
+          }
+        },
+      );
 
       test.each`
         event                           | isAdActive | expectedAdMetric         | expectedPlaybackMetric
@@ -86,7 +89,7 @@ describe('player event tests', () => {
         ${PlayerEvent.AdBreakStarted}   | ${true}    | ${PlayerState.BUFFERING} | ${undefined}
         ${PlayerEvent.AdStarted}        | ${false}   | ${undefined}             | ${undefined}
         ${PlayerEvent.AdStarted}        | ${true}    | ${PlayerState.PLAYING}   | ${undefined}
-        ${PlayerEvent.AdError}          | ${false}   | ${undefined}             | ${undefined}     
+        ${PlayerEvent.AdError}          | ${false}   | ${undefined}             | ${undefined}
         ${PlayerEvent.AdError}          | ${true}    | ${undefined}             | ${undefined}
         ${PlayerEvent.AdSkipped}        | ${false}   | ${undefined}             | ${undefined}
         ${PlayerEvent.AdSkipped}        | ${true}    | ${undefined}             | ${undefined}
@@ -96,36 +99,43 @@ describe('player event tests', () => {
         ${PlayerEvent.RestoringContent} | ${true}    | ${undefined}             | ${PlayerState.BUFFERING}
         ${PlayerEvent.AdBreakFinished}  | ${false}   | ${undefined}             | ${PlayerState.PLAYING}
         ${PlayerEvent.AdBreakFinished}  | ${true}    | ${undefined}             | ${undefined}
-      `('should report ad metric $expectedAdMetric and playback metric $expectedPlaybackMetric on event $event when ad is active $isAdActive', ({ event, isAdActive, expectedAdMetric, expectedPlaybackMetric }) => {
-        jest.spyOn(playerMock, 'isPlaying').mockReturnValue(expectedPlaybackMetric === PlayerState.PLAYING || expectedAdMetric === PlayerState.PLAYING);
+      `(
+        'should report ad metric $expectedAdMetric and playback metric $expectedPlaybackMetric on event $event when ad is active $isAdActive',
+        ({ event, isAdActive, expectedAdMetric, expectedPlaybackMetric }) => {
+          jest
+            .spyOn(playerMock, 'isPlaying')
+            .mockReturnValue(
+              expectedPlaybackMetric === PlayerState.PLAYING || expectedAdMetric === PlayerState.PLAYING,
+            );
 
-        const reportAdMetricSpy = jest.spyOn(MockHelper.latestAdAnalytics, 'reportAdMetric');
-        const reportPlaybackMetricSpy = jest.spyOn(MockHelper.latestVideoAnalytics, 'reportPlaybackMetric')
-        const mockAdData: AdEvent = { ad: { id: 'test-ad-id', data: {} } } as AdEvent;
+          const reportAdMetricSpy = jest.spyOn(MockHelper.latestAdAnalytics, 'reportAdMetric');
+          const reportPlaybackMetricSpy = jest.spyOn(MockHelper.latestVideoAnalytics, 'reportPlaybackMetric');
+          const mockAdData: AdEvent = { ad: { id: 'test-ad-id', data: {} } } as AdEvent;
 
-        if (isAdActive) {
-          if (event === PlayerEvent.AdStarted || event === PlayerEvent.AdFinished) {
-            // Needs ad break initialization
-            playerEventHelper.fireAdBreakStartedEvent(0);
+          if (isAdActive) {
+            if (event === PlayerEvent.AdStarted || event === PlayerEvent.AdFinished) {
+              // Needs ad break initialization
+              playerEventHelper.fireAdBreakStartedEvent(0);
+            } else {
+              // Just track the active ad break state
+              convivaAnalytics['convivaAnalyticsTracker'].trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
+            }
+          }
+          playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event, ...mockAdData });
+
+          if (expectedAdMetric) {
+            expect(reportAdMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedAdMetric);
           } else {
-            // Just track the active ad break state
-            convivaAnalytics['convivaAnalyticsTracker'].trackAdBreakStarted(Conviva.Constants.AdType.CLIENT_SIDE);
-          }          
-        }
-        playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event, ...mockAdData });
+            expect(reportAdMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expect.anything());
+          }
 
-        if (expectedAdMetric) {
-          expect(reportAdMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedAdMetric);
-        } else {
-          expect(reportAdMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expect.anything());
-        }
-
-        if (expectedPlaybackMetric) {
-          expect(reportPlaybackMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlaybackMetric);
-        } else {
-          expect(reportPlaybackMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expect.anything());
-        }
-      });
+          if (expectedPlaybackMetric) {
+            expect(reportPlaybackMetricSpy).toHaveBeenLastCalledWith(PLAYER_STATE, expectedPlaybackMetric);
+          } else {
+            expect(reportPlaybackMetricSpy).not.toHaveBeenLastCalledWith(PLAYER_STATE, expect.anything());
+          }
+        },
+      );
     });
 
     describe('delayed stalling reporting', () => {
@@ -223,19 +233,21 @@ describe('player event tests', () => {
         });
       });
 
-      describe('stallTrackingTimeout', () => {    
-        test.each([
-          PlayerEvent.Play,
-          PlayerEvent.Seek,
-          PlayerEvent.TimeShift,
-        ])('should start timer for stalling when reported player event is %s', (event) => {
-          const stallTrackingStartTimeoutSpy = jest.spyOn(convivaAnalytics['convivaAnalyticsTracker'], 'startStallTrackingTimeout');
+      describe('stallTrackingTimeout', () => {
+        test.each([PlayerEvent.Play, PlayerEvent.Seek, PlayerEvent.TimeShift])(
+          'should start timer for stalling when reported player event is %s',
+          (event) => {
+            const stallTrackingStartTimeoutSpy = jest.spyOn(
+              convivaAnalytics['convivaAnalyticsTracker'],
+              'startStallTrackingTimeout',
+            );
 
-          playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event });
-    
-          expect(stallTrackingStartTimeoutSpy).toHaveBeenCalled();
-        });
-    
+            playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event });
+
+            expect(stallTrackingStartTimeoutSpy).toHaveBeenCalled();
+          },
+        );
+
         test.each([
           PlayerEvent.StallStarted,
           PlayerEvent.Playing,
@@ -246,10 +258,13 @@ describe('player event tests', () => {
           PlayerEvent.PlaybackFinished,
           PlayerEvent.AdStarted,
         ])('should clear timer for stalling when reported player event is %s', (event) => {
-          const stallTrackingStopTimeoutSpy = jest.spyOn(convivaAnalytics['convivaAnalyticsTracker'], 'clearStallTrackingTimeout');
-    
+          const stallTrackingStopTimeoutSpy = jest.spyOn(
+            convivaAnalytics['convivaAnalyticsTracker'],
+            'clearStallTrackingTimeout',
+          );
+
           playerEventHelper.fireEvent({ time: 0, timestamp: Date.now(), type: event });
-    
+
           expect(stallTrackingStopTimeoutSpy).toHaveBeenCalled();
         });
       });
@@ -290,7 +305,7 @@ describe('player event tests', () => {
           playerEventHelper.fireSeekEvent(50.145);
           expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
             Conviva.Constants.Playback.SEEK_STARTED,
-            expect.any(Number)
+            expect.any(Number),
           );
         });
 
@@ -298,7 +313,7 @@ describe('player event tests', () => {
           playerEventHelper.fireTimeShiftEvent();
           expect(MockHelper.latestVideoAnalytics.reportPlaybackMetric).toHaveBeenCalledWith(
             Conviva.Constants.Playback.SEEK_STARTED,
-            -1
+            -1,
           );
         });
       });

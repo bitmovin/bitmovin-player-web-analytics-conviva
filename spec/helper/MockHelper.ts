@@ -121,7 +121,7 @@ export namespace MockHelper {
 
     class MockVideoAnalytics implements Conviva.VideoAnalytics {
       configureExistingSession = jest.fn() as Conviva.VideoAnalytics['configureExistingSession'];
-      reportPlaybackRequested = jest.fn() as Conviva.VideoAnalytics['reportPlaybackRequested']
+      reportPlaybackRequested = jest.fn() as Conviva.VideoAnalytics['reportPlaybackRequested'];
       reportPlaybackFailed = jest.fn() as Conviva.VideoAnalytics['reportPlaybackFailed'];
       reportPlaybackEnded = jest.fn() as Conviva.VideoAnalytics['reportPlaybackEnded'];
       reportPlaybackError = jest.fn() as Conviva.VideoAnalytics['reportPlaybackError'];
@@ -180,8 +180,8 @@ export namespace MockHelper {
   }
 
   export function createPlayerMock(): {
-    playerMock: PlayerAPI,
-    playerEventHelper: PlayerEventHelper
+    playerMock: PlayerAPI;
+    playerEventHelper: PlayerEventHelper;
   } {
     const playerEventHelper = new PlayerEventHelper();
 
@@ -232,10 +232,10 @@ export namespace MockHelper {
             id: 'test-video-quality',
             width: 100,
             height: 100,
-            frameRate: 60
-          }
+            frameRate: 60,
+          };
           return data;
-        })
+        }),
       };
     });
 
@@ -243,8 +243,8 @@ export namespace MockHelper {
 
     return {
       playerMock,
-      playerEventHelper
-    }
+      playerEventHelper,
+    };
   }
 }
 
@@ -323,7 +323,7 @@ export class PlayerEventHelper {
       type: PlayerEvent.AdError,
       code: 1001,
       name: 'AdErrorEvent',
-      troubleShootLink: "http://troubleshoot-test-link"
+      troubleShootLink: 'http://troubleshoot-test-link',
     });
   }
 
@@ -374,7 +374,7 @@ export class PlayerEventHelper {
       type: PlayerEvent.Error,
       code: 1000,
       name: 'ErrorEvent',
-      troubleShootLink: "http://troubleshoot-test-link"
+      troubleShootLink: 'http://troubleshoot-test-link',
     });
   }
 
