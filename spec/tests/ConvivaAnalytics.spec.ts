@@ -53,7 +53,7 @@ describe(ConvivaAnalytics, () => {
 
       expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          streamType: 'dash',
+          streamType: Conviva.ContentMetadata.StreamType.VOD,
         }),
       );
     });
@@ -77,7 +77,7 @@ describe(ConvivaAnalytics, () => {
       expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           playerType: PlayerType.Native,
-          streamType: StreamType.Dash,
+          streamType: Conviva.ContentMetadata.StreamType.VOD,
         }),
       );
     });
@@ -91,7 +91,7 @@ describe(ConvivaAnalytics, () => {
       expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
         expect.objectContaining({
           playerType: PlayerType.Native,
-          streamType: StreamType.Dash,
+          streamType: Conviva.ContentMetadata.StreamType.VOD,
         }),
       );
     });

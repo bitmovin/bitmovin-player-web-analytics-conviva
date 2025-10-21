@@ -537,9 +537,7 @@ export class ConvivaAnalyticsTracker {
     }
 
     this.contentMetadataBuilder.duration = this.player.getDuration();
-    this.contentMetadataBuilder.streamType = this.player.isLive()
-      ? Conviva.ContentMetadata.StreamType.LIVE
-      : Conviva.ContentMetadata.StreamType.VOD;
+    this.contentMetadataBuilder.streamType = this.getStreamType();
 
     this.contentMetadataBuilder.addToCustom({
       // Autoplay and preload are important options for the Video Startup Time so we track it as custom tags
@@ -553,10 +551,9 @@ export class ConvivaAnalyticsTracker {
     // This could be called before we got a source
     if (source) {
       this.contentMetadataBuilder.assetName = this.getAssetNameFromSource(source);
-      this.contentMetadataBuilder.viewerId = this.contentMetadataBuilder.viewerId;
       this.contentMetadataBuilder.addToCustom({
         [PLAYER_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getPlayerType(),
-        [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.player.getStreamType(),
+        [STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG]: this.getStreamType(),
         [VR_CONTENT_TYPE_CONTENT_METADATA_CUSTOM_TAG]: source.vr && source.vr.contentType,
       });
 
@@ -583,6 +580,13 @@ export class ConvivaAnalyticsTracker {
     }
 
     return assetName;
+  }
+
+  private getStreamType(): Conviva.valueof<Conviva.ConvivaConstants['StreamType']> {
+    const overrides = this.contentMetadataBuilder.getOverrides();
+    return overrides.streamType || this.player.isLive()
+      ? Conviva.ContentMetadata.StreamType.LIVE
+      : Conviva.ContentMetadata.StreamType.VOD;
   }
 
   private internalEndSession = () => {

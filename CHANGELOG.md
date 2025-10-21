@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Support for streamType override in `updateContentMetadata`
 
 ## [6.1.2] - 2024-12-24
 ### Fixed
