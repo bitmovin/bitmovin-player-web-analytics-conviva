@@ -28,7 +28,9 @@ export class ConvivaAnalytics {
 
   private get player(): PlayerAPI {
     if (!this._player) {
-      throw new Error('Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.');
+      throw new Error(
+        'Player is not initialized, either pass it to the constructor or attach it via `attachPlayer` before using the integration.',
+      );
     }
     return this._player;
   }
@@ -100,7 +102,7 @@ export class ConvivaAnalytics {
    * @param player The player instance to attach to the integration.
    */
   public attachPlayer(player: PlayerAPI): void {
-    const {canAttach, reason} = this.convivaAnalyticsTracker.canAttachPlayer(player);
+    const { canAttach, reason } = this.convivaAnalyticsTracker.canAttachPlayer(player);
 
     if (!canAttach) {
       this.logger.consoleLog(
@@ -279,7 +281,7 @@ export class ConvivaAnalytics {
 
     this.convivaAnalyticsTracker.trackAdStarted(adInfo, Conviva.Constants.AdType.CLIENT_SIDE, bitrateKbps);
     // No need to call reportPlaybackStateFromEvent as this is covered by `trackAdStarted`
-  }
+  };
 
   private onAdFinished = (event: AdEvent) => {
     if (!this.lastAdBreakEvent) {
@@ -290,7 +292,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad finished', event);
     this.convivaAnalyticsTracker.trackAdFinished();
     this.convivaAnalyticsTracker.trackPlaybackStateFromEvent(event);
-  }
+  };
 
   private onAdSkipped = (event: AdEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad skipped', event);
@@ -308,7 +310,7 @@ export class ConvivaAnalytics {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] adbreak finished', event);
     this.convivaAnalyticsTracker.trackAdBreakFinished(Conviva.Constants.AdType.CLIENT_SIDE);
     // No need to call reportPlaybackStateFromEvent as this is covered by `trackAdBreakFinished`
-  }
+  };
 
   private onAdError = (event: ErrorEvent) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] ad error', event);
@@ -369,11 +371,7 @@ export class ConvivaAnalytics {
     this.mainContentDuration = this.player.getDuration();
   };
 
-  private static readonly stallTrackingStartEvents = [
-    PlayerEvent.Play,
-    PlayerEvent.Seek,
-    PlayerEvent.TimeShift,
-  ];
+  private static readonly stallTrackingStartEvents = [PlayerEvent.Play, PlayerEvent.Seek, PlayerEvent.TimeShift];
 
   private static readonly stallTrackingClearEvents = [
     PlayerEvent.StallStarted, // StallStarted is reported as BUFFERING immediately. Does not need the delayed timeout approach.

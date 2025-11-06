@@ -1,6 +1,19 @@
-import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, PlayerAPI, VastAdData } from 'bitmovin-player';
+import {
+  Ad,
+  AdBreak,
+  AdBreakEvent,
+  AdData,
+  AdEvent,
+  ErrorEvent,
+  LinearAd,
+  PlayerAPI,
+  VastAdData,
+} from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import { INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG, STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG } from '../ConvivaAnalyticsTracker';
+import {
+  INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
+  STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG,
+} from '../ConvivaAnalyticsTracker';
 
 export interface SsaiAdInfo {
   /**
@@ -45,7 +58,6 @@ export class AdHelper {
     adBreak: AdBreak,
     mainContentDuration: number,
   ): Conviva.valueof<Conviva.ConvivaConstants['AdPosition']> {
-
     if (adBreak.scheduleTime <= 0) {
       return Conviva.Constants.AdPosition.PREROLL;
     }
@@ -57,11 +69,13 @@ export class AdHelper {
     return Conviva.Constants.AdPosition.MIDROLL;
   }
 
-  public static formatCsaiAdError(event: ErrorEvent & {
-    data?: {
-      code?: number,
+  public static formatCsaiAdError(
+    event: ErrorEvent & {
+      data?: {
+        code?: number;
+      };
     },
-  }) {
+  ) {
     const message = event?.message || 'Unknown message';
     const name = event?.name || 'Unknown name';
     const formattedErrorParts = [
@@ -89,7 +103,6 @@ export class AdHelper {
     let creativeId = 'NA';
     let adTitle = 'NA';
     let firstAdId = ad.id;
-
 
     if (adData) {
       if ('adSystem' in adData && adData.adSystem?.name) {
@@ -129,7 +142,6 @@ export class AdHelper {
       'c3.ad.firstAdSystem': 'NA',
       'c3.ad.firstCreativeId': 'NA',
 
-
       // These are not relevant for the client side (keep in the code for documentation purposes)
       // 'c3.ad.adStitcher': undefined,
       // 'c3.ad.isSlate': undefined,
@@ -142,7 +154,10 @@ export class AdHelper {
     return adInfo;
   }
 
-  public static convertSsaiAdInfoToConvivaAdInfo(ssaiAdInfo: SsaiAdInfo, allCurrentContentMetadata: Conviva.ConvivaMetadata): Conviva.ConvivaMetadata {
+  public static convertSsaiAdInfoToConvivaAdInfo(
+    ssaiAdInfo: SsaiAdInfo,
+    allCurrentContentMetadata: Conviva.ConvivaMetadata,
+  ): Conviva.ConvivaMetadata {
     const keysToPick = [
       INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,
       STREAM_TYPE_CONTENT_METADATA_CUSTOM_TAG,
@@ -155,10 +170,9 @@ export class AdHelper {
     ];
     const selectedCurrentContentMetadata: Record<string, string> = {};
 
-    keysToPick.forEach(key => {
+    keysToPick.forEach((key) => {
       selectedCurrentContentMetadata[key] = allCurrentContentMetadata[key];
     });
-
 
     const adInfo: Conviva.ConvivaMetadata = {
       ...selectedCurrentContentMetadata,
@@ -167,7 +181,8 @@ export class AdHelper {
       'c3.ad.technology': Conviva.Constants.AdType.SERVER_SIDE,
       'c3.ad.position': ssaiAdInfo.position || 'NA',
       'c3.ad.system': ssaiAdInfo.adSystem || 'NA',
-      [Conviva.Constants.ASSET_NAME]: ssaiAdInfo.title || selectedCurrentContentMetadata[Conviva.Constants.ASSET_NAME] || 'NA',
+      [Conviva.Constants.ASSET_NAME]:
+        ssaiAdInfo.title || selectedCurrentContentMetadata[Conviva.Constants.ASSET_NAME] || 'NA',
       'c3.ad.adStitcher': ssaiAdInfo.adStitcher || 'NA',
       'c3.ad.isSlate': ssaiAdInfo.isSlate === undefined ? 'NA' : ssaiAdInfo.isSlate.toString(),
 

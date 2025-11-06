@@ -11,7 +11,7 @@ jest.mock('../../src/ts/Html5Logging');
 describe('externally session managing', () => {
   let convivaAnalytics: ConvivaAnalytics;
   let playerMock: PlayerAPI;
-  let playerEventHelper: PlayerEventHelper
+  let playerEventHelper: PlayerEventHelper;
 
   beforeEach(() => {
     ({ playerMock, playerEventHelper } = MockHelper.createPlayerMock());

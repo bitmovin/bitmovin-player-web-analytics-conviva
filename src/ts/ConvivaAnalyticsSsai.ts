@@ -30,7 +30,7 @@ export class ConvivaAnalyticsSsai {
    */
   public reportAdBreakStarted() {
     if (this.convivaAnalyticsTracker.isAdBreakActive || this._isAdBreakActive) {
-        return;
+      return;
     }
 
     this._isAdBreakActive = true;
@@ -46,7 +46,7 @@ export class ConvivaAnalyticsSsai {
    */
   public reportAdStarted(ssaiAdInfo: SsaiAdInfo) {
     if (!this._isAdBreakActive) {
-        return;
+      return;
     }
 
     this.convivaAnalyticsTracker.trackAdStarted(
@@ -61,7 +61,7 @@ export class ConvivaAnalyticsSsai {
    */
   public reportAdFinished() {
     if (!this.isAdBreakActive) {
-        return;
+      return;
     }
 
     this.convivaAnalyticsTracker.trackAdFinished();
@@ -73,7 +73,7 @@ export class ConvivaAnalyticsSsai {
    */
   public reportAdSkipped() {
     if (!this._isAdBreakActive) {
-        return;
+      return;
     }
 
     this.convivaAnalyticsTracker.trackAdSkipped();
@@ -85,7 +85,7 @@ export class ConvivaAnalyticsSsai {
    */
   public reportAdBreakFinished() {
     if (!this._isAdBreakActive) {
-        return;
+      return;
     }
 
     this._isAdBreakActive = false;
