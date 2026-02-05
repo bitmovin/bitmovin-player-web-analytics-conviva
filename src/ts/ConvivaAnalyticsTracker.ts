@@ -594,9 +594,10 @@ export class ConvivaAnalyticsTracker {
 
   private getStreamType(): Conviva.valueof<Conviva.ConvivaConstants['StreamType']> {
     const overrides = this.contentMetadataBuilder.getOverrides();
-    return overrides.streamType || this.player.isLive()
-      ? Conviva.ContentMetadata.StreamType.LIVE
-      : Conviva.ContentMetadata.StreamType.VOD;
+    if (overrides.streamType !== undefined) {
+      return overrides.streamType;
+    }
+    return this.player.isLive() ? Conviva.ContentMetadata.StreamType.LIVE : Conviva.ContentMetadata.StreamType.VOD;
   }
 
   private internalEndSession = () => {
