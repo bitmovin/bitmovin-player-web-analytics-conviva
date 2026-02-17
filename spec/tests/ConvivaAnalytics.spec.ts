@@ -277,6 +277,30 @@ describe(ConvivaAnalytics, () => {
           );
         });
 
+        it('streamType override to VOD is respected on live stream', () => {
+          jest.spyOn(playerMock, 'isLive').mockReturnValue(true);
+          convivaAnalytics.updateContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.VOD });
+          playerEventHelper.firePlayEvent();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              isLive: Conviva.ContentMetadata.StreamType.VOD,
+              streamType: Conviva.ContentMetadata.StreamType.VOD,
+            }),
+          );
+        });
+
+        it('streamType override to LIVE is respected on VOD stream', () => {
+          jest.spyOn(playerMock, 'isLive').mockReturnValue(false);
+          convivaAnalytics.updateContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.LIVE });
+          playerEventHelper.firePlayEvent();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              isLive: Conviva.ContentMetadata.StreamType.LIVE,
+              streamType: Conviva.ContentMetadata.StreamType.LIVE,
+            }),
+          );
+        });
+
         it('applicationname', () => {
           convivaAnalytics.updateContentMetadata({ applicationName: 'someValue' });
           playerEventHelper.firePlayEvent();
