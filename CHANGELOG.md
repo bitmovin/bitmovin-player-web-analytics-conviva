@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [6.1.4] - 2026-02-24
 ### Fixed
 - `streamType` override not correctly respected
 
@@ -175,7 +177,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.3...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.4...HEAD
+[6.1.4]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.3...v6.1.4
 [6.1.3]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.2...v6.1.3
 [6.1.2]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.0...v6.1.1
