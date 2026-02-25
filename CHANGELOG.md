@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [6.1.4] - 2026-02-24
 ### Fixed
 - `streamType` override not correctly respected
 
