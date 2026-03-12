@@ -13,7 +13,7 @@ import {
   VideoQualityChangedEvent,
   SubtitleEvent,
 } from 'bitmovin-player';
-import { Metadata } from './ContentMetadataBuilder';
+import { CustomMetadata, Metadata, RequiredMetadata } from './ContentMetadataBuilder';
 import { ObjectUtils } from './helper/ObjectUtils';
 import { ConvivaAnalyticsConfiguration, ConvivaAnalyticsTracker, EventAttributes } from './ConvivaAnalyticsTracker';
 import { ConvivaAnalyticsSsai } from './ConvivaAnalyticsSsai';
@@ -173,12 +173,39 @@ export class ConvivaAnalytics {
    * If there is an active session only permitted values will be updated and propagated immediately.
    * If there is no active session the values will set on session creation.
    *
-   * Attributes set via this method will override automatic tracked once.
+   * Attributes set via this method will override automatically tracked values.
    * @param metadataOverrides Metadata attributes which will be used to track to conviva.
    * @see ContentMetadataBuilder for more information about permitted attributes
    */
   public updateContentMetadata(metadataOverrides: Partial<Metadata>) {
     this.convivaAnalyticsTracker.updateContentMetadata(metadataOverrides);
+  }
+
+  /**
+   * Will update Conviva-managed content metadata without changing custom metadata fields.
+   *
+   * If there is an active session only permitted values will be updated and propagated immediately.
+   * If there is no active session the values will be set on session creation.
+   *
+   * Attributes set via this method will override automatically tracked values.
+   * @param metadataOverrides Conviva-managed metadata attributes which will be used to track to conviva.
+   * @see ContentMetadataBuilder for more information about permitted attributes
+   */
+  public updateRequiredContentMetadata(metadataOverrides: Partial<RequiredMetadata>) {
+    this.convivaAnalyticsTracker.updateRequiredContentMetadata(metadataOverrides);
+  }
+
+  /**
+   * Will update custom content metadata without changing Conviva-managed metadata fields.
+   *
+   * If there is an active session only permitted values will be updated and propagated immediately.
+   * If there is no active session the values will be set on session creation.
+   *
+   * @param metadataOverrides Custom metadata attributes which will be used to track to conviva.
+   * @see ContentMetadataBuilder for more information about permitted attributes
+   */
+  public updateCustomContentMetadata(metadataOverrides: Partial<CustomMetadata>) {
+    this.convivaAnalyticsTracker.updateCustomContentMetadata(metadataOverrides);
   }
 
   /**

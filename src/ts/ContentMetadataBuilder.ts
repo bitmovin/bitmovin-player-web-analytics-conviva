@@ -14,10 +14,14 @@ export type Metadata = Conviva.ContentMetadata & {
   additionalStandardTags: Conviva.ContentMetadata['custom'];
 };
 
+export type RequiredMetadata = Omit<Metadata, 'custom' | 'additionalStandardTags'>;
+export type CustomMetadata = Pick<Metadata, 'custom' | 'additionalStandardTags'>;
+
 export class ContentMetadataBuilder {
   private readonly logger: Conviva.LoggingInterface;
 
   private metadataOverrides: Partial<Metadata> = {};
+  private customMetadataOverrides: Partial<CustomMetadata> = {};
   private metadata: Partial<Metadata> = {};
   private latestBuiltMetadata: Partial<Metadata> = {};
   private playbackStarted: boolean = false;
@@ -39,6 +43,18 @@ export class ContentMetadataBuilder {
     }
 
     this.metadataOverrides = { ...this.metadataOverrides, ...newValue };
+  }
+
+  setCustomOverrides(newValue: Partial<CustomMetadata>) {
+    if (this.playbackStarted) {
+      this.logger.consoleLog(
+        '[ Conviva Analytics ] Playback has started. Custom metadata overrides will not be applied',
+        Conviva.SystemSettings.LogLevel.WARNING,
+      );
+      return;
+    }
+
+    this.customMetadataOverrides = { ...this.customMetadataOverrides, ...newValue };
   }
 
   getOverrides(): Partial<Metadata> {
@@ -67,6 +83,9 @@ export class ContentMetadataBuilder {
         ...this.metadataOverrides.additionalStandardTags,
         // Keep our custom tags in case someone tries to override them
         ...this.metadata.custom,
+        // Explicit custom metadata updates should be able to override the internally populated custom tags.
+        ...this.customMetadataOverrides.custom,
+        ...this.customMetadataOverrides.additionalStandardTags,
       };
     } else {
       // If the playback has been started, the values cannot be changed and the latest values before the playback started have to be used
@@ -166,6 +185,7 @@ export class ContentMetadataBuilder {
 
   public reset(): void {
     this.metadataOverrides = {};
+    this.customMetadataOverrides = {};
     this.metadata = {};
     this.playbackStarted = false;
     this.latestBuiltMetadata = {};
