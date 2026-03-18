@@ -17,7 +17,7 @@ import { Html5Storage } from './Html5Storage';
 import { Html5Time } from './Html5Time';
 import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
-import { ContentMetadataBuilder, Metadata } from './ContentMetadataBuilder';
+import { ContentMetadataBuilder, CustomMetadata, Metadata, RequiredMetadata } from './ContentMetadataBuilder';
 import { AdHelper } from './helper/AdHelper';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { PlayerConfigHelper } from './helper/PlayerConfigHelper';
@@ -370,6 +370,14 @@ export class ConvivaAnalyticsTracker {
     this.internalUpdateContentMetadata(metadataOverrides);
   }
 
+  public updateRequiredContentMetadata(metadataOverrides: Partial<RequiredMetadata>) {
+    this.internalUpdateContentMetadata(metadataOverrides);
+  }
+
+  public updateCustomContentMetadata(metadataOverrides: Partial<CustomMetadata>) {
+    this.internalUpdateCustomContentMetadata(metadataOverrides);
+  }
+
   public reportPlaybackDeficiency(
     message: string,
     severity: Conviva.valueof<Conviva.ConvivaConstants['ErrorSeverity']>,
@@ -444,9 +452,12 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  private internalUpdateContentMetadata(metadataOverrides: Partial<Metadata>) {
-    this.contentMetadataBuilder.setOverrides(metadataOverrides);
-
+  /**
+   * Applies a content metadata builder update; if a session is active, rebuilds metadata and updates the session.
+   * If no session is active, logs and defers propagation to session initialization.
+   */
+  private applyContentMetadataUpdate(updateBuilder: () => void): void {
+    updateBuilder();
     if (!this.isSessionActive()) {
       this.logger.consoleLog(
         '[ ConvivaAnalyticsTracker ] no active session. Content metadata will be propagated to Conviva on session initialization.',
@@ -454,9 +465,16 @@ export class ConvivaAnalyticsTracker {
       );
       return;
     }
-
     this.buildContentMetadata();
     this.updateSession();
+  }
+
+  private internalUpdateContentMetadata(metadataOverrides: Partial<Metadata>) {
+    this.applyContentMetadataUpdate(() => this.contentMetadataBuilder.setOverrides(metadataOverrides));
+  }
+
+  private internalUpdateCustomContentMetadata(metadataOverrides: Partial<CustomMetadata>) {
+    this.applyContentMetadataUpdate(() => this.contentMetadataBuilder.setCustomOverrides(metadataOverrides));
   }
 
   /**

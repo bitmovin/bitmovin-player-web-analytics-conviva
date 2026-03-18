@@ -174,6 +174,30 @@ describe(ConvivaAnalytics, () => {
           );
         });
 
+        it('streamType via required content metadata', () => {
+          convivaAnalytics.updateRequiredContentMetadata({
+            streamType: Conviva.Constants.StreamType.UNKNOWN,
+            assetName: 'MyAsset',
+          });
+          convivaAnalytics.initializeSession();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              isLive: 'unknown',
+            }),
+          );
+        });
+
+        it('custom streamType via custom content metadata', () => {
+          convivaAnalytics.updateContentMetadata({ assetName: 'MyAsset' });
+          convivaAnalytics.updateCustomContentMetadata({ custom: { streamType: 'dash_vod' } });
+          convivaAnalytics.initializeSession();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              streamType: 'dash_vod',
+            }),
+          );
+        });
+
         it('applicationname', () => {
           convivaAnalytics.updateContentMetadata({ applicationName: 'someValue', assetName: 'MyAsset' });
           convivaAnalytics.initializeSession();
@@ -297,6 +321,41 @@ describe(ConvivaAnalytics, () => {
             expect.objectContaining({
               isLive: Conviva.ContentMetadata.StreamType.LIVE,
               streamType: Conviva.ContentMetadata.StreamType.LIVE,
+            }),
+          );
+        });
+
+        it('streamType via required content metadata', () => {
+          jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+          convivaAnalytics.updateRequiredContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.UNKNOWN });
+          playerEventHelper.firePlayEvent();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              isLive: 'unknown',
+            }),
+          );
+        });
+
+        it('custom streamType via custom content metadata', () => {
+          jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+          convivaAnalytics.updateCustomContentMetadata({ custom: { streamType: 'dash_vod' } });
+          playerEventHelper.firePlayEvent();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              streamType: 'dash_vod',
+            }),
+          );
+        });
+
+        it('required and custom streamType separately', () => {
+          jest.spyOn(playerMock, 'getStreamType').mockReturnValue(StreamType.Dash);
+          convivaAnalytics.updateRequiredContentMetadata({ streamType: Conviva.ContentMetadata.StreamType.UNKNOWN });
+          convivaAnalytics.updateCustomContentMetadata({ custom: { streamType: 'dash_vod' } });
+          playerEventHelper.firePlayEvent();
+          expect(MockHelper.latestVideoAnalytics.reportPlaybackRequested).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              isLive: 'unknown',
+              streamType: 'dash_vod',
             }),
           );
         });
