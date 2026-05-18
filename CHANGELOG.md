@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Playback error messages reported to Conviva now include the full error context (message, type, timestamp, troubleshoot link, and all relevant `event.data` fields such as `url`, `httpStatusCode`, `statusText`, `downloadType`, etc.) instead of only the error code and name
 
 ## [6.2.0] - 2026-03-18
 ### Added
