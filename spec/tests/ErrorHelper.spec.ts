@@ -132,5 +132,121 @@ describe(ErrorHelper, () => {
       expect(result).not.toContain('statusText:');
       expect(result).not.toContain('response:');
     });
+
+    it('should keep timestamp 0 and empty-string type instead of dropping them', () => {
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 0,
+        type: '' as any,
+      });
+
+      expect(result).toContain('Timestamp: 0;');
+      expect(result).toContain('Type: ;');
+    });
+
+    it('should redact sensitive query-string parameters in URL fields', () => {
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          url: 'https://cdn.example.com/asset.m3u8?token=abc123&region=eu&sig=deadbeef',
+        },
+      });
+
+      expect(result).toContain('https://cdn.example.com/asset.m3u8?');
+      expect(result).toContain('token=[REDACTED]');
+      expect(result).toContain('sig=[REDACTED]');
+      expect(result).toContain('region=eu');
+      expect(result).not.toContain('abc123');
+      expect(result).not.toContain('deadbeef');
+    });
+
+    it('should redact sensitive HTTP headers in responseHeaders', () => {
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          responseHeaders: {
+            'Content-Type': 'video/mp4',
+            Authorization: 'Bearer super-secret-token',
+            Cookie: 'session=abc',
+            'X-Api-Key': 'k-1234',
+          },
+        },
+      });
+
+      expect(result).toContain('Content-Type');
+      expect(result).toContain('video/mp4');
+      expect(result).toContain('"Authorization":"[REDACTED]"');
+      expect(result).toContain('"Cookie":"[REDACTED]"');
+      expect(result).toContain('"X-Api-Key":"[REDACTED]"');
+      expect(result).not.toContain('super-secret-token');
+      expect(result).not.toContain('session=abc');
+      expect(result).not.toContain('k-1234');
+    });
+
+    it('should truncate very long known field values', () => {
+      const longBody = 'x'.repeat(2000);
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          responseText: longBody,
+        },
+      });
+
+      expect(result).toContain('[truncated');
+      expect(result).not.toContain(longBody);
+    });
+
+    it('should serialize BigInt values in known fields and remaining data', () => {
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      const globalRef = Function('return this')() as { BigInt?: (v: string) => unknown };
+      const BigIntCtor = globalRef.BigInt;
+      if (typeof BigIntCtor !== 'function') {
+        // Skip on platforms without BigInt support.
+        return;
+      }
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          retryCount: BigIntCtor('9007199254740993'),
+          customCounter: BigIntCtor('12345678901234567890'),
+        },
+      });
+
+      expect(result).toContain('retryCount: 9007199254740993;');
+      expect(result).toContain('"customCounter":"12345678901234567890"');
+    });
+
+    it('should not produce "undefined" output for unserializable data values', () => {
+      const symbolValue: any = Symbol('only-a-symbol');
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: symbolValue,
+      });
+
+      expect(result).not.toContain('undefined');
+      expect(result).toContain('data:');
+    });
   });
 });

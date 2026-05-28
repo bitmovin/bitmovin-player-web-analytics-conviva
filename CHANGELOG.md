@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Playback error messages reported to Conviva now include the full error context (message, type, timestamp, troubleshoot link, and all relevant `event.data` fields such as `url`, `httpStatusCode`, `statusText`, `downloadType`, etc.) instead of only the error code and name
+  - Sensitive query-string parameters (`token`, `sig`, `signature`, `apikey`, etc.) in URL fields are redacted before being forwarded
+  - Sensitive HTTP headers (`Authorization`, `Cookie`, `X-Api-Key`, etc.) in `responseHeaders` are redacted before being forwarded
+  - Long field values are truncated to 512 characters to avoid bloating the reported message
 
 ## [6.2.0] - 2026-03-18
 ### Added
