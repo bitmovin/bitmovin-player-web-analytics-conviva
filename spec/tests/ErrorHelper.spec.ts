@@ -166,6 +166,50 @@ describe(ErrorHelper, () => {
       expect(result).not.toContain('deadbeef');
     });
 
+    it('should redact sensitive URL fragment params (OAuth implicit grant)', () => {
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          url: 'https://cdn.example.com/player.html#access_token=oauth-secret&expires_in=3600',
+        },
+      });
+
+      expect(result).toContain('access_token=[REDACTED]');
+      expect(result).toContain('expires_in=3600');
+      expect(result).not.toContain('oauth-secret');
+    });
+
+    it('should redact common CDN signed-URL params (CloudFront / Akamai)', () => {
+      const result = ErrorHelper.formatPlaybackError({
+        code: ErrorCode.NETWORK_ERROR,
+        name: 'NETWORK_ERROR',
+        troubleShootLink: '',
+        timestamp: 1700000000000,
+        type: PlayerEvent.Error,
+        data: {
+          url:
+            'https://cdn.example.com/video.mp4?X-Amz-Signature=cf-sig&Policy=cf-policy&' +
+            'Key-Pair-Id=KEYID&hdnts=ak-token&__token__=generic-tok&region=eu',
+        },
+      });
+
+      expect(result).toContain('X-Amz-Signature=[REDACTED]');
+      expect(result).toContain('Policy=[REDACTED]');
+      expect(result).toContain('Key-Pair-Id=[REDACTED]');
+      expect(result).toContain('hdnts=[REDACTED]');
+      expect(result).toContain('__token__=[REDACTED]');
+      expect(result).toContain('region=eu');
+      expect(result).not.toContain('cf-sig');
+      expect(result).not.toContain('cf-policy');
+      expect(result).not.toContain('KEYID');
+      expect(result).not.toContain('ak-token');
+      expect(result).not.toContain('generic-tok');
+    });
+
     it('should redact sensitive HTTP headers in responseHeaders', () => {
       const result = ErrorHelper.formatPlaybackError({
         code: ErrorCode.NETWORK_ERROR,

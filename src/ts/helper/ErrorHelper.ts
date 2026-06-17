@@ -1,11 +1,5 @@
 import { ErrorEvent } from 'bitmovin-player';
 
-type ErrorEventWithData = ErrorEvent & {
-  message?: string;
-  troubleShootLink?: string;
-  data?: any;
-};
-
 const KNOWN_DATA_KEYS = [
   'url',
   'requestUrl',
@@ -33,9 +27,10 @@ const KNOWN_DATA_KEYS = [
 
 const URL_LIKE_KEYS = ['url', 'requestUrl', 'manifestUrl', 'segmentUrl', 'responseUrl'];
 const HEADER_LIKE_KEYS = ['responseHeaders'];
-const RESPONSE_BODY_KEYS = ['response', 'responseText'];
 
-// Query-string parameter names that commonly carry credentials in signed-URL schemes.
+// Query-string parameter names that commonly carry credentials in signed-URL
+// schemes — generic OAuth/JWT-style names plus the common CDN signed-URL
+// schemes (CloudFront/S3, Akamai, generic __token__).
 const SENSITIVE_QUERY_PARAMS = [
   'token',
   'access_token',
@@ -53,6 +48,17 @@ const SENSITIVE_QUERY_PARAMS = [
   'sessionid',
   'jwt',
   'bearer',
+  // CloudFront / S3 signed URLs.
+  'x-amz-signature',
+  'x-amz-security-token',
+  'x-amz-credential',
+  'policy',
+  'key-pair-id',
+  'keypairid',
+  // Akamai / generic CDN tokens.
+  'hdnts',
+  'hdnea',
+  '__token__',
 ];
 
 // HTTP header names that commonly carry credentials or session identifiers.
@@ -74,32 +80,55 @@ function truncate(value: string): string {
   if (value.length <= MAX_FIELD_LENGTH) {
     return value;
   }
-  return `${value.slice(0, MAX_FIELD_LENGTH)}…[truncated ${value.length - MAX_FIELD_LENGTH} chars]`;
+  return `${value.slice(0, MAX_FIELD_LENGTH)}...[truncated ${value.length - MAX_FIELD_LENGTH} chars]`;
+}
+
+function redactKeyValueList(list: string): string {
+  return list
+    .split('&')
+    .map((pair) => {
+      const eq = pair.indexOf('=');
+      if (eq === -1) {
+        return pair;
+      }
+      const name = pair.slice(0, eq);
+      const val = pair.slice(eq + 1);
+      if (SENSITIVE_QUERY_PARAMS.indexOf(name.toLowerCase()) !== -1) {
+        return `${name}=${REDACTED}`;
+      }
+      return `${name}=${val}`;
+    })
+    .join('&');
 }
 
 function sanitizeUrl(value: unknown): string {
   if (typeof value !== 'string') {
     return truncate(safeStringify(value));
   }
-  const queryIndex = value.indexOf('?');
+
+  // Sensitive data can live in the query (?...) AND the fragment (#...), the
+  // latter being how OAuth implicit-grant flows leak access tokens. Sanitize
+  // both — split on '#' first so the fragment is processed even when there is
+  // no query string.
+  const fragmentIndex = value.indexOf('#');
+  const beforeFragment = fragmentIndex === -1 ? value : value.slice(0, fragmentIndex);
+  const fragment = fragmentIndex === -1 ? '' : value.slice(fragmentIndex + 1);
+
+  let sanitized: string;
+  const queryIndex = beforeFragment.indexOf('?');
   if (queryIndex === -1) {
-    return truncate(value);
+    sanitized = beforeFragment;
+  } else {
+    const base = beforeFragment.slice(0, queryIndex);
+    const query = beforeFragment.slice(queryIndex + 1);
+    sanitized = `${base}?${redactKeyValueList(query)}`;
   }
-  const base = value.slice(0, queryIndex);
-  const query = value.slice(queryIndex + 1);
-  const sanitizedPairs = query.split('&').map((pair) => {
-    const eq = pair.indexOf('=');
-    if (eq === -1) {
-      return pair;
-    }
-    const name = pair.slice(0, eq);
-    const val = pair.slice(eq + 1);
-    if (SENSITIVE_QUERY_PARAMS.indexOf(name.toLowerCase()) !== -1) {
-      return `${name}=${REDACTED}`;
-    }
-    return `${name}=${val}`;
-  });
-  return truncate(`${base}?${sanitizedPairs.join('&')}`);
+
+  if (fragment) {
+    sanitized = `${sanitized}#${redactKeyValueList(fragment)}`;
+  }
+
+  return truncate(sanitized);
 }
 
 function sanitizeHeaders(value: unknown): string {
@@ -123,9 +152,6 @@ function sanitizeKnownField(key: string, value: unknown): string {
   }
   if (HEADER_LIKE_KEYS.indexOf(key) !== -1) {
     return sanitizeHeaders(value);
-  }
-  if (RESPONSE_BODY_KEYS.indexOf(key) !== -1) {
-    return truncate(safeStringify(value));
   }
   return truncate(safeStringify(value));
 }
@@ -178,7 +204,7 @@ function safeStringify(value: unknown): string {
 }
 
 export class ErrorHelper {
-  public static formatPlaybackError(event: ErrorEventWithData): string {
+  public static formatPlaybackError(event: ErrorEvent): string {
     const parts: (string | undefined)[] = [
       `Error code: ${event?.code ?? 'NA'};`,
       `Name: ${event?.name ?? 'NA'};`,
@@ -189,12 +215,15 @@ export class ErrorHelper {
       event?.timestamp !== undefined && event?.timestamp !== null ? `Timestamp: ${event.timestamp};` : undefined,
     ];
 
-    const data = event?.data;
+    // Widen to `unknown` so the runtime safety paths below (handling
+    // non-object data that may still arrive at runtime despite the typed
+    // `event.data: { [key: string]: any } | undefined`) compile.
+    const data: unknown = event?.data;
     if (data && typeof data === 'object') {
       const extracted: string[] = [];
       const remaining: Record<string, unknown> = {};
 
-      for (const key of Object.keys(data)) {
+      for (const key of Object.keys(data as Record<string, unknown>)) {
         const value = (data as Record<string, unknown>)[key];
         if (value === undefined || value === null || value === '') {
           continue;
