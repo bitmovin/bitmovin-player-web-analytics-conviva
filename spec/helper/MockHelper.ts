@@ -13,6 +13,7 @@ import {
   CastStartedEvent,
   AudioChangedEvent,
   SubtitleEvent,
+  SubtitleTrack,
   VideoQuality,
 } from 'bitmovin-player';
 import { ArrayUtils } from 'bitmovin-player-ui/dist/js/framework/arrayutils';
@@ -222,7 +223,7 @@ export namespace MockHelper {
           }
         }),
         subtitles: {
-          list: jest.fn(() => []),
+          list: jest.fn((): SubtitleTrack[] => []),
         },
         on: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.on(eventType, callback),
         off: (eventType: PlayerEvent, callback: PlayerEventCallback) => playerEventHelper.off(eventType, callback),
