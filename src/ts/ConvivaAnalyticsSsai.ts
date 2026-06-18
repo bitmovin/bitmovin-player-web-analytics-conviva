@@ -1,5 +1,5 @@
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import { ConvivaAnalyticsTracker, INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG } from './ConvivaAnalyticsTracker';
+import { ConvivaAnalyticsTracker } from './ConvivaAnalyticsTracker';
 import { AdHelper, SsaiAdInfo } from './helper/AdHelper';
 
 export class ConvivaAnalyticsSsai {

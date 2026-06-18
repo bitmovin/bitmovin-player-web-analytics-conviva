@@ -1,4 +1,4 @@
-const parseChangelog = require('changelog-parser');
+const { parseChangelog } = require('changelog-parser');
 const semver = require('semver');
 
 async function defineReleaseVersion({ core }, currentVersion, changelogFile, isMajorRelease) {

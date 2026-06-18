@@ -261,9 +261,9 @@ export class ConvivaAnalytics {
     this.lastAdBreakEvent = null;
   }
 
-  private debugLog(message?: any, ...optionalParams: any[]): void {
+  private debugLog(message?: unknown, ...optionalParams: unknown[]): void {
     if (this.debugLoggingEnabled) {
-      console.log.apply(console, arguments);
+      console.log(message, ...optionalParams);
     }
   }
 
@@ -388,7 +388,7 @@ export class ConvivaAnalytics {
     this.convivaAnalyticsTracker.trackError(event);
   };
 
-  private onDestroy = (event: any) => {
+  private onDestroy = (event: PlayerEventBase) => {
     this.debugLog('[ ConvivaAnalytics ] [ Player Event ] destroy', event);
     this.releaseInternal(event);
   };

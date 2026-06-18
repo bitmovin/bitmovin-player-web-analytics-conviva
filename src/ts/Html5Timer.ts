@@ -4,7 +4,7 @@ export class Html5Timer implements Conviva.TimerInterface {
   public createTimer(
     timerAction: Conviva.TimerAction,
     intervalMs: number,
-    actionName?: string | null,
+    _actionName?: string | null,
   ): Conviva.TimerCancelFunction {
     let timerId = window.setInterval(timerAction, intervalMs);
     return function () {

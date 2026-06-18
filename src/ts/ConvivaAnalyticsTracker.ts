@@ -264,7 +264,7 @@ export class ConvivaAnalyticsTracker {
     };
     Conviva.Analytics.setDeviceMetadata(deviceMetadata);
 
-    let callbackFunctions: Record<string, Function> = {};
+    const callbackFunctions: Conviva.ConvivaUtils = {};
     callbackFunctions[Conviva.Constants.CallbackFunctions.CONSOLE_LOG] = this.logger.consoleLog;
     callbackFunctions[Conviva.Constants.CallbackFunctions.MAKE_REQUEST] = new Html5Http().makeRequest;
     const html5Storage = new Html5Storage();
@@ -430,9 +430,9 @@ export class ConvivaAnalyticsTracker {
     Conviva.Analytics.release();
   }
 
-  private debugLog(message?: any, ...optionalParams: any[]): void {
+  private debugLog(message?: unknown, ...optionalParams: unknown[]): void {
     if (this.config.debugLoggingEnabled) {
-      console.log.apply(console, arguments);
+      console.log(message, ...optionalParams);
     }
   }
 
@@ -680,7 +680,7 @@ export class ConvivaAnalyticsTracker {
     }
   }
 
-  private onPlay = (event: PlaybackEvent) => {
+  private onPlay = () => {
     this.debugLog('[ ConvivaAnalyticsTracker ] checking if session needs to be initialized after play event');
 
     if (!this.canTrackPlayEvent) {
@@ -889,8 +889,8 @@ export class ConvivaAnalyticsTracker {
     this.convivaVideoAnalytics.reportPlaybackMetric(Conviva.Constants.Playback.SEEK_ENDED);
   }
 
-  public trackUpdateAudioTrack(audioTrack: AudioTrack) {
-    if (!this.isSessionActive()) {
+  public trackUpdateAudioTrack(audioTrack: AudioTrack | null) {
+    if (!this.isSessionActive() || !audioTrack) {
       return;
     }
 
