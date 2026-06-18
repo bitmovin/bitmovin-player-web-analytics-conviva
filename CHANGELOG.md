@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [6.3.0] - 2026-06-18
 ### Changed
 - Playback error messages reported to Conviva now include the full error context (message, type, timestamp, troubleshoot link, and all relevant `event.data` fields such as `url`, `httpStatusCode`, `statusText`, `downloadType`, etc.) instead of only the error code and name
   - Sensitive query-string parameters (`token`, `sig`, `signature`, `apikey`, etc.) in URL fields are redacted before being forwarded
@@ -188,7 +190,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Seek event tracking
 
-[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.2.0...HEAD
+[Unreleased]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.3.0...HEAD
+[6.3.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.2.0...v6.3.0
 [6.2.0]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.5...v6.2.0
 [6.1.5]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.3...v6.1.5
 [6.1.3]: https://github.com/bitmovin/bitmovin-player-analytics-conviva/compare/v6.1.2...v6.1.3
