@@ -19,6 +19,7 @@ import { Html5Timer } from './Html5Timer';
 import { Timeout } from 'bitmovin-player-ui/dist/js/framework/timeout';
 import { ContentMetadataBuilder, CustomMetadata, Metadata, RequiredMetadata } from './ContentMetadataBuilder';
 import { AdHelper } from './helper/AdHelper';
+import { ErrorHelper } from './helper/ErrorHelper';
 import { PlayerEventWrapper } from './helper/PlayerEventWrapper';
 import { PlayerConfigHelper } from './helper/PlayerConfigHelper';
 import { PlayerStateHelper } from './helper/PlayerStateHelper';
@@ -970,8 +971,12 @@ export class ConvivaAnalyticsTracker {
       this.internalInitializeSession();
     }
 
-    this.debugLog('[ ConvivaAnalyticsTracker ] report playback deficiency', event);
-    this.reportPlaybackDeficiency(String(event.code) + ' ' + event.name, Conviva.Constants.ErrorSeverity.FATAL);
+    const formattedError = ErrorHelper.formatPlaybackError(event);
+    this.debugLog('[ ConvivaAnalyticsTracker ] report playback deficiency', {
+      event,
+      formattedError,
+    });
+    this.reportPlaybackDeficiency(formattedError, Conviva.Constants.ErrorSeverity.FATAL);
   };
 
   private onSourceUnloaded = (event: PlayerEventBase) => {
