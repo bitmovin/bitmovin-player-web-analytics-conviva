@@ -9,7 +9,7 @@ export class Html5Http implements Conviva.HttpInterface {
     timeoutMs: number,
     callback: Conviva.HttpRequestCallback | null,
   ): Conviva.HttpRequestCancelFunction {
-    return this.makeRequestStandard.apply(this, arguments);
+    return this.makeRequestStandard(httpMethod, url, data, contentType, timeoutMs, callback);
   }
 
   public release(): void {

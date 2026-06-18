@@ -1,14 +1,4 @@
-import {
-  Ad,
-  AdBreak,
-  AdBreakEvent,
-  AdData,
-  AdEvent,
-  ErrorEvent,
-  LinearAd,
-  PlayerAPI,
-  VastAdData,
-} from 'bitmovin-player';
+import { Ad, AdBreak, AdBreakEvent, AdData, AdEvent, ErrorEvent, LinearAd, VastAdData } from 'bitmovin-player';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
 import {
   INTEGRATION_VERSION_CONTENT_METADATA_CUSTOM_TAG,

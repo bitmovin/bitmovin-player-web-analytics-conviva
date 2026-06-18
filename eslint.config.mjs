@@ -2,34 +2,32 @@
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-// This config is a direct port of the rules previously enforced by tslint.json.
-// It intentionally does NOT enable the broad typescript-eslint "recommended"
-// preset, to keep linting behavior equivalent to the prior tslint setup.
+// Base ruleset is typescript-eslint's "recommended" preset, augmented with some
+// non-formatting rules.
 //
 // Formatting concerns (indentation, quotes, semicolons, trailing commas,
 // whitespace) are left to Prettier, which is run via the `format` script and
-// lint-staged. ESLint here only covers the non-formatting rules tslint had.
+// lint-staged.
 export default defineConfig(
   {
     ignores: ['dist/', 'node_modules/', 'coverage/'],
   },
+  tseslint.configs.recommended,
   {
     files: ['src/**/*.ts'],
-    plugins: {
-      '@typescript-eslint': tseslint.plugin,
-    },
     languageOptions: {
       parser: tseslint.parser,
     },
     rules: {
+      // Allow intentionally-unused args (e.g. interface-mandated params) to be
+      // prefixed with an underscore.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/naming-convention': [
         'error',
         { selector: 'class', format: ['PascalCase'] },
       ],
       'spaced-comment': ['error', 'always', { markers: ['/'] }],
       'no-eval': 'error',
-      'no-redeclare': 'error',
-      '@typescript-eslint/prefer-namespace-keyword': 'error',
       eqeqeq: ['error', 'always', { null: 'ignore' }],
     },
   },

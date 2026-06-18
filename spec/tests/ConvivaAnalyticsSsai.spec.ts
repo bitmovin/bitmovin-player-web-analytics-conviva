@@ -6,7 +6,6 @@ import {
 import { ConvivaAnalyticsSsai } from '../../src/ts/ConvivaAnalyticsSsai';
 import { mock } from 'jest-mock-extended';
 import * as Conviva from '@convivainc/conviva-js-coresdk';
-import { ContentMetadataBuilder } from '../../src/ts/ContentMetadataBuilder';
 
 describe(ConvivaAnalyticsSsai, () => {
   it('should report isAdBreakActive as false initially', () => {
